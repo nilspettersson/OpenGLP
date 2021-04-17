@@ -7,14 +7,16 @@
 #include <GLFW/glfw3.h>
 
 class Shader {
-	unsigned int compileShader(std::string& source, unsigned int type);
-	unsigned int program;
-
-public:
-	static struct ShaderProgramSouce {
+	struct ShaderProgramSouce {
 		std::string vertexSource;
 		std::string fragmentSource;
 	};
-	static ShaderProgramSouce parseShader(const std::string& filepath);
+	ShaderProgramSouce parseShader(const std::string& filepath);
+	unsigned int compileShader(std::string& source, unsigned int type);
+	void createShader(ShaderProgramSouce);
+	unsigned int program;
+
+public:
 	Shader(std::string vertexShader, std::string fragmentShader);
+	Shader(std::string filepath);
 };

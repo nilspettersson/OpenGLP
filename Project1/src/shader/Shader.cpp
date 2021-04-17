@@ -51,11 +51,23 @@ unsigned int Shader::compileShader(std::string& source, unsigned int type) {
     return id;
 }
 
-
 Shader::Shader(std::string vertexShader, std::string fragmentShader) {
+    Shader::ShaderProgramSouce source;
+    source.vertexSource = vertexShader;
+    source.fragmentSource = fragmentShader;
+    createShader(source);
+}
+
+Shader::Shader(std::string filepath) {
+    Shader::ShaderProgramSouce source = Shader::parseShader("res/shaders/main.shader");
+    createShader(source);
+}
+
+void Shader::createShader(Shader::ShaderProgramSouce source) {
     Shader::program = glCreateProgram();
-    unsigned int vs = compileShader(vertexShader, GL_VERTEX_SHADER);
-    unsigned int fs = compileShader(fragmentShader, GL_FRAGMENT_SHADER);
+
+    unsigned int vs = compileShader(source.vertexSource, GL_VERTEX_SHADER);
+    unsigned int fs = compileShader(source.fragmentSource, GL_FRAGMENT_SHADER);
 
     glAttachShader(Shader::program, vs);
     glAttachShader(Shader::program, fs);

@@ -26,8 +26,9 @@ int main(void) {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-    Shader::ShaderProgramSouce source = Shader::parseShader("res/shaders/main.shader");
-    Shader shader(source.vertexSource, source.fragmentSource);
+
+
+    Shader shader("res/shaders/main.shader");
 
     while (!window.shouldClose()) {
         window.drawInit();
