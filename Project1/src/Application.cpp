@@ -18,21 +18,18 @@ int main(void) {
         0.5f, 0.5f,
         -0.5f, 0.5f,
     };
-
     unsigned int indices[]{
         0, 1, 2,
         2, 3, 0
     };
 
-    Vao vao({ 2 }, indices, positions);
-
+    Vao vao({ 2 }, indices, 6, positions, 4);
 
     Shader shader("res/shaders/main.shader");
-
     while (!window.shouldClose()) {
         window.drawInit();
 
-        glDrawElements(GL_TRIANGLES, 6 , GL_UNSIGNED_INT, nullptr);
+        vao.render();
 
         window.clean();
     }
