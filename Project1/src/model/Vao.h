@@ -12,5 +12,5 @@ class Vao {
 	void setVertexSize();
 
 public:
-	Vao(std::vector<int> vertexLayout);
+	Vao(std::vector<int> vertexLayout, unsigned int indices[], float vertices[]);
 };
