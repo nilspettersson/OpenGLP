@@ -24,7 +24,7 @@ int main(void) {
         2, 3, 0
     };
 
-    Vao vao({ 2 });
+    Vao vao({ 2 }, indices, positions);
 
 
     Shader shader("res/shaders/main.shader");
