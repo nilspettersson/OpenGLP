@@ -8,9 +8,13 @@ class Vao {
 	unsigned int vaoArrayId;
 	std::vector<int> vertexLayout;
 	int vertexSize;
+	int indicesCount;
+	int verticesCount;
 	unsigned int vaoElementId;
 	void setVertexSize();
 
 public:
-	Vao(std::vector<int> vertexLayout, unsigned int indices[], float vertices[]);
+	Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indicesCount, const float* vertices, int verticesCount);
+	void bind();
+	void render();
 };
