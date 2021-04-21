@@ -1,17 +1,23 @@
 #include "Vao.h"
 #include <iostream>
 
-Vao::Vao(std::vector<int> vertexLayout, unsigned int indices[], float vertices[]) {
+Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indicesCount, const float* vertices, int verticesCount) {
 	this->vertexLayout = vertexLayout;
+
+	this->indicesCount = indicesCount;
+	this->verticesCount = verticesCount;
+
 	Vao::setVertexSize();
+
+	std::cout << sizeof(indices) << std::endl;
 
 	glGenBuffers(1, &this->vaoArrayId);
 	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
-	glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, verticesCount * Vao::vertexSize, vertices, GL_STATIC_DRAW);
 
 	glGenBuffers(1, &this->vaoElementId);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vaoElementId);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesCount * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 
 	for (int i = 0; i < this->vertexLayout.size(); i++) {
