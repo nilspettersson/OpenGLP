@@ -32,3 +32,9 @@ void Vao::setVertexSize() {
 		this->vertexSize += this->vertexLayout[i] * sizeof(float);
 	}
 }
+
+void Vao::render() {
+	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vaoElementId);
+	glDrawElements(GL_TRIANGLES, this->indicesCount, GL_UNSIGNED_INT, nullptr);
+}
