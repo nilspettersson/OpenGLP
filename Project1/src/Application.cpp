@@ -22,11 +22,11 @@ int main(void) {
         0, 1, 2,
         2, 3, 0
     };
-
     Vao vao({ 2 }, indices, 6, positions, 4);
 
-
     Shader shader("res/shaders/main.shader");
+    shader.setUniform4f("color", 0.0, 1.0, 0.0, 1.0);
+
     while (!window.shouldClose()) {
         window.drawInit();
 
