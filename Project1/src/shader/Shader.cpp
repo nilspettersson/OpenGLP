@@ -64,22 +64,31 @@ Shader::Shader(std::string filepath) {
 }
 
 void Shader::createShader(Shader::ShaderProgramSouce source) {
-    Shader::program = glCreateProgram();
+    this->shaderId = glCreateProgram();
 
     unsigned int vs = compileShader(source.vertexSource, GL_VERTEX_SHADER);
     unsigned int fs = compileShader(source.fragmentSource, GL_FRAGMENT_SHADER);
 
-    glAttachShader(Shader::program, vs);
-    glAttachShader(Shader::program, fs);
-    glLinkProgram(Shader::program);
-    glValidateProgram(Shader::program);
+    glAttachShader(this->shaderId, vs);
+    glAttachShader(this->shaderId, fs);
+    glLinkProgram(this->shaderId);
+    glValidateProgram(this->shaderId);
 
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    glUseProgram(Shader::program);
+    glUseProgram(Shader::shaderId);
 }
 
-unsigned int Shader::getProgram() {
-    return this->program;
+int Shader::getUniformLocation(std::string name) {
+    return glGetUniformLocation(this->shaderId, name.c_str());
+}
+
+unsigned int Shader::getShaderId() {
+    return this->shaderId;
+}
+
+void Shader::setUniform4f(std::string name, float v1, float v2, float v3, float v4) {
+    int location = this->getUniformLocation(name);
+    glUniform4f(location, v1, v2, v3, v4);
 }
