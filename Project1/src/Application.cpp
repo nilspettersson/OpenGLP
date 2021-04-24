@@ -25,6 +25,7 @@ int main(void) {
 
     Vao vao({ 2 }, indices, 6, positions, 4);
 
+
     Shader shader("res/shaders/main.shader");
     while (!window.shouldClose()) {
         window.drawInit();

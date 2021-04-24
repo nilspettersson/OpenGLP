@@ -79,3 +79,7 @@ void Shader::createShader(Shader::ShaderProgramSouce source) {
 
     glUseProgram(Shader::program);
 }
+
+unsigned int Shader::getProgram() {
+    return this->program;
+}

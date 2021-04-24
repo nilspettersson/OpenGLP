@@ -19,4 +19,6 @@ class Shader {
 public:
 	Shader(std::string vertexShader, std::string fragmentShader);
 	Shader(std::string filepath);
+
+	unsigned int getProgram();
 };
