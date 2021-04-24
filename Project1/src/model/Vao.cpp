@@ -9,7 +9,6 @@ Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indices
 
 	Vao::setVertexSize();
 
-	std::cout << sizeof(indices) << std::endl;
 
 	glGenBuffers(1, &this->vaoArrayId);
 	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
@@ -37,4 +36,16 @@ void Vao::render() {
 	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vaoElementId);
 	glDrawElements(GL_TRIANGLES, this->indicesCount, GL_UNSIGNED_INT, nullptr);
+}
+
+unsigned int Vao::getVaoArrayId() {
+	return this->vaoArrayId;
+}
+
+unsigned int Vao::getVaoElementId() {
+	return this->vaoElementId;
+}
+
+int Vao::getVertexSize() {
+	return this->vertexSize;
 }

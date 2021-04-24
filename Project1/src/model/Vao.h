@@ -16,4 +16,7 @@ class Vao {
 public:
 	Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indicesCount, const float* vertices, int verticesCount);
 	void render();
+	unsigned int getVaoArrayId();
+	unsigned int getVaoElementId();
+	int getVertexSize();
 };
