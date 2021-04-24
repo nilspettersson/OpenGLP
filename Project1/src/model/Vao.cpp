@@ -1,6 +1,8 @@
 #include "Vao.h"
 #include <iostream>
 
+using namespace glp;
+
 Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indicesCount, const float* vertices, int verticesCount) {
 	this->vertexLayout = vertexLayout;
 

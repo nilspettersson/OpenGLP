@@ -1,5 +1,7 @@
 #include "Shader.h";
 
+using namespace glp;
+
 Shader::ShaderProgramSouce Shader::parseShader(const std::string& filepath) {
     std::ifstream stream(filepath);
 
@@ -77,7 +79,7 @@ void Shader::createShader(Shader::ShaderProgramSouce source) {
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    glUseProgram(Shader::shaderId);
+    glUseProgram(this->shaderId);
 }
 
 int Shader::getUniformLocation(std::string name) {
@@ -86,6 +88,10 @@ int Shader::getUniformLocation(std::string name) {
 
 unsigned int Shader::getShaderId() {
     return this->shaderId;
+}
+
+void Shader::bind() {
+    glUseProgram(this->shaderId);
 }
 
 void Shader::setUniform4f(std::string name, float v1, float v2, float v3, float v4) {
