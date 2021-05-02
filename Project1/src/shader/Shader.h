@@ -5,6 +5,8 @@
 #include <sstream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 namespace glp {
 
@@ -27,5 +29,6 @@ namespace glp {
 		void bind();
 
 		void setUniform4f(std::string name, float v1, float v2, float v3, float v4);
+		void setUniformMat4f(std::string name, const glm::mat4& matrix);
 	};
 }
