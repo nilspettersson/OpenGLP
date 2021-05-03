@@ -1,16 +1,12 @@
 #include <iostream>
 #include <crtdbg.h>
-#include <fstream>
-#include <string>
-#include <sstream>
-
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
 #include "model/Vao.h"
-#include "Window.h"
+#include "window/Window.h"
 #include "shader/Shader.h"
-#include "Camera.h"
+#include "camera/Camera.h"
 
 int main(void) {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);

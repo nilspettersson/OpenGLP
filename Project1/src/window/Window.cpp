@@ -1,5 +1,6 @@
 #include <iostream>
 #include "wtypes.h"
+
 #include "Window.h"
 
 
@@ -33,12 +34,12 @@ Window::Window(int width, int height) {
 }
 
 Window::Window() {
-    this->width = 192;
-    this->height = 108;
+    this->width = 1920;
+    this->height = 1080;
     getDesktopResolution(this->width, this->height);
 
     if (glfwInit()) {
-        this->window = glfwCreateWindow(this->width, this->height, "Hello World", glfwGetPrimaryMonitor(), NULL);
+        this->window = glfwCreateWindow(this->width, this->height, "window", glfwGetPrimaryMonitor(), NULL);
         if (!this->window) {
             destroy();
         }
