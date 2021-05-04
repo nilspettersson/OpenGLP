@@ -21,9 +21,11 @@ Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indices
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesCount * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 
+	int offset = 0;
 	for (int i = 0; i < this->vertexLayout.size(); i++) {
 		glEnableVertexAttribArray(i);
-		glVertexAttribPointer(i, this->vertexLayout[i], GL_FLOAT, GL_FALSE, this->vertexSize, 0);
+		glVertexAttribPointer(i, this->vertexLayout[i], GL_FLOAT, GL_FALSE, this->vertexSize, (const void*) offset);
+		offset += this->vertexLayout[i] * sizeof(float);
 	}
 }
 
