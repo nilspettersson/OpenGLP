@@ -150,12 +150,16 @@
     <ClCompile Include="src\camera\Camera.cpp" />
     <ClCompile Include="src\model\Vao.cpp" />
     <ClCompile Include="src\shader\Shader.cpp" />
+    <ClCompile Include="src\vendor\stb\stb_image.cpp" />
+    <ClCompile Include="src\texture\Texture.cpp" />
     <ClCompile Include="src\window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\camera\Camera.h" />
+    <ClInclude Include="src\texture\Texture.h" />
     <ClInclude Include="src\model\Vao.h" />
     <ClInclude Include="src\shader\Shader.h" />
+    <ClInclude Include="src\vendor\stb\stb_image.h" />
     <ClInclude Include="src\window\Window.h" />
   </ItemGroup>
   <ItemGroup>
