@@ -3,6 +3,7 @@
 
 #include "Window.h"
 
+using namespace glp;
 
 void getDesktopResolution(int& width, int& height) {
     RECT desktop;
