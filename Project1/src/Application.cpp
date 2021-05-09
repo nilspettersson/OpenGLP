@@ -8,6 +8,7 @@
 #include "shader/Shader.h"
 #include "camera/Camera.h"
 #include "texture/Texture.h";
+#include "rendering/Renderer.h"
 
 int main(void) {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
@@ -37,14 +38,13 @@ int main(void) {
     glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
     texture.bind();
     shader.setUniform1i("u_texture", 0);
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
     
+    glp::Renderer renderer = glp::Renderer();
+
     while (!window.shouldClose()) {
         window.drawInit();
 
-        vao.render();
+        renderer.render(&vao);
 
         window.clean();
     }
