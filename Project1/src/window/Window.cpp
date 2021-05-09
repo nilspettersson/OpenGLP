@@ -15,12 +15,12 @@ void getDesktopResolution(int& width, int& height) {
 }
 
 Window::Window(int width, int height) {
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    this->window = NULL;
     this->width = width;
     this->height = height;
 
     if (glfwInit()) {
-        this->window = glfwCreateWindow(width, height, "Hello World", NULL, NULL);
+        this->window = glfwCreateWindow(width, height, "window", NULL, NULL);
         if (!this->window) {
             destroy();
         }
@@ -35,6 +35,7 @@ Window::Window(int width, int height) {
 }
 
 Window::Window() {
+    this->window = NULL;
     this->width = 1920;
     this->height = 1080;
     getDesktopResolution(this->width, this->height);

@@ -13,7 +13,7 @@
 int main(void) {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-    Window window = Window(1000, 1000);
+    glp::Window window = glp::Window(1000, 1000);
     glp::Camera2d camera = glp::Camera2d(1, 1);
     camera.setX(0);
     camera.setY(0);
