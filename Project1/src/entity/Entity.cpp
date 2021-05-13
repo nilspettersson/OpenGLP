@@ -22,3 +22,11 @@ Vao* Entity::getModel() {
 void Entity::setModel(Vao* model) {
 	this->model = model;
 }
+
+Texture* Entity::getTexture() {
+	return this->texture;
+}
+
+void Entity::setTexture(Texture* texture) {
+	this->texture = texture;
+}
