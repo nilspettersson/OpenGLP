@@ -1,5 +1,8 @@
 #pragma once
+#include <vector>
+#include "../shader/Shader.h"
 #include "../model/Vao.h"
+#include "../entity/Entity.h"
 
 namespace glp {
 	class Renderer {
@@ -7,6 +10,7 @@ namespace glp {
 	public:
 		Renderer();
 
-		void render(Vao* vao);
+		void render(Entity* entity);
+
 	};
 }

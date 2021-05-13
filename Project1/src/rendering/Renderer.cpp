@@ -6,8 +6,10 @@ Renderer::Renderer() {
 	glEnable(GL_BLEND);
 }
 
-void Renderer::render(Vao* vao) {
-	vao->bind();
-	vao->render();
+void Renderer::render(Entity* entity) {
+	entity->getTexture()->bind();
+	entity->getShader()->bind();
+	entity->getModel()->bind();
+	entity->getModel()->render();
 }
 
