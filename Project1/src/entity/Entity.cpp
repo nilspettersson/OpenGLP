@@ -2,10 +2,11 @@
 
 using namespace glp;
 
-glp::Entity::Entity(Vao* model, Shader* shader) {
+glp::Entity::Entity(Vao* model, Shader* shader, float scale) {
 	this->x = 0;
 	this->y = 0;
 	this->z = 0;
+	this->scale = scale;
 	this->texture = NULL;
 	this->model = model;
 	this->shader = shader;
@@ -57,4 +58,12 @@ void glp::Entity::setZ(float z) {
 
 float glp::Entity::getZ() {
 	return this->z;
+}
+
+void glp::Entity::setScale(float scale) {
+	this->scale = scale;
+}
+
+float glp::Entity::getScale() {
+	return this->scale;
 }
