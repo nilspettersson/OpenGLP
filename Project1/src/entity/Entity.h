@@ -5,6 +5,9 @@
 
 namespace glp {
 	class Entity {
+		float x;
+		float y;
+		float z;
 		Shader* shader;
 		Vao* model;
 		Texture* texture;
@@ -20,5 +23,14 @@ namespace glp {
 
 		Texture* getTexture();
 		void setTexture(Texture* texture);
+
+		void setX(float x);
+		float getX();
+
+		void setY(float y);
+		float getY();
+
+		void setZ(float z);
+		float getZ();
 	};
 }
