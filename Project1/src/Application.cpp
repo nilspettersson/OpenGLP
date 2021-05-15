@@ -16,7 +16,7 @@ int main(void) {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
     glp::Window window = glp::Window(1000, 1000);
-    glp::Camera2d camera = glp::Camera2d(1, 1);
+    glp::Camera2d camera = glp::Camera2d(1000, 1000);
 
     float vertices[] = {
         -0.5f, -0.5f, 0.0f, 0.0f,
@@ -32,13 +32,13 @@ int main(void) {
     glp::Shader shader("res/shaders/main.shader");
     glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
     
-    glp::Entity entity = glp::Entity(&vao, &shader);
+    glp::Entity entity = glp::Entity(&vao, &shader, 10);
     entity.setTexture(&texture);
     entity.getShader()->setUniform1i("u_texture", 0);
-    entity.getShader()->setUniformMat4f("u_mvp", camera.getProjection());
     entity.getShader()->setUniform4f("color", 0.0, 1.0, 0.0, 1.0);
+    entity.setX(0.2f);
     
-    glp::Renderer renderer = glp::Renderer();
+    glp::Renderer renderer = glp::Renderer(&camera);
     while (!window.shouldClose()) {
         window.drawInit();
 
