@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <crtdbg.h>
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -31,18 +32,35 @@ int main(void) {
     glp::Vao vao({2, 2}, indices, 6, vertices, 4);
     glp::Shader shader("res/shaders/main.shader");
     glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
-    
-    glp::Entity entity = glp::Entity(&vao, &shader, 10);
+
+    std::vector<glp::Entity> entites = std::vector<glp::Entity>();
+    for (int i = 0; i < 100; i++) {
+        for (int ii = 0; ii < 10; ii++) {
+            entites.push_back(glp::Entity(&vao, &shader, 60));
+            entites[entites.size() - 1].setTexture(&texture);
+            entites[entites.size() - 1].getShader()->setUniform1i("u_texture", 0);
+            entites[entites.size() - 1].getShader()->setUniform4f("color", 0.0, 1.0, 0.0, 1.0);
+            entites[entites.size() - 1].setX(i * 80 - 460);
+            entites[entites.size() - 1].setY(ii * 80 - 460);
+        }
+    }
+    /*glp::Entity entity = glp::Entity(&vao, &shader, 10);
     entity.setTexture(&texture);
     entity.getShader()->setUniform1i("u_texture", 0);
-    entity.getShader()->setUniform4f("color", 0.0, 1.0, 0.0, 1.0);
-    entity.setX(0.2f);
+    entity.getShader()->setUniform4f("color", 0.0, 1.0, 0.0, 1.0);*/
     
     glp::Renderer renderer = glp::Renderer(&camera);
+
+    texture.bind();
     while (!window.shouldClose()) {
         window.drawInit();
-
-        renderer.render(&entity);
+        {
+            util::Timer timer;
+            for (int i = 0; i < entites.size(); i++) {
+                renderer.render(&entites[i]);
+            }
+        }
+        //renderer.render(&entity);
 
         window.clean();
     }
