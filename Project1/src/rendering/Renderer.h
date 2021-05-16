@@ -10,6 +10,7 @@
 namespace glp {
 	class Renderer {
 		Camera2d* camera;
+		unsigned int currentShaderId;
 
 	public:
 		Renderer(Camera2d* camera);
