@@ -154,6 +154,7 @@
     <ClCompile Include="src\shader\Shader.cpp" />
     <ClCompile Include="src\vendor\stb\stb_image.cpp" />
     <ClCompile Include="src\texture\Texture.cpp" />
+    <ClCompile Include="src\window\Input.cpp" />
     <ClCompile Include="src\window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -165,6 +166,7 @@
     <ClInclude Include="src\shader\Shader.h" />
     <ClInclude Include="src\util\Util.h" />
     <ClInclude Include="src\vendor\stb\stb_image.h" />
+    <ClInclude Include="src\window\Input.h" />
     <ClInclude Include="src\window\Window.h" />
   </ItemGroup>
   <ItemGroup>

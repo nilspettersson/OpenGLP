@@ -13,11 +13,14 @@
 #include "entity/Entity.h";
 #include "util/Util.h"
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
 int main(void) {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-    glp::Window window = glp::Window(1000, 1000);
-    glp::Camera2d camera = glp::Camera2d(1000, 1000);
+    glp::Window window = glp::Window(800, 800);
+    glp::Camera2d camera = glp::Camera2d(800, 800);
 
     float vertices[] = {
         -0.5f, -0.5f, 0.0f, 0.0f,
@@ -55,12 +58,16 @@ int main(void) {
     while (!window.shouldClose()) {
         window.drawInit();
         {
-            util::Timer timer;
+            //util::Timer timer;
             for (int i = 0; i < entites.size(); i++) {
                 renderer.render(&entites[i]);
             }
         }
         //renderer.render(&entity);
+
+        if (window.isKeyDown(GLFW_KEY_P)) {
+            std::cout << "click" << std::endl;
+        }
 
         window.clean();
     }

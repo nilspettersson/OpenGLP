@@ -1,6 +1,7 @@
 #pragma once
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "Input.h"
 
 namespace glp {
     class Window {
@@ -17,6 +18,8 @@ namespace glp {
         void destroy();
         void drawInit();
         void clean();
+
+        bool isKeyDown(int);
 
     };
 }

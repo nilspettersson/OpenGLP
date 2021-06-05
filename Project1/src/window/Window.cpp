@@ -75,3 +75,8 @@ void Window::clean() {
     glfwSwapBuffers(this->window);
     glfwPollEvents();
 }
+
+
+bool Window::isKeyDown(int keycode) {
+    return Input::isKeyDown(this->window, keycode);
+}
