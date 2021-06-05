@@ -20,7 +20,7 @@ int main(void) {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
     glp::Window window = glp::Window(800, 800);
-    glp::Camera2d camera = glp::Camera2d(800, 800);
+    glp::Camera3d camera = glp::Camera3d(800, 800);
 
     float vertices[] = {
         -0.5f, -0.5f, 0.0f, 0.0f,
@@ -34,13 +34,13 @@ int main(void) {
     };
     glp::Vao vao({2, 2}, indices, 6, vertices, 4);
     glp::Shader shader("res/shaders/main.shader");
-    glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
+    //glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
 
     std::vector<glp::Entity> entites = std::vector<glp::Entity>();
     for (int i = 0; i < 100; i++) {
         for (int ii = 0; ii < 10; ii++) {
             entites.push_back(glp::Entity(&vao, &shader, 60));
-            entites[entites.size() - 1].setTexture(&texture);
+            //entites[entites.size() - 1].setTexture(&texture);
             entites[entites.size() - 1].getShader()->setUniform1i("u_texture", 0);
             entites[entites.size() - 1].getShader()->setUniform4f("color", 0.0, 1.0, 0.0, 1.0);
             entites[entites.size() - 1].setX(i * 80 - 460);
@@ -54,7 +54,7 @@ int main(void) {
     
     glp::Renderer renderer = glp::Renderer(&camera);
 
-    texture.bind();
+    //texture.bind();
     while (!window.shouldClose()) {
         window.drawInit();
         {
