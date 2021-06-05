@@ -1,7 +1,7 @@
 #include "Renderer.h"
 
 using namespace glp;
-Renderer::Renderer(Camera3d* camera) {
+Renderer::Renderer(Camera* camera) {
 	this->camera = camera;
 	this->currentShaderId = 0;
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -21,6 +21,7 @@ int main(void) {
 
     glp::Window window = glp::Window(800, 800);
     glp::Camera3d camera = glp::Camera3d(800, 800);
+    camera.setZ(-500);
 
     float vertices[] = {
         -0.5f, -0.5f, 0.0f, 0.0f,

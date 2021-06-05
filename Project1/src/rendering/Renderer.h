@@ -9,11 +9,11 @@
 
 namespace glp {
 	class Renderer {
-		Camera3d* camera;
+		Camera* camera;
 		unsigned int currentShaderId;
 
 	public:
-		Renderer(Camera3d* camera);
+		Renderer(Camera* camera);
 
 		void render(Entity* entity);
 

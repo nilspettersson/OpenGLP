@@ -6,26 +6,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 namespace glp {
-	class Camera2d {
-		float width;
-		float height;
-		glm::mat4 projection;
-		float x;
-		float y;
-	public:
-		Camera2d(int width, int height);
-		glm::mat4 getProjection();
-		int getWidth();
-		int getHeight();
-
-		int getX();
-		int getY();
-		void setX(float x);
-		void setY(float y);
-
-	};
-
-	class Camera3d {
+	class Camera {
+	protected:
 		float width;
 		float height;
 		glm::mat4 projection;
@@ -33,17 +15,28 @@ namespace glp {
 		float y;
 		float z;
 	public:
-		Camera3d(int width, int height);
+		Camera(int width, int height);
 		glm::mat4 getProjection();
 		int getWidth();
 		int getHeight();
 
 		int getX();
 		int getY();
-		int getZ();
 		void setX(float x);
 		void setY(float y);
-		void setZ(float z);
+	};
 
+
+	class Camera2d : public Camera {
+	public:
+		Camera2d(int width, int height);
+	};
+
+	class Camera3d : public Camera {
+
+	public:
+		Camera3d(int width, int height);
+		int getZ();
+		void setZ(float z);
 	};
 }
