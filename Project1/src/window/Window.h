@@ -6,6 +6,7 @@
 namespace glp {
     class Window {
         GLFWwindow* window;
+        Input input;
         int width;
         int height;
 
@@ -19,7 +20,6 @@ namespace glp {
         void drawInit();
         void clean();
 
-        bool isKeyDown(int);
-
+        Input getInput();
     };
 }

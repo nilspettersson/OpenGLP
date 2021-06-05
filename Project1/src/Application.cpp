@@ -65,8 +65,8 @@ int main(void) {
         }
         //renderer.render(&entity);
 
-        if (window.isKeyDown(GLFW_KEY_P)) {
-            std::cout << "click" << std::endl;
+        if (window.getInput().isMouseButtonDown(0)) {
+            std::cout << "mouse down" << std::endl;
         }
 
         window.clean();

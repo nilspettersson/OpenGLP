@@ -32,6 +32,7 @@ Window::Window(int width, int height) {
         }
     }
 
+    this->input = Input(this->window);
 }
 
 Window::Window() {
@@ -53,6 +54,7 @@ Window::Window() {
         }
     }
 
+    this->input = Input(this->window);
 }
 
 bool Window::shouldClose() {
@@ -76,7 +78,6 @@ void Window::clean() {
     glfwPollEvents();
 }
 
-
-bool Window::isKeyDown(int keycode) {
-    return Input::isKeyDown(this->window, keycode);
+Input Window::getInput() {
+    return this->input;
 }

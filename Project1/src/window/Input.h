@@ -1,11 +1,16 @@
 #pragma once
-#include "Window.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 namespace glp {
-	static class Input {
+	class Input {
+		GLFWwindow* window;
 	public:
-		static bool isKeyDown(GLFWwindow*, int);
+		Input() { };
+		Input(GLFWwindow*);
+		bool isKeyDown(int);
+		bool isMouseButtonDown(int);
+		bool getMouseX(int);
+		bool getMouseY(int);
 	};
 }
