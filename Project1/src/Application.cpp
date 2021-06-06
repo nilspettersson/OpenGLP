@@ -19,9 +19,9 @@
 int main(void) {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-    glp::Window window = glp::Window(800, 800);
-    glp::Camera3d camera = glp::Camera3d(800, 800);
-    camera.setZ(-500);
+    glp::Window window = glp::Window(600, 600);
+    glp::Camera3d camera = glp::Camera3d(600, 600);
+    camera.setZ(-1000);
 
     float vertices[] = {
         -0.5f, -0.5f, 0.0f, 0.0f,
@@ -38,12 +38,11 @@ int main(void) {
     //glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
 
     std::vector<glp::Entity> entites = std::vector<glp::Entity>();
-    for (int i = 0; i < 100; i++) {
-        for (int ii = 0; ii < 10; ii++) {
+    for (int i = 0; i < 40; i++) {
+        for (int ii = 0; ii < 40; ii++) {
             entites.push_back(glp::Entity(&vao, &shader, 60));
             //entites[entites.size() - 1].setTexture(&texture);
             entites[entites.size() - 1].getShader()->setUniform1i("u_texture", 0);
-            entites[entites.size() - 1].getShader()->setUniform4f("color", 0.0, 1.0, 0.0, 1.0);
             entites[entites.size() - 1].setX(i * 80 - 460);
             entites[entites.size() - 1].setY(ii * 80 - 460);
         }
@@ -55,21 +54,70 @@ int main(void) {
     
     glp::Renderer renderer = glp::Renderer(&camera);
 
+    window.getInput().setCursorDisabled(true);
+    window.getInput().setCursorPosition(0, 0);
+
+    float yy = 0;
+    float xx = 0;
+
     //texture.bind();
     while (!window.shouldClose()) {
         window.drawInit();
         {
-            //util::Timer timer;
+            util::Timer timer;
             for (int i = 0; i < entites.size(); i++) {
+                entites[i].getShader()->setUniform4f("color", sin(i / 100.0f), 1, cos(i / 100.0f), 1.0);
                 renderer.render(&entites[i]);
             }
         }
         //renderer.render(&entity);
 
-        if (window.getInput().isMouseButtonDown(0)) {
-            std::cout << "mouse down" << std::endl;
+        yy += (float)window.getInput().getMouseX() / 400;
+        xx += (float)window.getInput().getMouseY() / 400;
+        camera.rotateX((float)window.getInput().getMouseY() / 400);
+        camera.rotateY((float)window.getInput().getMouseX() / 400);
+        
+
+
+        if (window.getInput().isKeyDown(GLFW_KEY_W)) {
+            glm::vec3 pos = glm::rotate(glm::quat(camera.rotation), glm::vec3(0, 0, 6.0f));
+            camera.setX(camera.getX() - pos.x);
+            camera.setY(camera.getY() - pos.y);
+            camera.setZ(camera.getZ() + pos.z);
+        }
+        if (window.getInput().isKeyDown(GLFW_KEY_S)) {
+            glm::vec3 pos = glm::rotate(glm::quat(camera.rotation), glm::vec3(0, 0, -6.0f));
+            camera.setX(camera.getX() - pos.x);
+            camera.setY(camera.getY() - pos.y);
+            camera.setZ(camera.getZ() + pos.z);
+        }
+        if (window.getInput().isKeyDown(GLFW_KEY_A)) {
+            glm::vec3 pos = glm::rotate(glm::quat(camera.rotation), glm::vec3(-6.0f, 0, 0));
+            camera.setX(camera.getX() - pos.x);
+            camera.setY(camera.getY() - pos.y);
+            camera.setZ(camera.getZ() + pos.z);
+        }
+        if (window.getInput().isKeyDown(GLFW_KEY_D)) {
+            glm::vec3 pos = glm::rotate(glm::quat(camera.rotation), glm::vec3(6.0f, 0, 0));
+            camera.setX(camera.getX() - pos.x);
+            camera.setY(camera.getY() - pos.y);
+            camera.setZ(camera.getZ() + pos.z);
+        }
+        if (window.getInput().isKeyDown(GLFW_KEY_Q)) {
+            glm::vec3 pos = glm::rotate(glm::quat(camera.rotation), glm::vec3(0, -6.0f, 0));
+            camera.setX(camera.getX() - pos.x);
+            camera.setY(camera.getY() - pos.y);
+            camera.setZ(camera.getZ() + pos.z);
+        }
+        if (window.getInput().isKeyDown(GLFW_KEY_E)) {
+            glm::vec3 pos = glm::rotate(glm::quat(camera.rotation), glm::vec3(0, 6.0f, 0));
+            camera.setX(camera.getX() - pos.x);
+            camera.setY(camera.getY() - pos.y);
+            camera.setZ(camera.getZ() + pos.z);
         }
 
+
+        window.getInput().setCursorPosition(0, 0);
         window.clean();
     }
 
