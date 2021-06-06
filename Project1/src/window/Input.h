@@ -10,7 +10,12 @@ namespace glp {
 		Input(GLFWwindow*);
 		bool isKeyDown(int);
 		bool isMouseButtonDown(int);
-		bool getMouseX(int);
-		bool getMouseY(int);
+		double getMouseX();
+		double getMouseY();
+
+		void setCursorHidden();
+		void setCursorDisabled(bool useRawMouseData);
+		void setCursorNormal();
+		void setCursorPosition(float x, float y);
 	};
 }

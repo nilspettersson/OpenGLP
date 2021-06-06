@@ -16,14 +16,34 @@ bool Input::isMouseButtonDown(int button) {
 	return state == GLFW_PRESS;
 }
 
-bool Input::getMouseX(int button) {
+double Input::getMouseX() {
 	double x, y;
 	glfwGetCursorPos(this->window, &x, &y);
 	return x;
 }
 
-bool Input::getMouseY(int button) {
+double Input::getMouseY() {
 	double x, y;
 	glfwGetCursorPos(this->window, &x, &y);
 	return y;
+}
+
+void glp::Input::setCursorHidden() {
+	glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+}
+
+void glp::Input::setCursorDisabled(bool useRawMouseData) {
+	glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	if (useRawMouseData || glfwRawMouseMotionSupported()) {
+		glfwSetInputMode(this->window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+	}
+}
+
+void glp::Input::setCursorNormal() {
+	glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
+void glp::Input::setCursorPosition(float x, float y) {
+	glfwSetCursorPos(this->window, x, y);
 }
