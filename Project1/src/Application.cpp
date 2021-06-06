@@ -42,6 +42,7 @@ int main(void) {
         for (int ii = 0; ii < 40; ii++) {
             entites.push_back(glp::Entity(&vao, &shader, 60));
             //entites[entites.size() - 1].setTexture(&texture);
+            entites[entites.size() - 1].getShader()->setUniform4f("color", 1.0, 1.0, 1.0, 1.0);
             entites[entites.size() - 1].getShader()->setUniform1i("u_texture", 0);
             entites[entites.size() - 1].setX(i * 80 - 460);
             entites[entites.size() - 1].setY(ii * 80 - 460);
@@ -66,8 +67,11 @@ int main(void) {
         {
             util::Timer timer;
             for (int i = 0; i < entites.size(); i++) {
-                entites[i].getShader()->setUniform4f("color", sin(i / 100.0f), 1, cos(i / 100.0f), 1.0);
-                renderer.render(&entites[i]);
+                //entites[i].getShader()->setUniform4f("color", sin(i / 100.0f), 1, cos(i / 100.0f), 1.0);
+                {
+                    //util::Timer timer;
+                    renderer.render(&entites[i]);
+                }
             }
         }
         //renderer.render(&entity);

@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <unordered_map>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "glm/glm.hpp"
@@ -12,6 +13,7 @@ namespace glp {
 
 	class Shader {
 		unsigned int shaderId;
+		std::unordered_map<std::string, int> uniformLocations;
 		struct ShaderProgramSouce {
 			std::string vertexSource;
 			std::string fragmentSource;

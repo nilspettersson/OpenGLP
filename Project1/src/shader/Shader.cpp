@@ -1,4 +1,5 @@
 #include "Shader.h";
+#include "../util/Util.h"
 
 using namespace glp;
 
@@ -54,6 +55,7 @@ unsigned int Shader::compileShader(std::string& source, unsigned int type) {
 }
 
 Shader::Shader(std::string vertexShader, std::string fragmentShader) {
+    this->uniformLocations = std::unordered_map<std::string, int>();
     Shader::ShaderProgramSouce source;
     source.vertexSource = vertexShader;
     source.fragmentSource = fragmentShader;
@@ -83,7 +85,12 @@ void Shader::createShader(Shader::ShaderProgramSouce source) {
 }
 
 int Shader::getUniformLocation(std::string name) {
-    return glGetUniformLocation(this->shaderId, name.c_str());
+    if (this->uniformLocations.find(name) != this->uniformLocations.end()) {
+        return this->uniformLocations[name];
+    }
+    int location = glGetUniformLocation(this->shaderId, name.c_str());
+    this->uniformLocations[name] = location;
+    return location;
 }
 
 unsigned int Shader::getShaderId() {
