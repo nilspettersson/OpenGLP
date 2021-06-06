@@ -14,19 +14,19 @@ glm::mat4 glp::Camera::getProjection() {
 	return output;
 }
 
-int glp::Camera::getWidth() {
+float glp::Camera::getWidth() {
 	return this->width;
 }
 
-int glp::Camera::getHeight() {
+float glp::Camera::getHeight() {
 	return this->height;
 }
 
-int glp::Camera::getX() {
+float glp::Camera::getX() {
 	return this->x;
 }
 
-int glp::Camera::getY() {
+float glp::Camera::getY() {
 	return this->y;
 }
 
@@ -52,13 +52,35 @@ glp::Camera3d::Camera3d(int width, int height) : Camera(width, height) {
 	this->x = 0;
 	this->y = 0;
 	this->z = 0;
-	this->projection = glm::perspective(2.2f, this->width / this->height, 0.1f, 1000.0f);
+	this->rotation = glm::vec3();
+	this->projection = glm::perspective(1.6f, this->width / this->height, 0.1f, 10000.0f);
 }
 
-int glp::Camera3d::getZ() {
+glm::mat4 glp::Camera3d::getProjection() {
+	glm::mat4 output = this->projection;
+
+	glm::qua<float> quaternion = glm::qua<float>();
+	quaternion = glm::angleAxis(this->rotation.x, glm::vec3(1, 0, 0));
+	quaternion = glm::rotate(quaternion, this->rotation.y, glm::vec3(0, 1, 0));
+
+	output = output * glm::mat4_cast(quaternion);
+
+	output = glm::translate(output, glm::vec3(this->x, this->y, this->z));
+	return output;
+}
+
+float glp::Camera3d::getZ() {
 	return this->z;
 }
 
 void glp::Camera3d::setZ(float z) {
 	this->z = z;
+}
+
+void glp::Camera3d::rotateX(float angle) {
+	this->rotation.x += angle;
+}
+
+void glp::Camera3d::rotateY(float angle) {
+	this->rotation.y += angle;
 }

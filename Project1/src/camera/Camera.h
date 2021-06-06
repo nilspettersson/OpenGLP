@@ -4,6 +4,8 @@
 #include <vector>
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/quaternion.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace glp {
 	class Camera {
@@ -16,12 +18,12 @@ namespace glp {
 		float z;
 	public:
 		Camera(int width, int height);
-		glm::mat4 getProjection();
-		int getWidth();
-		int getHeight();
+		virtual glm::mat4 getProjection();
+		float getWidth();
+		float getHeight();
 
-		int getX();
-		int getY();
+		float getX();
+		float getY();
 		void setX(float x);
 		void setY(float y);
 	};
@@ -35,8 +37,13 @@ namespace glp {
 	class Camera3d : public Camera {
 
 	public:
+		glm::vec3 rotation;
 		Camera3d(int width, int height);
-		int getZ();
+		glm::mat4 getProjection();
+		float getZ();
 		void setZ(float z);
+
+		void rotateX(float);
+		void rotateY(float);
 	};
 }
