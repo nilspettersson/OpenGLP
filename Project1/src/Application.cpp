@@ -19,8 +19,8 @@
 int main(void) {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-    glp::Window window = glp::Window(600, 600);
-    glp::Camera3d camera = glp::Camera3d(600, 600);
+    glp::Window window = glp::Window(1000, 1000);
+    glp::Camera3d camera = glp::Camera3d(1000, 1000);
     camera.setZ(-1000);
 
     float vertices[] = {
@@ -38,8 +38,8 @@ int main(void) {
     //glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
 
     std::vector<glp::Entity> entites = std::vector<glp::Entity>();
-    for (int i = 0; i < 40; i++) {
-        for (int ii = 0; ii < 40; ii++) {
+    for (int i = 0; i < 20; i++) {
+        for (int ii = 0; ii < 20; ii++) {
             entites.push_back(glp::Entity(&vao, &shader, 60));
             //entites[entites.size() - 1].setTexture(&texture);
             entites[entites.size() - 1].getShader()->setUniform4f("color", 1.0, 1.0, 1.0, 1.0);
@@ -65,61 +65,34 @@ int main(void) {
     while (!window.shouldClose()) {
         window.drawInit();
         {
-            util::Timer timer;
+            //util::Timer timer;
             for (int i = 0; i < entites.size(); i++) {
-                //entites[i].getShader()->setUniform4f("color", sin(i / 100.0f), 1, cos(i / 100.0f), 1.0);
-                {
-                    //util::Timer timer;
-                    renderer.render(&entites[i]);
-                }
+                entites[i].getShader()->setUniform4f("color", sin(i / 100.0f), 1, cos(i / 100.0f), 1.0);
+                renderer.render(&entites[i]);
             }
         }
-        //renderer.render(&entity);
 
-        yy += (float)window.getInput().getMouseX() / 400;
-        xx += (float)window.getInput().getMouseY() / 400;
         camera.rotateX((float)window.getInput().getMouseY() / 400);
         camera.rotateY((float)window.getInput().getMouseX() / 400);
         
-
-
         if (window.getInput().isKeyDown(GLFW_KEY_W)) {
-            glm::vec3 pos = glm::rotate(glm::quat(camera.rotation), glm::vec3(0, 0, 6.0f));
-            camera.setX(camera.getX() - pos.x);
-            camera.setY(camera.getY() - pos.y);
-            camera.setZ(camera.getZ() + pos.z);
+            camera.moveForward(6);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_S)) {
-            glm::vec3 pos = glm::rotate(glm::quat(camera.rotation), glm::vec3(0, 0, -6.0f));
-            camera.setX(camera.getX() - pos.x);
-            camera.setY(camera.getY() - pos.y);
-            camera.setZ(camera.getZ() + pos.z);
+            camera.moveBackward(6);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_A)) {
-            glm::vec3 pos = glm::rotate(glm::quat(camera.rotation), glm::vec3(-6.0f, 0, 0));
-            camera.setX(camera.getX() - pos.x);
-            camera.setY(camera.getY() - pos.y);
-            camera.setZ(camera.getZ() + pos.z);
+            camera.moveLeft(6);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_D)) {
-            glm::vec3 pos = glm::rotate(glm::quat(camera.rotation), glm::vec3(6.0f, 0, 0));
-            camera.setX(camera.getX() - pos.x);
-            camera.setY(camera.getY() - pos.y);
-            camera.setZ(camera.getZ() + pos.z);
+            camera.moveRight(6);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_Q)) {
-            glm::vec3 pos = glm::rotate(glm::quat(camera.rotation), glm::vec3(0, -6.0f, 0));
-            camera.setX(camera.getX() - pos.x);
-            camera.setY(camera.getY() - pos.y);
-            camera.setZ(camera.getZ() + pos.z);
+            camera.moveDown(6);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_E)) {
-            glm::vec3 pos = glm::rotate(glm::quat(camera.rotation), glm::vec3(0, 6.0f, 0));
-            camera.setX(camera.getX() - pos.x);
-            camera.setY(camera.getY() - pos.y);
-            camera.setZ(camera.getZ() + pos.z);
+            camera.moveUp(6);
         }
-
 
         window.getInput().setCursorPosition(0, 0);
         window.clean();

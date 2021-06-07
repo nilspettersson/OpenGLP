@@ -84,3 +84,45 @@ void glp::Camera3d::rotateX(float angle) {
 void glp::Camera3d::rotateY(float angle) {
 	this->rotation.y += angle;
 }
+
+void glp::Camera3d::moveForward(float amount) {
+	glm::vec3 pos = glm::rotate(glm::quat(this->rotation), glm::vec3(0, 0, amount));
+	this->x -= pos.x;
+	this->y -= pos.y;
+	this->z += pos.z;
+}
+
+void glp::Camera3d::moveBackward(float amount) {
+	glm::vec3 pos = glm::rotate(glm::quat(this->rotation), glm::vec3(0, 0, -amount));
+	this->x -= pos.x;
+	this->y -= pos.y;
+	this->z += pos.z;
+}
+
+void glp::Camera3d::moveLeft(float amount) {
+	glm::vec3 pos = glm::rotate(glm::quat(this->rotation), glm::vec3(-amount, 0, 0));
+	this->x -= pos.x;
+	this->y -= pos.y;
+	this->z += pos.z;
+}
+
+void glp::Camera3d::moveRight(float amount) {
+	glm::vec3 pos = glm::rotate(glm::quat(this->rotation), glm::vec3(amount, 0, 0));
+	this->x -= pos.x;
+	this->y -= pos.y;
+	this->z += pos.z;
+}
+
+void glp::Camera3d::moveUp(float amount) {
+	glm::vec3 pos = glm::rotate(glm::quat(this->rotation), glm::vec3(0, amount, 0));
+	this->x -= pos.x;
+	this->y -= pos.y;
+	this->z += pos.z;
+}
+
+void glp::Camera3d::moveDown(float amount) {
+	glm::vec3 pos = glm::rotate(glm::quat(this->rotation), glm::vec3(0, -amount, 0));
+	this->x -= pos.x;
+	this->y -= pos.y;
+	this->z += pos.z;
+}

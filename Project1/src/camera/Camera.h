@@ -45,5 +45,12 @@ namespace glp {
 
 		void rotateX(float);
 		void rotateY(float);
+
+		void moveForward(float amount);
+		void moveBackward(float amount);
+		void moveLeft(float amount);
+		void moveRight(float amount);
+		void moveUp(float amount);
+		void moveDown(float amount);
 	};
 }
