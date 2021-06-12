@@ -3,14 +3,13 @@
 
 using namespace glp;
 
-Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indicesCount, const float* vertices, int verticesCount) {
+Vao::Vao(std::vector<VertexLayout> vertexLayout, const unsigned int* indices, int indicesCount, const float* vertices, int verticesCount) {
 	this->vertexLayout = vertexLayout;
 
 	this->indicesCount = indicesCount;
 	this->verticesCount = verticesCount;
 
 	Vao::setVertexSize();
-
 
 	glGenBuffers(1, &this->vaoArrayId);
 	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
@@ -24,15 +23,23 @@ Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indices
 	int offset = 0;
 	for (int i = 0; i < this->vertexLayout.size(); i++) {
 		glEnableVertexAttribArray(i);
-		glVertexAttribPointer(i, this->vertexLayout[i], GL_FLOAT, GL_FALSE, this->vertexSize, (const void*) offset);
-		offset += this->vertexLayout[i] * sizeof(float);
+		glVertexAttribPointer(i, this->vertexLayout[i].attribCount, (GLenum)this->vertexLayout[i].dataType, GL_FALSE, this->vertexSize, (const void*) offset);
+		if (this->vertexLayout[i].dataType == DataType::BYTE) {
+			offset += this->vertexLayout[i].attribCount * 1;
+		}
+		else if (this->vertexLayout[i].dataType == DataType::SHORT) {
+			offset += this->vertexLayout[i].attribCount * 2;
+		}
+		else {
+			offset += this->vertexLayout[i].attribCount * 4;
+		}
 	}
 }
 
 void Vao::setVertexSize() {
 	this->vertexSize = 0;
 	for (int i = 0; i < this->vertexLayout.size(); i++) {
-		this->vertexSize += this->vertexLayout[i] * sizeof(float);
+		this->vertexSize += this->vertexLayout[i].attribCount * sizeof(float);
 	}
 }
 
@@ -55,4 +62,11 @@ unsigned int Vao::getVaoElementId() {
 
 int Vao::getVertexSize() {
 	return this->vertexSize;
+}
+
+
+
+glp::VertexLayout::VertexLayout(unsigned int attribCount, DataType dataType) {
+	this->attribCount = attribCount;
+	this->dataType = dataType;
 }
