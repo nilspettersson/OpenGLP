@@ -39,7 +39,15 @@ Vao::Vao(std::vector<VertexLayout> vertexLayout, const unsigned int* indices, in
 void Vao::setVertexSize() {
 	this->vertexSize = 0;
 	for (int i = 0; i < this->vertexLayout.size(); i++) {
-		this->vertexSize += this->vertexLayout[i].attribCount * sizeof(float);
+		if (this->vertexLayout[i].dataType == DataType::BYTE) {
+			this->vertexSize += this->vertexLayout[i].attribCount * 1;
+		}
+		else if (this->vertexLayout[i].dataType == DataType::SHORT) {
+			this->vertexSize += this->vertexLayout[i].attribCount * 2;
+		}
+		else {
+			this->vertexSize += this->vertexLayout[i].attribCount * 4;
+		}
 	}
 }
 
