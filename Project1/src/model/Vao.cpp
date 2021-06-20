@@ -10,8 +10,6 @@ Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indices
 	this->verticesCount = verticesCount;
 	this->dynamic = dynamic;
 
-	if(dynamic) {
-	}
 
 	Vao::setVertexSize();
 
@@ -25,7 +23,7 @@ Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indices
 
 	glGenBuffers(1, &this->vaoArrayId);
 	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
-	glBufferData(GL_ARRAY_BUFFER, verticesCount * Vao::vertexSize, vertices, drawType);
+	glBufferData(GL_ARRAY_BUFFER, verticesCount * this->vertexSize, vertices, drawType);
 
 	glGenBuffers(1, &this->vaoElementId);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vaoElementId);
@@ -66,4 +64,9 @@ unsigned int Vao::getVaoElementId() {
 
 int Vao::getVertexSize() {
 	return this->vertexSize;
+}
+
+void glp::Vao::updateVertices(int offset, int size, const float* data) {
+	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
+	glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
 }

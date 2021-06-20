@@ -14,7 +14,6 @@ namespace glp {
 	class Vao {
 		unsigned int vaoArrayId;
 		std::vector<int> vertexLayout;
-		std::vector<float>* vertexBuffer;
 		int vertexSize;
 		int indicesCount;
 		int verticesCount;
@@ -29,5 +28,7 @@ namespace glp {
 		unsigned int getVaoArrayId();
 		unsigned int getVaoElementId();
 		int getVertexSize();
+
+		void updateVertices(int offset, int size, const float* data);
 	};
 }

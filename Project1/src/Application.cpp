@@ -58,6 +58,11 @@ int main(void) {
     window.getInput().setCursorDisabled(true);
     window.getInput().setCursorPosition(0, 0);
 
+    float c[] = {
+        0.3f
+    };
+    vao.updateVertices(0, 4, c);
+
 
     //texture.bind();
     while (!window.shouldClose()) {
