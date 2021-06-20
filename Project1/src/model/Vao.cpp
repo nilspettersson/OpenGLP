@@ -3,51 +3,47 @@
 
 using namespace glp;
 
-Vao::Vao(std::vector<VertexLayout> vertexLayout, const unsigned int* indices, int indicesCount, const float* vertices, int verticesCount) {
+Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indicesCount, const float* vertices, int verticesCount, bool dynamic) {
 	this->vertexLayout = vertexLayout;
 
 	this->indicesCount = indicesCount;
 	this->verticesCount = verticesCount;
+	this->dynamic = dynamic;
+
+	if(dynamic) {
+	}
 
 	Vao::setVertexSize();
 
+	GLenum drawType;
+	if (this->dynamic) {
+		drawType = GL_DYNAMIC_DRAW;
+	}
+	else {
+		drawType = GL_STATIC_DRAW;
+	}
+
 	glGenBuffers(1, &this->vaoArrayId);
 	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
-	glBufferData(GL_ARRAY_BUFFER, verticesCount * Vao::vertexSize, vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, verticesCount * Vao::vertexSize, vertices, drawType);
 
 	glGenBuffers(1, &this->vaoElementId);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vaoElementId);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesCount * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesCount * sizeof(unsigned int), indices, drawType);
 
 
 	int offset = 0;
 	for (int i = 0; i < this->vertexLayout.size(); i++) {
 		glEnableVertexAttribArray(i);
-		glVertexAttribPointer(i, this->vertexLayout[i].attribCount, (GLenum)this->vertexLayout[i].dataType, GL_FALSE, this->vertexSize, (const void*) offset);
-		if (this->vertexLayout[i].dataType == DataType::BYTE) {
-			offset += this->vertexLayout[i].attribCount * 1;
-		}
-		else if (this->vertexLayout[i].dataType == DataType::SHORT) {
-			offset += this->vertexLayout[i].attribCount * 2;
-		}
-		else {
-			offset += this->vertexLayout[i].attribCount * 4;
-		}
+		glVertexAttribPointer(i, this->vertexLayout[i], GL_FLOAT, GL_FALSE, this->vertexSize, (const void*) offset);
+		this->vertexSize += this->vertexLayout[i] * 4;
 	}
 }
 
 void Vao::setVertexSize() {
 	this->vertexSize = 0;
 	for (int i = 0; i < this->vertexLayout.size(); i++) {
-		if (this->vertexLayout[i].dataType == DataType::BYTE) {
-			this->vertexSize += this->vertexLayout[i].attribCount * 1;
-		}
-		else if (this->vertexLayout[i].dataType == DataType::SHORT) {
-			this->vertexSize += this->vertexLayout[i].attribCount * 2;
-		}
-		else {
-			this->vertexSize += this->vertexLayout[i].attribCount * 4;
-		}
+		this->vertexSize += this->vertexLayout[i] * 4;
 	}
 }
 
@@ -70,11 +66,4 @@ unsigned int Vao::getVaoElementId() {
 
 int Vao::getVertexSize() {
 	return this->vertexSize;
-}
-
-
-
-glp::VertexLayout::VertexLayout(unsigned int attribCount, DataType dataType) {
-	this->attribCount = attribCount;
-	this->dataType = dataType;
 }

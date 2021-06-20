@@ -11,24 +11,19 @@ namespace glp {
 		FLOAT = GL_FLOAT,
 	};
 
-	struct VertexLayout {
-		unsigned int attribCount;
-		DataType dataType;
-
-		VertexLayout(unsigned int attribCount, DataType dataType);
-	};
-
 	class Vao {
 		unsigned int vaoArrayId;
-		std::vector<VertexLayout> vertexLayout;
+		std::vector<int> vertexLayout;
+		std::vector<float>* vertexBuffer;
 		int vertexSize;
 		int indicesCount;
 		int verticesCount;
 		unsigned int vaoElementId;
 		void setVertexSize();
+		bool dynamic;
 
 	public:
-		Vao(std::vector<VertexLayout> vertexLayout, const unsigned int* indices, int indicesCount, const float* vertices, int verticesCount);
+		Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indicesCount, const float* vertices, int verticesCount, bool dynamic);
 		void render();
 		void bind();
 		unsigned int getVaoArrayId();

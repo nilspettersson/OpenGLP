@@ -33,7 +33,7 @@ int main(void) {
         0, 1, 2,
         2, 3, 0
     };
-    glp::Vao vao({glp::VertexLayout(2, glp::DataType::FLOAT), glp::VertexLayout(2, glp::DataType::FLOAT) }, indices, 6, vertices, 4);
+    glp::Vao vao({2,2}, indices, 6, vertices, 4, true);
     glp::Shader shader("res/shaders/main.shader");
     //glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
 
