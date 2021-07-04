@@ -70,3 +70,18 @@ void glp::Vao::updateVertices(int offset, int size, const float* data) {
 	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
 	glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
 }
+
+void glp::Vao::setVertices(int size, const float* data) {
+	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
+	glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
+}
+
+void glp::Vao::updateIndices(int offset, int size, const float* data) {
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vaoElementId);
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, size, data);
+}
+
+void glp::Vao::setIndices(int size, const float* data) {
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vaoElementId);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
+}

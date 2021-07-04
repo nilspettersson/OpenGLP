@@ -58,10 +58,14 @@ int main(void) {
     window.getInput().setCursorDisabled(true);
     window.getInput().setCursorPosition(0, 0);
 
-    float c[] = {
-        0.3f
+    float vertices2[] = {
+        -0.2f, -0.5f, 0.0f, 0.0f,
+        0.5f, -0.5f, 1.0f, 0.0f,
+        0.5f, 0.5f, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0.0f, 1.0f
     };
-    vao.updateVertices(0, 4, c);
+
+    vao.setVertices(sizeof(vertices2), vertices2);
 
 
     //texture.bind();

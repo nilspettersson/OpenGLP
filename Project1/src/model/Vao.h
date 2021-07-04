@@ -30,5 +30,9 @@ namespace glp {
 		int getVertexSize();
 
 		void updateVertices(int offset, int size, const float* data);
+		void setVertices(int size, const float* data);
+
+		void updateIndices(int offset, int size, const float* data);
+		void setIndices(int size, const float* data);
 	};
 }
