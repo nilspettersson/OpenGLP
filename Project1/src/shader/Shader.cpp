@@ -63,7 +63,8 @@ Shader::Shader(std::string vertexShader, std::string fragmentShader) {
 }
 
 Shader::Shader(std::string filepath) {
-    Shader::ShaderProgramSouce source = Shader::parseShader("res/shaders/main.shader");
+    this->uniformLocations = std::unordered_map<std::string, int>();
+    Shader::ShaderProgramSouce source = Shader::parseShader(filepath);
     createShader(source);
 }
 
