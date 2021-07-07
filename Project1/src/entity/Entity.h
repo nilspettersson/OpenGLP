@@ -2,6 +2,7 @@
 #include "../shader/Shader.h";
 #include "../model/Vao.h";
 #include "../texture/Texture.h"
+#include "Material.h"
 
 namespace glp {
 	class Entity {
@@ -9,7 +10,7 @@ namespace glp {
 		float y;
 		float z;
 		float scale;
-		Shader* shader;
+		Material material;
 		Vao* model;
 		Texture* texture;
 

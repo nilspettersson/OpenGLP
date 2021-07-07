@@ -2,22 +2,21 @@
 
 using namespace glp;
 
-glp::Entity::Entity(Vao* model, Shader* shader, float scale) {
+glp::Entity::Entity(Vao* model, Shader* shader, float scale): material(shader) {
 	this->x = 0;
 	this->y = 0;
 	this->z = 0;
 	this->scale = scale;
 	this->texture = NULL;
 	this->model = model;
-	this->shader = shader;
 }
 
 Shader* Entity::getShader() { 
-	return this->shader;
+	return this->material.getShader();
 }
 
 void Entity::setShader(Shader* shader) {
-	this->shader = shader;
+	this->material.setShader(shader);
 }
 
 Vao* Entity::getModel() {

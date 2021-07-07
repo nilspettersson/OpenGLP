@@ -1,7 +1,10 @@
 #include "Material.h"
 
 using namespace glp;
-glp::Material::Material() {
+
+glp::Material::Material(Shader *shader) {
+	this->shader = shader;
+
 	this->floatUniforms = std::unordered_map<std::string, float>();
 	this->intUniforms = std::unordered_map<std::string, int>();
 	this->vec2fUniforms = std::unordered_map<std::string, glm::vec2>();
@@ -23,4 +26,13 @@ void glp::Material::addProperty(std::string name, float v1, float v2) {
 void glp::Material::addProperty(std::string name, float v1, float v2, float v3) {
 	glm::vec3 property = { v1, v2, v3 };
 	this->vec3fUniforms[name] = property;
+}
+
+Shader* glp::Material::getShader()
+{
+	return this->shader;
+}
+
+void glp::Material::setShader(Shader* shader) {
+	this->shader = shader;
 }
