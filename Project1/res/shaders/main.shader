@@ -19,11 +19,12 @@ void main() {
 
 layout(location = 0) out vec4 colorOutput;
 
-uniform vec4 color;
+uniform vec3 color;
+uniform float test;
 uniform sampler2D u_texture;
 
 in vec2 v_texCoord;
 void main() {
 	vec4 texture = texture(u_texture, v_texCoord);
-	colorOutput = color;
+	colorOutput = vec4(color, 1);
 };

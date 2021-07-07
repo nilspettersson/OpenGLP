@@ -107,6 +107,21 @@ void Shader::setUniform4f(std::string name, float v1, float v2, float v3, float 
     glUniform4f(location, v1, v2, v3, v4);
 }
 
+void glp::Shader::setUniform3f(std::string name, float v1, float v2, float v3) {
+    int location = this->getUniformLocation(name);
+    glUniform3f(location, v1, v2, v3);
+}
+
+void glp::Shader::setUniform2f(std::string name, float v1, float v2) {
+    int location = this->getUniformLocation(name);
+    glUniform2f(location, v1, v2);
+}
+
+void glp::Shader::setUniform1f(std::string name, float value) {
+    int location = this->getUniformLocation(name);
+    glUniform1f(location, value);
+}
+
 void glp::Shader::setUniform1i(std::string name, int value){
     int location = this->getUniformLocation(name);
     glUniform1i(location, value);

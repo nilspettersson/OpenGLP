@@ -37,5 +37,8 @@ namespace glp {
 
 		void setScale(float scale);
 		float getScale();
+
+		Material* getMaterial();
+		void setMaterial(Material material);
 	};
 }

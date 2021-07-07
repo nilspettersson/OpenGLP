@@ -74,7 +74,7 @@ int main(void) {
         {
             //util::Timer timer;
             for (int i = 0; i < entites.size(); i++) {
-                entites[i].getShader()->setUniform4f("color", sin(i / 100.0f), 1, cos(i / 100.0f), 1.0);
+                entites[i].getMaterial()->addProperty("color", sin(i / 100.0f), 1, cos(i / 100.0f));
                 renderer.render(&entites[i]);
             }
         }

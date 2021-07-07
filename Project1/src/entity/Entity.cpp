@@ -66,3 +66,11 @@ void glp::Entity::setScale(float scale) {
 float glp::Entity::getScale() {
 	return this->scale;
 }
+
+Material* glp::Entity::getMaterial() {
+	return &this->material;
+}
+
+void glp::Entity::setMaterial(Material material) {
+	this->material = material;
+}

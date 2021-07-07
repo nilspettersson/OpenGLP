@@ -31,7 +31,10 @@ namespace glp {
 		void bind();
 
 		void setUniform4f(std::string name, float v1, float v2, float v3, float v4);
-		void setUniform1i(std::string name, int v1);
+		void setUniform3f(std::string name, float v1, float v2, float v3);
+		void setUniform2f(std::string name, float v1, float v2);
+		void setUniform1f(std::string name, float value);
+		void setUniform1i(std::string name, int value);
 		void setUniformMat4f(std::string name, const glm::mat4& matrix);
 	};
 }
