@@ -35,46 +35,31 @@ int main(void) {
     };
     glp::Vao vao({2,2}, indices, 6, vertices, 4, true);
     glp::Shader shader("res/shaders/main.shader");
-    //glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
+    glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
 
     std::vector<glp::Entity> entites = std::vector<glp::Entity>();
     for (int i = 0; i < 20; i++) {
         for (int ii = 0; ii < 20; ii++) {
             entites.push_back(glp::Entity(&vao, &shader, 60));
-            //entites[entites.size() - 1].setTexture(&texture);
+            entites[entites.size() - 1].setTexture(&texture);
             entites[entites.size() - 1].getShader()->setUniform4f("color", 1.0, 1.0, 1.0, 1.0);
             entites[entites.size() - 1].getShader()->setUniform1i("u_texture", 0);
             entites[entites.size() - 1].setX(i * 80 - 460);
             entites[entites.size() - 1].setY(ii * 80 - 460);
         }
     }
-    /*glp::Entity entity = glp::Entity(&vao, &shader, 10);
-    entity.setTexture(&texture);
-    entity.getShader()->setUniform1i("u_texture", 0);
-    entity.getShader()->setUniform4f("color", 0.0, 1.0, 0.0, 1.0);*/
     
     glp::Renderer renderer = glp::Renderer(&camera);
 
     window.getInput().setCursorDisabled(true);
     window.getInput().setCursorPosition(0, 0);
 
-    float vertices2[] = {
-        -0.2f, -0.5f, 0.0f, 0.0f,
-        0.5f, -0.5f, 1.0f, 0.0f,
-        0.5f, 0.5f, 1.0f, 1.0f,
-        -0.5f, 0.5f, 0.0f, 1.0f
-    };
-
-    vao.setVertices(sizeof(vertices2), vertices2);
-
-
-    //texture.bind();
     while (!window.shouldClose()) {
         window.drawInit();
         {
             //util::Timer timer;
             for (int i = 0; i < entites.size(); i++) {
-                entites[i].getMaterial()->addProperty("color", sin(i / 100.0f), 1, cos(i / 100.0f));
+                entites[i].getMaterial()->setProperty("color", sin(i / 100.0f), 1, cos(i / 100.0f));
                 renderer.render(&entites[i]);
             }
         }

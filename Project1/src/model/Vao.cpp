@@ -34,7 +34,7 @@ Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indices
 	for (int i = 0; i < this->vertexLayout.size(); i++) {
 		glEnableVertexAttribArray(i);
 		glVertexAttribPointer(i, this->vertexLayout[i], GL_FLOAT, GL_FALSE, this->vertexSize, (const void*) offset);
-		this->vertexSize += this->vertexLayout[i] * 4;
+		offset += this->vertexLayout[i] * 4;
 	}
 }
 

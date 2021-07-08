@@ -1,7 +1,7 @@
 #shader vertex
 #version 330 core
 
-layout(location = 0) in vec4 position;
+layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texCoord;
 
 uniform mat4 u_mvp;
@@ -10,7 +10,7 @@ out vec2 v_texCoord;
 
 void main() {
 	v_texCoord = texCoord;
-	gl_Position = u_mvp * position;
+	gl_Position = u_mvp * vec4(position, 0, 1);
 };
 
 
@@ -26,5 +26,5 @@ uniform sampler2D u_texture;
 in vec2 v_texCoord;
 void main() {
 	vec4 texture = texture(u_texture, v_texCoord);
-	colorOutput = vec4(color, 1);
+	colorOutput = vec4(texture);
 };
