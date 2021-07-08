@@ -7,7 +7,7 @@ glp::Entity::Entity(Vao* model, Shader* shader, float scale): material(shader) {
 	this->y = 0;
 	this->z = 0;
 	this->scale = scale;
-	this->texture = NULL;
+	this->textures = std::vector<Texture*>();
 	this->model = model;
 }
 
@@ -27,12 +27,12 @@ void Entity::setModel(Vao* model) {
 	this->model = model;
 }
 
-Texture* Entity::getTexture() {
-	return this->texture;
+std::vector<Texture*> Entity::getTextures() {
+	return this->textures;
 }
 
-void Entity::setTexture(Texture* texture) {
-	this->texture = texture;
+void Entity::addTexture(Texture* texture) {
+	this->textures.push_back(texture);
 }
 
 void glp::Entity::setX(float x) {

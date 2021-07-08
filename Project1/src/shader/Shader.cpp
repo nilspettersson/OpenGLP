@@ -100,6 +100,9 @@ unsigned int Shader::getShaderId() {
 
 void Shader::bind() {
     glUseProgram(this->shaderId);
+
+    const int sampler[20] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    setUniform1iv("sampler", sampler);
 }
 
 void Shader::setUniform4f(std::string name, float v1, float v2, float v3, float v4) {
@@ -125,6 +128,11 @@ void glp::Shader::setUniform1f(std::string name, float value) {
 void glp::Shader::setUniform1i(std::string name, int value){
     int location = this->getUniformLocation(name);
     glUniform1i(location, value);
+}
+
+void glp::Shader::setUniform1iv(std::string name, const int* values) {
+    int location = this->getUniformLocation(name);
+    glUniform1iv(location, sizeof(values), (const GLint*)values);
 }
 
 void glp::Shader::setUniformMat4f(std::string name, const glm::mat4& matrix) {

@@ -15,8 +15,8 @@ void Renderer::render(Entity* entity) {
 
 	entity->getMaterial()->updateUniforms();
 
-	if (entity->getTexture()) {
-		entity->getTexture()->bind();
+	for(int i = 0; i < entity->getTextures().size(); i++) {
+		entity->getTextures()[i]->bind(i + 1);
 	}
 	
 	if (this->currentShaderId != entity->getShader()->getShaderId()) {

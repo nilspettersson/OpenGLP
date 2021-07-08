@@ -3,6 +3,7 @@
 #include "../model/Vao.h";
 #include "../texture/Texture.h"
 #include "Material.h"
+#include <vector>
 
 namespace glp {
 	class Entity {
@@ -12,7 +13,7 @@ namespace glp {
 		float scale;
 		Material material;
 		Vao* model;
-		Texture* texture;
+		std::vector<Texture*> textures;
 
 	public:
 		Entity(Vao* model, Shader* shader, float scale);
@@ -21,10 +22,10 @@ namespace glp {
 		void setShader(Shader* shader);
 
 		Vao* getModel();
-		void setModel(Vao* texture);
+		void setModel(Vao* model);
 
-		Texture* getTexture();
-		void setTexture(Texture* texture);
+		std::vector<Texture*> getTextures();
+		void addTexture(Texture* texture);
 
 		void setX(float x);
 		float getX();

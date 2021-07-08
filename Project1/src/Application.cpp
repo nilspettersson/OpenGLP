@@ -24,31 +24,39 @@ int main(void) {
     camera.setZ(-1000);
 
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f, 0.0f,
-        0.5f, -0.5f, 1.0f, 0.0f,
-        0.5f, 0.5f, 1.0f, 1.0f,
-        -0.5f, 0.5f, 0.0f, 1.0f
+        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, 1.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, 1.0f, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
+
+        -0.5f + 1.0f, -0.5f, 0.0f, 0.0f, 2.0f,
+        0.5f + 1.0f, -0.5f, 1.0f, 0.0f, 2.0f,
+        0.5f + 1.0f, 0.5f, 1.0f, 1.0f, 2.0f,
+        -0.5f + 1.0f, 0.5f, 0.0f, 1.0f, 2.0f
     };
     unsigned int indices[]{
         0, 1, 2,
-        2, 3, 0
+        2, 3, 0,
+
+        4, 5, 6,
+        6, 7, 4
     };
-    glp::Vao vao({2,2}, indices, 6, vertices, 4, true);
+    glp::Vao vao({2, 2, 1}, indices, 12, vertices, 8, false);
     glp::Shader shader("res/shaders/main.shader");
     glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
+    glp::Texture texture2("res/textures/test2.png", glp::Texture::FILTER::NEAREST);
 
     std::vector<glp::Entity> entites = std::vector<glp::Entity>();
     for (int i = 0; i < 20; i++) {
         for (int ii = 0; ii < 20; ii++) {
             entites.push_back(glp::Entity(&vao, &shader, 60));
-            entites[entites.size() - 1].setTexture(&texture);
-            entites[entites.size() - 1].getShader()->setUniform4f("color", 1.0, 1.0, 1.0, 1.0);
-            entites[entites.size() - 1].getShader()->setUniform1i("u_texture", 0);
-            entites[entites.size() - 1].setX(i * 80 - 460);
-            entites[entites.size() - 1].setY(ii * 80 - 460);
+            entites[entites.size() - 1].addTexture(&texture);
+            entites[entites.size() - 1].addTexture(&texture2);
+            
+            entites[entites.size() - 1].setX(i * 160 - 460);
+            entites[entites.size() - 1].setY(ii * 160 - 460);
         }
     }
-    
     glp::Renderer renderer = glp::Renderer(&camera);
 
     window.getInput().setCursorDisabled(true);
