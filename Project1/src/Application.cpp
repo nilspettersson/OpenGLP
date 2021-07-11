@@ -12,6 +12,7 @@
 #include "rendering/Renderer.h"
 #include "entity/Entity.h";
 #include "util/Util.h"
+#include "model/Mesh.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -22,6 +23,8 @@ int main(void) {
     glp::Window window = glp::Window(1000, 1000);
     glp::Camera3d camera = glp::Camera3d(1000, 1000);
     camera.setZ(-1000);
+
+    glp::Mesh mesh = glp::Mesh::loadModelFromObj("res/models/test.obj");
 
     float vertices[] = {
         -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
@@ -41,20 +44,25 @@ int main(void) {
         4, 5, 6,
         6, 7, 4
     };
-    glp::Vao vao({2, 2, 1}, indices, 12, vertices, 8, false);
+
+    float* v = &mesh.vertices[0];
+    unsigned int* i = &mesh.indices[0];
+
+    //glp::Vao vao({2, 2, 1}, indices, 12, vertices, 8, false);
+    glp::Vao vao(mesh.vertexLayout, i, mesh.indices.size(), v, mesh.getVerticesCount(), false);
     glp::Shader shader("res/shaders/main.shader");
     glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
     glp::Texture texture2("res/textures/test2.png", glp::Texture::FILTER::NEAREST);
 
     std::vector<glp::Entity> entites = std::vector<glp::Entity>();
-    for (int i = 0; i < 20; i++) {
-        for (int ii = 0; ii < 20; ii++) {
+    for (int i = 0; i < 10; i++) {
+        for (int ii = 0; ii < 10; ii++) {
             entites.push_back(glp::Entity(&vao, &shader, 60));
             entites[entites.size() - 1].addTexture(&texture);
             entites[entites.size() - 1].addTexture(&texture2);
             
-            entites[entites.size() - 1].setX(i * 160 - 460);
-            entites[entites.size() - 1].setY(ii * 160 - 460);
+            entites[entites.size() - 1].setX(i * 200 - 460);
+            entites[entites.size() - 1].setY(ii * 200 - 460);
         }
     }
     glp::Renderer renderer = glp::Renderer(&camera);
@@ -67,7 +75,6 @@ int main(void) {
         {
             //util::Timer timer;
             for (int i = 0; i < entites.size(); i++) {
-                entites[i].getMaterial()->setProperty("color", sin(i / 100.0f), 1, cos(i / 100.0f));
                 renderer.render(&entites[i]);
             }
         }
@@ -76,22 +83,22 @@ int main(void) {
         camera.rotateY((float)window.getInput().getMouseX() / 400);
         
         if (window.getInput().isKeyDown(GLFW_KEY_W)) {
-            camera.moveForward(6);
+            camera.moveForward(3);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_S)) {
-            camera.moveBackward(6);
+            camera.moveBackward(3);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_A)) {
-            camera.moveLeft(6);
+            camera.moveLeft(3);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_D)) {
-            camera.moveRight(6);
+            camera.moveRight(3);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_Q)) {
-            camera.moveDown(6);
+            camera.moveDown(3);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_E)) {
-            camera.moveUp(6);
+            camera.moveUp(3);
         }
 
         window.getInput().setCursorPosition(0, 0);

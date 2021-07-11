@@ -32,6 +32,7 @@ Window::Window(int width, int height) {
         }
     }
 
+    glEnable(GL_DEPTH_TEST);
     this->input = Input(this->window);
 }
 
@@ -54,6 +55,7 @@ Window::Window() {
         }
     }
 
+    glEnable(GL_DEPTH_TEST);
     this->input = Input(this->window);
 }
 
@@ -70,7 +72,7 @@ void Window::destroy() {
 }
 
 void Window::drawInit() {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Window::clean() {
