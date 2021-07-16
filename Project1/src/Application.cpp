@@ -24,8 +24,6 @@ int main(void) {
     glp::Camera3d camera = glp::Camera3d(1000, 1000);
     camera.setZ(-1000);
 
-    glp::Mesh mesh = glp::Mesh::loadModelFromObj("res/models/test.obj");
-
     float vertices[] = {
         -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
         0.5f, -0.5f, 1.0f, 0.0f, 1.0f,
@@ -45,11 +43,8 @@ int main(void) {
         6, 7, 4
     };
 
-    float* v = &mesh.vertices[0];
-    unsigned int* i = &mesh.indices[0];
-
-    //glp::Vao vao({2, 2, 1}, indices, 12, vertices, 8, false);
-    glp::Vao vao(mesh.vertexLayout, i, mesh.indices.size(), v, mesh.getVerticesCount(), false);
+    glp::Mesh mesh = glp::Mesh::loadModelFromObj("res/models/test.obj");
+    glp::Vao vao(mesh, false);
     glp::Shader shader("res/shaders/main.shader");
     glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
     glp::Texture texture2("res/textures/test2.png", glp::Texture::FILTER::NEAREST);

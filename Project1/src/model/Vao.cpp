@@ -10,7 +10,6 @@ Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indices
 	this->verticesCount = verticesCount;
 	this->dynamic = dynamic;
 
-
 	Vao::setVertexSize();
 
 	GLenum drawType;
@@ -34,6 +33,44 @@ Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indices
 	for (int i = 0; i < this->vertexLayout.size(); i++) {
 		glEnableVertexAttribArray(i);
 		glVertexAttribPointer(i, this->vertexLayout[i], GL_FLOAT, GL_FALSE, this->vertexSize, (const void*) offset);
+		offset += this->vertexLayout[i] * 4;
+	}
+}
+
+glp::Vao::Vao(Mesh mesh, bool dynamic) {
+	this->vertexLayout = mesh.vertexLayout;
+
+	float* vertices = &mesh.vertices[0];
+	unsigned int* indices = &mesh.indices[0];
+
+	this->indicesCount = mesh.indices.size();
+	this->verticesCount = mesh.getVerticesCount();
+	this->dynamic = dynamic;
+
+
+	Vao::setVertexSize();
+
+	GLenum drawType;
+	if (this->dynamic) {
+		drawType = GL_DYNAMIC_DRAW;
+	}
+	else {
+		drawType = GL_STATIC_DRAW;
+	}
+
+	glGenBuffers(1, &this->vaoArrayId);
+	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
+	glBufferData(GL_ARRAY_BUFFER, verticesCount * this->vertexSize, vertices, drawType);
+
+	glGenBuffers(1, &this->vaoElementId);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vaoElementId);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesCount * sizeof(unsigned int), indices, drawType);
+
+
+	int offset = 0;
+	for (int i = 0; i < this->vertexLayout.size(); i++) {
+		glEnableVertexAttribArray(i);
+		glVertexAttribPointer(i, this->vertexLayout[i], GL_FLOAT, GL_FALSE, this->vertexSize, (const void*)offset);
 		offset += this->vertexLayout[i] * 4;
 	}
 }

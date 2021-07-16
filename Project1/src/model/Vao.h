@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <vector>
+#include "Mesh.h"
 
 namespace glp {
 	enum class DataType {
@@ -23,6 +24,7 @@ namespace glp {
 
 	public:
 		Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indicesCount, const float* vertices, int verticesCount, bool dynamic);
+		Vao(Mesh mesh, bool dynamic);
 		void render();
 		void bind();
 		unsigned int getVaoArrayId();
