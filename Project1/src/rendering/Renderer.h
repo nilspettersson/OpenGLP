@@ -16,6 +16,7 @@ namespace glp {
 		Renderer(Camera* camera);
 
 		void render(Entity* entity);
+		void render(Entity* entity, glm::vec3 parentPosition, float parentScale);
 
 	};
 }

@@ -74,3 +74,11 @@ Material* glp::Entity::getMaterial() {
 void glp::Entity::setMaterial(Material material) {
 	this->material = material;
 }
+
+std::vector<Entity> glp::Entity::getChildren() {
+	return this->children;
+}
+
+void glp::Entity::addChild(Entity entity) {
+	this->children.push_back(entity);
+}

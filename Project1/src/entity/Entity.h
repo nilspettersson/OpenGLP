@@ -13,6 +13,7 @@ namespace glp {
 		float scale;
 		Material material;
 		Vao* model;
+		std::vector<Entity> children;
 		std::vector<Texture*> textures;
 
 	public:
@@ -41,5 +42,8 @@ namespace glp {
 
 		Material* getMaterial();
 		void setMaterial(Material material);
+
+		std::vector<Entity> getChildren();
+		void addChild(Entity entity);
 	};
 }

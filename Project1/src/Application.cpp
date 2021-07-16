@@ -56,8 +56,14 @@ int main(void) {
             entites[entites.size() - 1].addTexture(&texture);
             entites[entites.size() - 1].addTexture(&texture2);
             
-            entites[entites.size() - 1].setX(i * 200 - 460);
-            entites[entites.size() - 1].setY(ii * 200 - 460);
+            entites[entites.size() - 1].setX(i * 300 - 460);
+            entites[entites.size() - 1].setY(ii * 300 - 460);
+
+            glp::Entity child(&vao, &shader, 0.4f);
+            child.addTexture(&texture);
+            child.addTexture(&texture2);
+            child.setY(140);
+            entites[entites.size() - 1].addChild(child);
         }
     }
     glp::Renderer renderer = glp::Renderer(&camera);
