@@ -16,11 +16,15 @@ namespace glp {
 		float x;
 		float y;
 		float z;
+		float fov;
+
 	public:
 		Camera(int width, int height);
 		virtual glm::mat4 getProjection();
 		float getWidth();
 		float getHeight();
+		void setWidth(float width);
+		void setHeight(float height);
 
 		float getX();
 		float getY();
@@ -35,11 +39,16 @@ namespace glp {
 	};
 
 	class Camera3d : public Camera {
-
+	
+	protected:
+		void updateProjection();
 	public:
 		glm::vec3 rotation;
 		Camera3d(int width, int height);
 		glm::mat4 getProjection();
+		float getFov();
+		void setFov(float fovInDegrees);
+
 		float getZ();
 		void setZ(float z);
 
