@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30309.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Project1", "Project1\Project1.vcxproj", "{860321C0-CF6D-4500-B84F-2C2F6BC27193}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opengl_library", "openGLP\openGLP.vcxproj", "{860321C0-CF6D-4500-B84F-2C2F6BC27193}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "playground", "playground\playground.vcxproj", "{594BE1F0-A059-480B-A16E-2C27172B1CC8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,14 @@ Global
 		{860321C0-CF6D-4500-B84F-2C2F6BC27193}.Release|x64.Build.0 = Release|x64
 		{860321C0-CF6D-4500-B84F-2C2F6BC27193}.Release|x86.ActiveCfg = Release|Win32
 		{860321C0-CF6D-4500-B84F-2C2F6BC27193}.Release|x86.Build.0 = Release|Win32
+		{594BE1F0-A059-480B-A16E-2C27172B1CC8}.Debug|x64.ActiveCfg = Debug|x64
+		{594BE1F0-A059-480B-A16E-2C27172B1CC8}.Debug|x64.Build.0 = Debug|x64
+		{594BE1F0-A059-480B-A16E-2C27172B1CC8}.Debug|x86.ActiveCfg = Debug|Win32
+		{594BE1F0-A059-480B-A16E-2C27172B1CC8}.Debug|x86.Build.0 = Debug|Win32
+		{594BE1F0-A059-480B-A16E-2C27172B1CC8}.Release|x64.ActiveCfg = Release|x64
+		{594BE1F0-A059-480B-A16E-2C27172B1CC8}.Release|x64.Build.0 = Release|x64
+		{594BE1F0-A059-480B-A16E-2C27172B1CC8}.Release|x86.ActiveCfg = Release|Win32
+		{594BE1F0-A059-480B-A16E-2C27172B1CC8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

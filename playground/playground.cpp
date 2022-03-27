@@ -14,14 +14,10 @@
 #include "util/Util.h"
 #include "model/Mesh.h"
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 
 int main(void) {
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-
-    glp::Window window = glp::Window(1000, 1000);
-    glp::Camera3d camera = glp::Camera3d(1000, 1000);
+    glp::Window window = glp::Window();
+    glp::Camera3d camera = glp::Camera3d(1920, 1080);
     camera.setZ(-1000);
 
     float vertices[] = {
@@ -55,7 +51,7 @@ int main(void) {
             entites.push_back(glp::Entity(&vao, &shader, 60));
             entites[entites.size() - 1].addTexture(&texture);
             entites[entites.size() - 1].addTexture(&texture2);
-            
+
             entites[entites.size() - 1].setX(i * 300 - 460);
             entites[entites.size() - 1].setY(ii * 300 - 460);
 
@@ -82,24 +78,24 @@ int main(void) {
 
         camera.rotateX((float)window.getInput().getMouseY() / 400);
         camera.rotateY((float)window.getInput().getMouseX() / 400);
-        
+
         if (window.getInput().isKeyDown(GLFW_KEY_W)) {
-            camera.moveForward(3);
+            camera.moveForward(4);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_S)) {
-            camera.moveBackward(3);
+            camera.moveBackward(4);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_A)) {
-            camera.moveLeft(3);
+            camera.moveLeft(4);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_D)) {
-            camera.moveRight(3);
+            camera.moveRight(4);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_Q)) {
-            camera.moveDown(3);
+            camera.moveDown(4);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_E)) {
-            camera.moveUp(3);
+            camera.moveUp(4);
         }
 
         window.getInput().setCursorPosition(0, 0);
