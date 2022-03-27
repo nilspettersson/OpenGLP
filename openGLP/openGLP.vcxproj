@@ -146,7 +146,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\camera\Camera.cpp" />
     <ClCompile Include="src\entity\Entity.cpp" />
     <ClCompile Include="src\entity\Material.cpp" />
@@ -172,9 +171,6 @@
     <ClInclude Include="src\vendor\stb\stb_image.h" />
     <ClInclude Include="src\window\Input.h" />
     <ClInclude Include="src\window\Window.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="res\shaders\main.shader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

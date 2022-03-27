@@ -31,7 +31,7 @@ void Renderer::render(Entity* entity) {
 	}
 }
 
-void glp::Renderer::render(Entity* entity, glm::vec3 parentPosition, float parentScale) {
+void glp::Renderer::renderChild(Entity* entity, glm::vec3 parentPosition, float parentScale) {
 	glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(entity->getX(), entity->getY(), entity->getZ()) + parentPosition);
 	model = glm::scale(model, glm::vec3(entity->getScale()) * parentScale);
 	entity->getShader()->setUniformMat4f("u_mvp", this->camera->getProjection() * model);
