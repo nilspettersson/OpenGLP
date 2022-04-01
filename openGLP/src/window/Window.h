@@ -21,5 +21,7 @@ namespace glp {
         void clean();
 
         Input getInput();
+        int getWidth();
+        int getHeight();
     };
 }

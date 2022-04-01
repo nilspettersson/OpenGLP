@@ -27,7 +27,7 @@ void Renderer::render(Entity* entity) {
 	entity->getModel()->render();
 
 	for (int i = 0; i < entity->getChildren().size(); i++) {
-		render(&entity->getChildren()[i], glm::vec3(entity->getX(), entity->getY(), entity->getZ()), entity->getScale());
+		renderChild(&entity->getChildren()[i], glm::vec3(entity->getX(), entity->getY(), entity->getZ()), entity->getScale());
 	}
 }
 
@@ -50,6 +50,6 @@ void glp::Renderer::renderChild(Entity* entity, glm::vec3 parentPosition, float 
 	entity->getModel()->render();
 
 	for (int i = 0; i < entity->getChildren().size(); i++) {
-		render(&entity->getChildren()[i], glm::vec3(entity->getX(), entity->getY(), entity->getZ()), entity->getScale());
+		renderChild(&entity->getChildren()[i], glm::vec3(entity->getX(), entity->getY(), entity->getZ()), entity->getScale());
 	}
 }

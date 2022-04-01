@@ -83,3 +83,10 @@ void Window::clean() {
 Input Window::getInput() {
     return this->input;
 }
+
+int Window::getWidth() {
+    return this->width;
+}
+int Window::getHeight() {
+    return this->height;
+}
