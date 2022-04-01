@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opengl_library", "openGLP\o
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "playground", "playground\playground.vcxproj", "{594BE1F0-A059-480B-A16E-2C27172B1CC8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "playground2", "playground2\playground2.vcxproj", "{5DAD0B9C-4548-4F0C-AD63-1DE36CC80B7B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{594BE1F0-A059-480B-A16E-2C27172B1CC8}.Release|x64.Build.0 = Release|x64
 		{594BE1F0-A059-480B-A16E-2C27172B1CC8}.Release|x86.ActiveCfg = Release|Win32
 		{594BE1F0-A059-480B-A16E-2C27172B1CC8}.Release|x86.Build.0 = Release|Win32
+		{5DAD0B9C-4548-4F0C-AD63-1DE36CC80B7B}.Debug|x64.ActiveCfg = Debug|x64
+		{5DAD0B9C-4548-4F0C-AD63-1DE36CC80B7B}.Debug|x64.Build.0 = Debug|x64
+		{5DAD0B9C-4548-4F0C-AD63-1DE36CC80B7B}.Debug|x86.ActiveCfg = Debug|Win32
+		{5DAD0B9C-4548-4F0C-AD63-1DE36CC80B7B}.Debug|x86.Build.0 = Debug|Win32
+		{5DAD0B9C-4548-4F0C-AD63-1DE36CC80B7B}.Release|x64.ActiveCfg = Release|x64
+		{5DAD0B9C-4548-4F0C-AD63-1DE36CC80B7B}.Release|x64.Build.0 = Release|x64
+		{5DAD0B9C-4548-4F0C-AD63-1DE36CC80B7B}.Release|x86.ActiveCfg = Release|Win32
+		{5DAD0B9C-4548-4F0C-AD63-1DE36CC80B7B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

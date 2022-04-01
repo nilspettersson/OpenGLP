@@ -4,16 +4,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-#include "model/Vao.h"
-#include "window/Window.h"
-#include "shader/Shader.h"
-#include "camera/Camera.h"
-#include "texture/Texture.h";
-#include "rendering/Renderer.h"
-#include "entity/Entity.h";
-#include "util/Util.h"
-#include "model/Mesh.h"
-
+#include "OpenGLP.h"
 
 int main(void) {
     glp::Window window = glp::Window();
