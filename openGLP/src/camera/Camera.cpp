@@ -48,17 +48,21 @@ void glp::Camera::setY(float y) {
 	this->y = y;
 }
 
+glp::Camera2d::Camera2d(Window &window) : Camera(window.getWidth(), window.getHeight()) {
+	this->projection = glm::ortho(this->width / 2, this->width / 2, this->height / 2, -this->height / 2, -1.0f, 1.0f);
+}
+
 glp::Camera2d::Camera2d(int width, int height) : Camera(width, height) {
 	this->projection = glm::ortho(this->width / 2, this->width / 2, this->height / 2, -this->height / 2, -1.0f, 1.0f);
 }
 
 
+glp::Camera3d::Camera3d(Window& window) : Camera(window.getWidth(), window.getHeight()) {
+	this->rotation = glm::vec3();
+	this->projection = glm::perspective(this->fov, this->width / this->height, 0.1f, 10000.0f);
+}
+
 glp::Camera3d::Camera3d(int width, int height) : Camera(width, height) {
-	this->width = (float)width;
-	this->height = (float)height;
-	this->x = 0;
-	this->y = 0;
-	this->z = 0;
 	this->rotation = glm::vec3();
 	this->projection = glm::perspective(this->fov, this->width / this->height, 0.1f, 10000.0f);
 }

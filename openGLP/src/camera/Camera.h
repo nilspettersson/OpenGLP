@@ -6,6 +6,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/quaternion.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+#include "../window/Window.h"
 
 namespace glp {
 	class Camera {
@@ -35,6 +36,7 @@ namespace glp {
 
 	class Camera2d : public Camera {
 	public:
+		Camera2d(Window& window);
 		Camera2d(int width, int height);
 	};
 
@@ -44,6 +46,7 @@ namespace glp {
 		void updateProjection();
 	public:
 		glm::vec3 rotation;
+		Camera3d(Window& window);
 		Camera3d(int width, int height);
 		glm::mat4 getProjection();
 		float getFov();
