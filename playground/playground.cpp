@@ -11,7 +11,7 @@ int main(void) {
     glp::Camera3d camera = glp::Camera3d(1920, 1080);
     camera.setZ(-1000);
 
-    float vertices[] = {
+    std::vector<float> vertices = {
         -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
         0.5f, -0.5f, 1.0f, 0.0f, 1.0f,
         0.5f, 0.5f, 1.0f, 1.0f, 1.0f,
@@ -22,7 +22,7 @@ int main(void) {
         0.5f + 1.0f, 0.5f, 1.0f, 1.0f, 2.0f,
         -0.5f + 1.0f, 0.5f, 0.0f, 1.0f, 2.0f
     };
-    unsigned int indices[] {
+    std::vector<unsigned int> indices {
         0, 1, 2,
         2, 3, 0,
 
@@ -30,7 +30,8 @@ int main(void) {
         6, 7, 4
     };
 
-    glp::Mesh mesh = glp::Mesh::loadModelFromObj("res/models/test.obj");
+    //glp::Mesh mesh = glp::Mesh::loadModelFromObj("res/models/test.obj");
+    glp::Mesh mesh = glp::Mesh({ 2, 2, 1 }, vertices, indices);
     glp::Vao vao(mesh, false);
     glp::Shader shader("res/shaders/main.shader");
     glp::Texture texture("res/textures/test.png", glp::Texture::FILTER::NEAREST);
@@ -40,15 +41,15 @@ int main(void) {
     for (int i = 0; i < 10; i++) {
         for (int ii = 0; ii < 10; ii++) {
             entites.push_back(glp::Entity(vao, &shader, 60));
-            entites[entites.size() - 1].addTexture(texture);
-            entites[entites.size() - 1].addTexture(texture2);
+            entites[entites.size() - 1].addTexture(&texture);
+            entites[entites.size() - 1].addTexture(&texture2);
 
             entites[entites.size() - 1].setX(i * 300 - 460);
             entites[entites.size() - 1].setY(ii * 300 - 460);
 
             glp::Entity child(vao, &shader, 0.4f);
-            child.addTexture(texture);
-            child.addTexture(texture2);
+            child.addTexture(&texture);
+            child.addTexture(&texture2);
             child.setY(140);
             entites[entites.size() - 1].addChild(child);
         }
