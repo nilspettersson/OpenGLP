@@ -12,9 +12,9 @@ namespace glp {
 		Camera* camera;
 		unsigned int currentShaderId;
 
-		void renderChild(Entity* entity, glm::vec3 parentPosition, float parentScale);
+		void renderChild(Entity& entity, glm::vec3 parentPosition, float parentScale);
 	public:
 		Renderer(Camera* camera);
-		void render(Entity* entity);
+		void render(Entity& entity);
 	};
 }

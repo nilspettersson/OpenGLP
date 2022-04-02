@@ -2,8 +2,7 @@
 
 using namespace glp;
 
-glp::Material::Material(Shader *shader) {
-	this->shader = shader;
+Material::Material(Shader* shader): shader(shader) {
 
 	this->floatUniforms = std::unordered_map<std::string, float>();
 	this->intUniforms = std::unordered_map<std::string, int>();

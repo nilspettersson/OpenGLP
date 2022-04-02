@@ -39,16 +39,16 @@ int main(void) {
     std::vector<glp::Entity> entites = std::vector<glp::Entity>();
     for (int i = 0; i < 10; i++) {
         for (int ii = 0; ii < 10; ii++) {
-            entites.push_back(glp::Entity(&vao, &shader, 60));
-            entites[entites.size() - 1].addTexture(&texture);
-            entites[entites.size() - 1].addTexture(&texture2);
+            entites.push_back(glp::Entity(vao, &shader, 60));
+            entites[entites.size() - 1].addTexture(texture);
+            entites[entites.size() - 1].addTexture(texture2);
 
             entites[entites.size() - 1].setX(i * 300 - 460);
             entites[entites.size() - 1].setY(ii * 300 - 460);
 
-            glp::Entity child(&vao, &shader, 0.4f);
-            child.addTexture(&texture);
-            child.addTexture(&texture2);
+            glp::Entity child(vao, &shader, 0.4f);
+            child.addTexture(texture);
+            child.addTexture(texture2);
             child.setY(140);
             entites[entites.size() - 1].addChild(child);
         }
@@ -63,7 +63,7 @@ int main(void) {
         {
             //util::Timer timer;
             for (int i = 0; i < entites.size(); i++) {
-                renderer.render(&entites[i]);
+                renderer.render(entites[i]);
             }
         }
 

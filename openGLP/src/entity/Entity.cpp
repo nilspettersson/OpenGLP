@@ -2,7 +2,7 @@
 
 using namespace glp;
 
-glp::Entity::Entity(Vao* model, Shader* shader, float scale): material(shader) {
+glp::Entity::Entity(Vao& model, Shader* shader, float scale): material(shader), model(model) {
 	this->x = 0;
 	this->y = 0;
 	this->z = 0;
@@ -11,19 +11,19 @@ glp::Entity::Entity(Vao* model, Shader* shader, float scale): material(shader) {
 	this->model = model;
 }
 
-Shader* Entity::getShader() { 
-	return this->material.getShader();
+Shader& Entity::getShader() { 
+	return *this->material.getShader();
 }
 
-void Entity::setShader(Shader* shader) {
-	this->material.setShader(shader);
+void Entity::setShader(Shader& shader) {
+	this->material.setShader(&shader);
 }
 
-Vao* Entity::getModel() {
+Vao& Entity::getModel() {
 	return this->model;
 }
 
-void Entity::setModel(Vao* model) {
+void Entity::setModel(Vao& model) {
 	this->model = model;
 }
 
@@ -67,8 +67,8 @@ float glp::Entity::getScale() {
 	return this->scale;
 }
 
-Material* glp::Entity::getMaterial() {
-	return &this->material;
+Material glp::Entity::getMaterial() {
+	return this->material;
 }
 
 void glp::Entity::setMaterial(Material material) {

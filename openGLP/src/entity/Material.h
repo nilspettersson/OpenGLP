@@ -7,7 +7,7 @@
 
 namespace glp {
 	class Material {
-		Shader *shader;
+		Shader* shader;
 		std::unordered_map<std::string, float> floatUniforms;
 		std::unordered_map<std::string, int> intUniforms;
 		std::unordered_map<std::string, glm::vec2> vec2fUniforms;
@@ -15,7 +15,7 @@ namespace glp {
 		std::unordered_map<std::string, glm::vec4> vec4fUniforms;
 
 	public:
-		Material(Shader *shader);
+		Material(Shader* shader);
 
 		void setProperty(std::string name, float value);
 		void setProperty(std::string name, int value);
@@ -23,7 +23,7 @@ namespace glp {
 		void setProperty(std::string name, float v1, float v2, float v3);
 		void setProperty(std::string name, float v1, float v2, float v3, float v4);
 
-		Shader *getShader();
+		Shader* getShader();
 		void setShader(Shader* shader);
 
 		void updateUniforms();
