@@ -40,7 +40,7 @@ int main(void) {
     std::vector<glp::Entity> entites = std::vector<glp::Entity>();
     for (int i = 0; i < 10; i++) {
         for (int ii = 0; ii < 10; ii++) {
-            entites.push_back(glp::Entity(vao, &shader, 60));
+            entites.push_back(glp::Entity(vao, &shader, 100));
             entites[entites.size() - 1].addTexture(&texture);
             entites[entites.size() - 1].addTexture(&texture2);
 
@@ -54,7 +54,7 @@ int main(void) {
             entites[entites.size() - 1].addChild(child);
         }
     }
-    glp::Renderer renderer = glp::Renderer(&camera);
+    glp::Renderer renderer = glp::Renderer(camera);
 
     window.getInput().setCursorDisabled(true);
     window.getInput().setCursorPosition(0, 0);
@@ -72,22 +72,22 @@ int main(void) {
         camera.rotateY((float)window.getInput().getMouseX() / 400);
 
         if (window.getInput().isKeyDown(GLFW_KEY_W)) {
-            camera.moveForward(4);
+            camera.moveForward(0.5);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_S)) {
-            camera.moveBackward(4);
+            camera.moveBackward(0.5);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_A)) {
-            camera.moveLeft(4);
+            camera.moveLeft(0.5);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_D)) {
-            camera.moveRight(4);
+            camera.moveRight(0.5);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_Q)) {
-            camera.moveDown(4);
+            camera.moveDown(0.5);
         }
         if (window.getInput().isKeyDown(GLFW_KEY_E)) {
-            camera.moveUp(4);
+            camera.moveUp(0.5);
         }
 
         window.getInput().setCursorPosition(0, 0);

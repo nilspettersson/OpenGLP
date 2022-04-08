@@ -2,6 +2,8 @@
 
 using namespace glp;
 
+const std::vector<int>glp::Mesh::DefaultVertexLayout({ 3, 2, 3 });
+
 glp::Mesh::Mesh(std::vector<int> vertexLayout, std::vector<float> vertices, std::vector<unsigned int> indices) {
 	this->vertices = vertices;
 	this->indices = indices;
@@ -104,4 +106,19 @@ Mesh glp::Mesh::loadModelFromObj(const std::string& filepath) {
 	}
 
 	return Mesh({3, 2, 3}, vertices, indices);
+}
+
+Mesh glp::Mesh::Primitives::Plane(float width, float height) {
+	std::vector<float> vertices = {
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+		0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+		-0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+
+	};
+	std::vector<unsigned int> indices {
+		0, 1, 2,
+		2, 3, 0,
+	};
+	return glp::Mesh(DefaultVertexLayout, vertices, indices);
 }

@@ -9,6 +9,8 @@ namespace glp {
 	class Mesh {
 
 	public:
+		const static std::vector<int> DefaultVertexLayout;
+
 		std::vector<int> vertexLayout;
 		std::vector<float> vertices;
 		std::vector<unsigned int> indices;
@@ -16,5 +18,10 @@ namespace glp {
 		int getVerticesCount();
 
 		static Mesh loadModelFromObj(const std::string& filepath);
+		
+
+		static struct Primitives {
+			static Mesh Plane(float width, float height);
+		};
 	};
 }
