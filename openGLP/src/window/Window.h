@@ -1,11 +1,9 @@
 #pragma once
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include "Input.h"
 
 namespace glp {
     class Window {
-        GLFWwindow* window;
+        void* window;
         Input input;
         int width;
         int height;
@@ -15,13 +13,15 @@ namespace glp {
         Window(int width, int height);
 
         bool shouldClose();
-        GLFWwindow* getWindow();
+        void* getWindow();
         void destroy();
-        void drawInit();
-        void clean();
+        void drawStart();
+        void drawStart(float r, float g, float b);
+        void drawEnd();
 
         Input getInput();
         int getWidth();
         int getHeight();
+
     };
 }

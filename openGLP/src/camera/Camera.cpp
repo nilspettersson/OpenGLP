@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include <iostream>
 
+
 glp::Camera::Camera(int width, int height) {
 	this->width = (float)width;
 	this->height = (float)height;

@@ -1,16 +1,7 @@
 #pragma once
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <vector>
 #include "Mesh.h"
 
 namespace glp {
-	enum class DataType {
-		INT = GL_INT,
-		SHORT = GL_SHORT,
-		BYTE = GL_BYTE,
-		FLOAT = GL_FLOAT,
-	};
 
 	class Vao {
 		unsigned int vaoArrayId;

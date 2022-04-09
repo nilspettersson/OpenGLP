@@ -1,6 +1,4 @@
 #pragma once
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <string>
 
 namespace glp {
@@ -10,9 +8,9 @@ namespace glp {
 		unsigned char* buffer;
 		int width, height, bpp;
 	public:
-		enum FILTER {
-			NEAREST = GL_NEAREST,
-			LINEAR = GL_LINEAR
+		enum class FILTER {
+			NEAREST,
+			LINEAR
 		};
 
 		Texture(const std::string& path, FILTER filter);

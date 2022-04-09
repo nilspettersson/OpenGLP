@@ -89,5 +89,8 @@
     <ClInclude Include="src\OpenGLP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\window\Keys.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

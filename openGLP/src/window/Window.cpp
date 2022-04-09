@@ -1,5 +1,7 @@
 #include <iostream>
 #include "wtypes.h"
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 #include "Window.h"
 
@@ -25,7 +27,7 @@ Window::Window(int width, int height) {
             destroy();
         }
 
-        glfwMakeContextCurrent(this->window);
+        glfwMakeContextCurrent((GLFWwindow*)this->window);
 
         if (glewInit() != GLEW_OK) {
             std::cout << "glew error!" << std::endl;
@@ -48,7 +50,7 @@ Window::Window() {
             destroy();
         }
 
-        glfwMakeContextCurrent(this->window);
+        glfwMakeContextCurrent((GLFWwindow*)this->window);
 
         if (glewInit() != GLEW_OK) {
             std::cout << "glew error!" << std::endl;
@@ -60,23 +62,28 @@ Window::Window() {
 }
 
 bool Window::shouldClose() {
-    return glfwWindowShouldClose(this->window);
+    return glfwWindowShouldClose((GLFWwindow*)this->window);
 }
 
-GLFWwindow* Window::getWindow() {
-    return this->window;
+void* Window::getWindow() {
+    return (GLFWwindow*)this->window;
 }
 
 void Window::destroy() {
     glfwTerminate();
 }
 
-void Window::drawInit() {
+void Window::drawStart() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Window::clean() {
-    glfwSwapBuffers(this->window);
+void glp::Window::drawStart(float r, float g, float b) {
+    glClearColor(r, g, b, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Window::drawEnd() {
+    glfwSwapBuffers((GLFWwindow*)this->window);
     glfwPollEvents();
 }
 

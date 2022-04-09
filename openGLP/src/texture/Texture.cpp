@@ -1,5 +1,7 @@
 #include "Texture.h"
 #include "../vendor/stb/stb_image.h"
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 using namespace glp;
 
@@ -17,12 +19,20 @@ Texture::Texture(const std::string& path, FILTER filter = FILTER::NEAREST) {
 	glGenTextures(1, &this->textureId);
 	glBindTexture(GL_TEXTURE_2D, this->textureId);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+	GLint glFilter = GL_NEAREST;
+	if (filter == FILTER::NEAREST) {
+		glFilter = GL_NEAREST;
+	}
+	else if (filter == FILTER::LINEAR) {
+		glFilter = GL_LINEAR;
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glFilter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	if (buffer) {
@@ -44,9 +54,9 @@ void Texture::unbind() {
 }
 
 int Texture::getWidth() {
-	return 0;
+	return this->width;
 }
 
 int Texture::getHeight() {
-	return 0;
+	return this->height;
 }

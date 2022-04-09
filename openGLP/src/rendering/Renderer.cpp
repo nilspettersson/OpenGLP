@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include <GLFW/glfw3.h>
 
 using namespace glp;
 Renderer::Renderer(Camera& camera): camera(camera) {

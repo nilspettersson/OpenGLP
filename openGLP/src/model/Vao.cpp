@@ -1,5 +1,7 @@
 #include "Vao.h"
 #include <iostream>
+#include <GL/glew.h>
+#include <vector>
 
 using namespace glp;
 

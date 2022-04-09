@@ -171,6 +171,7 @@
     <ClInclude Include="src\util\Util.h" />
     <ClInclude Include="src\vendor\stb\stb_image.h" />
     <ClInclude Include="src\window\Input.h" />
+    <ClInclude Include="src\window\Keys.h" />
     <ClInclude Include="src\window\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
