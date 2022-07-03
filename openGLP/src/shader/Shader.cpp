@@ -6,6 +6,29 @@
 
 using namespace glp;
 
+static std::string defaultVertexShader = "#version 330 core\n"
+"\n"
+"layout(location = 0) in vec3 position;\n"
+"layout(location = 1) in vec2 texCoord;\n"
+"layout(location = 2) in vec3 normal;\n"
+"\n"
+"uniform mat4 u_mvp;\n"
+"out vec2 v_texCoord;\n"
+"\n"
+"void main() {\n"
+"    gl_Position = u_mvp * vec4(position, 1);\n"
+"};";
+
+static std::string defaultFragmentShader = "#version 330 core\n"
+"layout(location = 0) out vec4 colorOutput;\n"
+"\n"
+"uniform vec3 color;\n"
+"\n"
+"in vec2 v_texCoord;\n"
+"void main() {\n"
+"    colorOutput = vec4(1, 0, 1, 1);\n"
+"};\n";
+
 Shader::ShaderProgramSouce Shader::parseShader(const std::string& filepath) {
     std::ifstream stream(filepath);
 
@@ -68,7 +91,14 @@ Shader::Shader(std::string vertexShader, std::string fragmentShader) {
 Shader::Shader(std::string filepath) {
     this->uniformLocations = std::unordered_map<std::string, int>();
     Shader::ShaderProgramSouce source = Shader::parseShader(filepath);
-    createShader(source);
+    if (source.fragmentSource.empty() || source.vertexSource.empty()) {
+        source.vertexSource = defaultVertexShader;
+        source.fragmentSource = defaultFragmentShader;
+        createShader(source);
+    }
+    else {
+        createShader(source);
+    }
 }
 
 void Shader::createShader(Shader::ShaderProgramSouce source) {
@@ -76,6 +106,13 @@ void Shader::createShader(Shader::ShaderProgramSouce source) {
 
     unsigned int vs = compileShader(source.vertexSource, GL_VERTEX_SHADER);
     unsigned int fs = compileShader(source.fragmentSource, GL_FRAGMENT_SHADER);
+
+    if (vs == 0 || fs == 0) {
+        source.vertexSource = defaultVertexShader;
+        source.fragmentSource = defaultFragmentShader;
+        createShader(source);
+        return;
+    }
 
     glAttachShader(this->shaderId, vs);
     glAttachShader(this->shaderId, fs);
