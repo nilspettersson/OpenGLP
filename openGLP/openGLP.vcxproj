@@ -89,7 +89,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(solutionDir)dependencies\GLFW\include;$(solutionDir)dependencies\glew\include;$(solutionDir)\openGLP\dependencies</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(solutionDir)dependencies\GLFW\include;$(solutionDir)dependencies\glew\include;$(solutionDir)\openGLP\dependencies;$(solutionDir)dependencies\FastNoiseLite</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(solutionDir)dependencies\GLFW\include;$(solutionDir)dependencies\glew\include;$(solutionDir)\openGLP\dependencies</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(solutionDir)dependencies\GLFW\include;$(solutionDir)dependencies\glew\include;$(solutionDir)\openGLP\dependencies;$(solutionDir)dependencies\FastNoiseLite</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

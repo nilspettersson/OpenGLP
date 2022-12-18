@@ -1,7 +1,7 @@
 #include "OpenGLP.h"
 
 int main(void) {
-	auto window = glp::Window();
+    auto window = glp::Window();
     auto camera = glp::Camera3d(window);
 
     auto vao = glp::Vao(glp::Mesh::Primitives::Plane(1, 1), false);

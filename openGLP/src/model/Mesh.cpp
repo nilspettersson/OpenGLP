@@ -105,7 +105,7 @@ Mesh glp::Mesh::loadModelFromObj(const std::string& filepath) {
 		indices.push_back(i);
 	}
 
-	return Mesh({3, 2, 3}, vertices, indices);
+	return Mesh(DefaultVertexLayout, vertices, indices);
 }
 
 Mesh glp::Mesh::Primitives::Plane(float width, float height) {

@@ -21,5 +21,5 @@ uniform vec3 color;
 
 in vec2 v_texCoord;
 void main() {
-	colorOutput = vec4(1);
+	colorOutput = vec4(1, 0.5, 0, 1);
 };

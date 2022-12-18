@@ -42,8 +42,16 @@ Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indices
 glp::Vao::Vao(Mesh mesh, bool dynamic) {
 	this->vertexLayout = mesh.vertexLayout;
 
-	float* vertices = &mesh.vertices[0];
-	unsigned int* indices = &mesh.indices[0];
+	float* vertices = {};
+	unsigned int* indices;
+	if (mesh.vertices.size() > 0 && mesh.indices.size() > 0) {
+		vertices = &mesh.vertices[0];
+		indices = &mesh.indices[0];
+	}
+	else {
+		vertices = {};
+		indices = {};
+	}
 
 	this->indicesCount = mesh.indices.size();
 	this->verticesCount = mesh.getVerticesCount();
@@ -90,6 +98,14 @@ void Vao::render() {
 
 void glp::Vao::bind() {
 	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
+
+	int offset = 0;
+	for (int i = 0; i < this->vertexLayout.size(); i++) {
+		glEnableVertexAttribArray(i);
+		glVertexAttribPointer(i, this->vertexLayout[i], GL_FLOAT, GL_FALSE, this->vertexSize, (const void*)offset);
+		offset += this->vertexLayout[i] * 4;
+	}
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vaoElementId);
 }
 
