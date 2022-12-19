@@ -4,14 +4,15 @@
 
 int main(void) {
 
-	auto window = glp::Window(720, 480);
+	auto window = glp::Window(/*720, 480*/);
 	auto camera = glp::Camera3d(window);
 	camera.setZ(-3);
     camera.setY(-40);
 
 	auto renderer = glp::Renderer(camera);
 
-    auto chunckManager = ChunkManager(30, 16, 255);
+    int chunkSize = 16;
+    auto chunckManager = ChunkManager(16, 16, 255);
     chunckManager.CreateEntities();
 
     window.getInput().setCursorDisabled(true);
@@ -19,12 +20,14 @@ int main(void) {
 	while (!window.shouldClose()) {
 		window.drawStart();
 
+        chunckManager.updateChunks((camera.getX()) / chunkSize, camera.getZ() / chunkSize);
+
         for (int i = 0; i < chunckManager.entities.size(); i++) {
             renderer.render(chunckManager.entities[i]);
         }
 
 
-        float speed = 0.08;
+        float speed = 0.1;
         if (window.getInput().isKeyDown(GLP_KEY_W)) {
             camera.moveForward(speed);
         }

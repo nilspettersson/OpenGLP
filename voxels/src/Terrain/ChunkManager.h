@@ -9,12 +9,16 @@ private:
     std::unordered_map<std::string, ChunkGenerator> chunks;
     TextureAtlas textureAtlas;
     glp::Shader shader;
+    int chunkWidth;
+    int chunkHeight;
+    int chunkCount;
 
 public:
     ChunkManager(int chunks, int chunkWidth, int chunkHeight);
 
     std::vector<glp::Entity> entities;
-    std::vector<glp::Vao> models;
+
+    void updateChunks(int originX, int originY);
 
     void CreateEntities();
 

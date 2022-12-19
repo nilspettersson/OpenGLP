@@ -104,8 +104,7 @@ void createPlane(PlaneType planeType, std::vector<float>& vertices, std::vector<
 	}
 }
 
-glp::Mesh ChunkGenerator::generateMesh()
-{
+glp::Mesh ChunkGenerator::generateMesh() {
 	auto vertices = std::vector<float>();
 	auto indices = std::vector<unsigned int>();
 	
