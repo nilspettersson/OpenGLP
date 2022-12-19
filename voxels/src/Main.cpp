@@ -4,25 +4,14 @@
 
 int main(void) {
 
-	auto window = glp::Window(/*720, 480*/);
+	auto window = glp::Window(720, 480);
 	auto camera = glp::Camera3d(window);
 	camera.setZ(-3);
     camera.setY(-40);
 
 	auto renderer = glp::Renderer(camera);
 
-
-    auto shader = glp::Shader("res/shaders/main.shader");
-    auto texture = glp::Texture("res/textures/test2.png", glp::Texture::FILTER::LINEAR);
-    
-    /*auto chunk = ChunkGenerator(0, 0, 16, 16);
-    auto vao = glp::Vao(chunk.generateMesh(), false);
-	auto entity = glp::Entity(vao, &shader, 1);
-    entity.addTexture(&texture);*/
-
-
-
-    auto chunckManager = ChunkManager(50, 16, 255);
+    auto chunckManager = ChunkManager(30, 16, 255);
     chunckManager.CreateEntities();
 
     window.getInput().setCursorDisabled(true);
@@ -30,7 +19,6 @@ int main(void) {
 	while (!window.shouldClose()) {
 		window.drawStart();
 
-		//renderer.render(entity);
         for (int i = 0; i < chunckManager.entities.size(); i++) {
             renderer.render(chunckManager.entities[i]);
         }

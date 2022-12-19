@@ -5,7 +5,8 @@
 
 class ChunkManager {
 private:
-    std::vector<ChunkGenerator> chunks;
+    //std::vector<ChunkGenerator> chunks;
+    std::unordered_map<std::string, ChunkGenerator> chunks;
     TextureAtlas textureAtlas;
     glp::Shader shader;
 
