@@ -1,30 +1,65 @@
 #include "ChunkGenerator.h"
 
-ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, TextureAtlas& textureAtlas): textureAtlas(textureAtlas) {
+ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator>& chunksList) :
+	chunksList(chunksList),
+	textureAtlas(textureAtlas) {
 	this->chunkWidth = chunkWidth;
 	this->maxHeight = maxHeight;
 	this->chunkX = chunkX;
 	this->chunkZ = chunkZ;
 	this->cells = {};
+	this->detailMultiplier = detailMultiplier;
 
 	this->status = ChunkStatus::NONE;
 	this->generateTerain();
 }
 
-int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
-	noise.SetFractalOctaves(4);
-	noise.SetFractalGain(0.6);
-	noise.SetFractalLacunarity(2);
+float NoiseStandard(float x, float y, float multiplier, int octaves, float gain, float lacunarity, FastNoiseLite noise) {
+	noise.SetFractalOctaves(octaves);
+	noise.SetFractalGain(gain);
+	noise.SetFractalLacunarity(lacunarity);
 	noise.SetFractalType(FastNoiseLite::FractalType::FractalType_FBm);
-	
+	return noise.GetNoise(x * multiplier, y * multiplier);
+}
 
-	float xValue = (x + this->chunkX * this->chunkWidth);
-	float zValue = (z + this->chunkZ * this->chunkWidth);
-	float value = noise.GetNoise(xValue * 0.4, zValue * 0.4);
+float NoiseRidged(float x, float y, float multiplier, int octaves, float gain, float lacunarity, FastNoiseLite noise) {
+	noise.SetFractalOctaves(octaves);
+	noise.SetFractalGain(gain);
+	noise.SetFractalLacunarity(lacunarity);
+	noise.SetFractalType(FastNoiseLite::FractalType::FractalType_Ridged);
+	return noise.GetNoise(x * multiplier, y * multiplier);
+}
+
+float NoisePingPong(float x, float y, float multiplier, int octaves, float gain, float lacunarity, float strength, FastNoiseLite noise) {
+	noise.SetFractalOctaves(octaves);
+	noise.SetFractalGain(gain);
+	noise.SetFractalLacunarity(lacunarity);
+	noise.SetFractalPingPongStrength(strength);
+	noise.SetFractalType(FastNoiseLite::FractalType::FractalType_PingPong);
+	return noise.GetNoise(x * multiplier, y * multiplier);
+}
+
+int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
+	float xValue = ((x / this->detailMultiplier) + this->chunkX * this->chunkWidth);
+	float zValue = ((z / this->detailMultiplier) + this->chunkZ * this->chunkWidth);
+	float noiseMultiplier = noise.GetNoise(xValue * 0.2, zValue * 0.2);
+	noiseMultiplier = (noiseMultiplier + 1) / 2;
+	noiseMultiplier = 1 - noiseMultiplier;
+	noiseMultiplier *= 0.8;
+
+	float value = NoiseRidged(xValue, zValue, 0.2, 4, 0.5, 2, noise);
+	value += NoiseStandard(xValue, zValue, 0.4, 4, noiseMultiplier, 2, noise);
+
+	value += noiseMultiplier * 8;
+
+	value += glm::min(NoisePingPong(xValue * 4, zValue * 4, 0.2, 1, 0.5, 2, 1, noise), 0.5f) * 0.5;
+
+	value /= 3;
+
 	value = (value + 1) / 2;
-	value *= 0.2;
+	value *= 0.4;
 
-	value *= this->maxHeight;
+	value *= this->maxHeight * this->detailMultiplier;
 	value += 1;
 
 	return value;
@@ -35,14 +70,14 @@ void ChunkGenerator::generateTerain() {
 	FastNoiseLite noise;
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
-	
 
-	for (int x = 0; x < this->chunkWidth; x++) {
+
+	for (int x = 0; x < this->chunkWidth * detailMultiplier; x++) {
 		this->cells.push_back({});
-		for (int z = 0; z < this->chunkWidth; z++) {
+		for (int z = 0; z < this->chunkWidth * detailMultiplier; z++) {
 			int terainHeight = this->GetTerainHeight((float)x, (float)z, noise);
 			this->cells[x].push_back({});
-			for (int y = 0; y < this->maxHeight; y++) {
+			for (int y = 0; y < this->maxHeight * detailMultiplier; y++) {
 				int block = 0;
 				if (y <= terainHeight) {
 					block = 1;
@@ -104,11 +139,88 @@ void createPlane(PlaneType planeType, std::vector<float>& vertices, std::vector<
 	}
 }
 
+int ChunkGenerator::getBlockValue(int x, int y, int z) {
+	x = x / this->detailMultiplier;
+	y = y / this->detailMultiplier;
+	z = z / this->detailMultiplier;
+	int oldX = x;
+	int oldY = y;
+	int oldZ = z;
+	float width = this->chunkWidth / this->detailMultiplier;
+	float height = this->maxHeight / this->detailMultiplier;
+
+	if (y < 0 || y > height - 1) {
+		return 1;
+	}
+	if (x >= 0 && x <= this->chunkWidth - 1 && z >= 0 && z <= this->chunkWidth - 1) {
+		return this->cells[x][z][y];
+	}
+
+	/*bool xIsNotNegativeOne = false;
+	bool zIsNotNegativeOne = false;
+	if (x != -1) {
+		xIsNotNegativeOne = true;
+		x++;
+	}
+	if (z != -1) {
+		zIsNotNegativeOne = true;
+		z++;
+	}
+
+	int chunkX = this->chunkX + glm::floor((float)x / width);
+	int chunkZ = this->chunkZ + glm::floor((float)z / width);
+
+	if (x < 0) {
+		x = (width) - glm::abs(x) % ((int)width);
+	}
+	else if (x > (int)width) {
+		x = x % ((int)width);
+	}
+	if (z < 0) {
+		z = (width) - glm::abs(z) % ((int)width) + 1;
+	}
+	else if (z > (int)width) {
+		z = z % ((int)width);
+	}
+
+	if (xIsNotNegativeOne) {
+		x--;
+	}
+	if (zIsNotNegativeOne) {
+		z--;
+	}
+
+	std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
+	if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
+		int blockValue = this->chunksList.at(chunkKey).cells[x][z][y];
+		return blockValue;
+	}*/
+
+	int chunkX = this->chunkX + glm::floor((float)x / width);
+	int chunkZ = this->chunkZ + glm::floor((float)z / width);
+
+	x = (int)glm::mod((float)x, width);
+	z = (int)glm::mod((float)z, width);
+	//y = glm::mod((float)y, width);
+
+	//int test = glm::mod(-1.0f, 16.0f);
+
+	std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
+	if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
+		int blockValue = this->chunksList.at(chunkKey).cells[x][z][y];
+		return blockValue;
+	}
+
+	return 1;
+}
+
 glp::Mesh ChunkGenerator::generateMesh() {
 	auto vertices = std::vector<float>();
 	auto indices = std::vector<unsigned int>();
-	
-	float size = 1;
+
+	float size = 1 / this->detailMultiplier;
+	int width = this->chunkWidth * this->detailMultiplier;
+	int height = this->maxHeight * this->detailMultiplier;
 	float offset = size / 2;
 
 	for (int x = 0; x < this->cells.size(); x++) {
@@ -122,24 +234,24 @@ glp::Mesh ChunkGenerator::generateMesh() {
 				if (block > 0) {
 					Block coordinates = GetBlock((BLOCK)block);
 
-					if (z == this->chunkWidth - 1 || this->cells[x][z + 1][y] == 0) {
+					if (this->getBlockValue(x, y, z + 1) == 0) {
 						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ + offset, size, coordinates.side, 0.6);
 					}
-					if (z == 0 || this->cells[x][z - 1][y] == 0) {
+					if (this->getBlockValue(x, y, z - 1) == 0) {
 						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ - offset, size, coordinates.side, 0.6);
 					}
 
-					if (x == this->chunkWidth - 1 || this->cells[x + 1][z][y] == 0) {
+					if (this->getBlockValue(x + 1, y, z) == 0) {
 						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX + offset, positionY, positionZ, size, coordinates.side, 0.8);
 					}
-					if (x == 0 || this->cells[x - 1][z][y] == 0) {
+					if (this->getBlockValue(x - 1, y, z) == 0) {
 						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX - offset, positionY, positionZ, size, coordinates.side, 0.8);
 					}
 					
-					if (y == this->maxHeight - 1 || this->cells[x][z][y + 1] == 0) {
+					if (this->getBlockValue(x, y + 1, z) == 0) {
 						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + offset, positionZ, size, coordinates.top, 1);
 					}
-					if (y == 0 || this->cells[x][z][y - 1] == 0) {
+					if (this->getBlockValue(x, y - 1, z) == 0) {
 						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY - offset, positionZ, size, coordinates.bottom, 0.6);
 					}
 				}

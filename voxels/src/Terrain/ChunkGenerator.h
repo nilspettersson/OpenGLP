@@ -9,7 +9,6 @@ enum BLOCK {
     Air, GRASS, DIRT
 };
 
-
 struct Block {
     TextureCoordinates top;
     TextureCoordinates side;
@@ -19,11 +18,12 @@ struct Block {
 class ChunkGenerator {
 private:
     std::vector<std::vector<std::vector<int>>> cells;
+    float detailMultiplier;
     TextureAtlas& textureAtlas;
 
     int GetTerainHeight(float x, float z, FastNoiseLite noise);
 public:
-    ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, TextureAtlas& textureAtlas);
+    ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator>& chunksList);
 
     int chunkX;
     int chunkZ;
@@ -31,9 +31,18 @@ public:
     int chunkWidth;
     ChunkStatus status;
 
+    std::unordered_map<std::string, ChunkGenerator>& chunksList;
+
+    /*ChunkGenerator& chunkLeft;
+    ChunkGenerator& chunkRight;
+    ChunkGenerator& chunkTop;
+    ChunkGenerator& chunkBottom;*/
+
     void generateTerain();
 
     glp::Mesh generateMesh();
+
+    int getBlockValue(int x, int y, int z);
 
     Block GetBlock(BLOCK block);
 

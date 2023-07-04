@@ -12,7 +12,6 @@ ChunkManager::ChunkManager(int chunks, int chunkWidth, int chunkHeight):
 }
 
 void ChunkManager::updateChunks(int originX, int originZ) {
-	//std::cout << std::to_string(x) + " " + std::to_string(y) << std::endl;
 	float currentChunkLayer = 0;
 	float angle = 0;
 	while (currentChunkLayer < chunkCount) {
@@ -31,8 +30,23 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 		}
 		std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
 		if (this->chunks.find(key) == this->chunks.end()) {
-			this->chunks.emplace(key, ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, this->textureAtlas));
-			//std::cout << "adding chunk" + std::to_string(x) + " " + std::to_string(y) << std::endl;
+			float detail = 1;
+			if (currentChunkLayer < 12) {
+				detail /= 1;
+			}
+			else if (currentChunkLayer < 24) {
+				detail /= 2;
+			}
+			else if (currentChunkLayer < 45) {
+				detail /= 4;
+			}
+			else if (currentChunkLayer < 60) {
+				detail /= 8;
+			}
+			else {
+				detail /= 16;
+			}
+			this->chunks.emplace(key, ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, 1, this->textureAtlas, this->chunks));
 		}
 	}
 	this->CreateEntities();
@@ -42,7 +56,6 @@ void ChunkManager::CreateEntities() {
 	for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
 		auto chunk = &i->second;
 		if (chunk->status == ChunkStatus::TERAIN_GENERATED) {
-			//std::cout << "adding entity" + std::to_string(chunk.chunkX) + " " + std::to_string(chunk.chunkZ) + "  " + std::to_string(chunk.status) << std::endl;
 			auto mesh = chunk->generateMesh();
 			auto vao = new glp::Vao(mesh, false);
 
