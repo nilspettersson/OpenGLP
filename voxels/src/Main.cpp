@@ -23,7 +23,7 @@ int main(void) {
         chunckManager.updateChunks((camera.getX()) / chunkSize, camera.getZ() / chunkSize);
 
         for (int i = 0; i < chunckManager.entities.size(); i++) {
-            renderer.render(chunckManager.entities[i]);
+            renderer.render(*chunckManager.entities[i]);
         }
 
 

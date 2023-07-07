@@ -70,6 +70,24 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 			}
 		}
 	}
+
+	for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
+		auto chunk = &i->second;
+		int deltaX = (chunk->chunkX - originX);
+		int deltaZ = (chunk->chunkZ - originZ);
+		if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > chunkCount) {
+			for (int j = 0; j < this->entities.size(); j++) {
+				if (this->entities[j] == chunk->chunkEntity) {
+					//TODO: remove chunk?
+					this->entities.erase(this->entities.begin() + j);
+					break;
+				}
+			}
+			
+		}
+	}
+
+
 	this->CreateEntities();
 }
 
@@ -80,19 +98,30 @@ void ChunkManager::CreateEntities() {
 			auto mesh = chunk->generateMesh();
 			auto vao = new glp::Vao(mesh, false);
 
-			//TODO: improve performance
-			for (int i = 0; i < this->entities.size(); i++) {
-				if (this->entities[i].getX() == chunk->chunkX * chunk->chunkWidth && this->entities[i].getZ() == chunk->chunkZ * chunk->chunkWidth) {
+			/*if (chunk->chunkEntityIndex != -1) {
+				this->entities[chunk->chunkEntityIndex].setModel(*vao);
+				return;
+			}*/
+
+			if (chunk->chunkEntity != NULL) {
+				chunk->chunkEntity->setModel(*vao);
+				return;
+			}
+
+			/*for (int i = 0; i < this->entities.size(); i++) {
+				if (&this->entities[i] == chunk->chunkEntity) {
 					this->entities[i].setModel(*vao);
 					return;
 				}
-			}
+			}*/
 
-			auto entity = glp::Entity(*vao, &this->shader, 1);
-			entity.setX(chunk->chunkX * chunk->chunkWidth);
-			entity.setZ(chunk->chunkZ * chunk->chunkWidth);
-			entity.addTexture(&this->textureAtlas.texture);
+			auto entity = new glp::Entity(*vao, &this->shader, 1);
+			entity->setX(chunk->chunkX * chunk->chunkWidth);
+			entity->setZ(chunk->chunkZ * chunk->chunkWidth);
+			entity->addTexture(&this->textureAtlas.texture);
 			this->entities.push_back(entity);
+
+			chunk->chunkEntity = entity;
 		}
 	}
 }

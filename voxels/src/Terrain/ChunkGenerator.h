@@ -31,6 +31,8 @@ public:
     int chunkWidth;
     ChunkStatus status;
 
+    glp::Entity *chunkEntity;
+
     std::unordered_map<std::string, ChunkGenerator>& chunksList;
 
     void generateTerain();

@@ -9,6 +9,7 @@ ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHe
 	this->chunkZ = chunkZ;
 	this->cells = {};
 	this->detailMultiplier = detailMultiplier;
+	this->chunkEntity = NULL;
 
 	this->status = ChunkStatus::NONE;
 	this->generateTerain();
@@ -168,7 +169,7 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 		return blockValue;
 	}
 
-	return 1;
+	return 0;
 }
 
 glp::Mesh ChunkGenerator::generateMesh() {

@@ -16,7 +16,7 @@ private:
 public:
     ChunkManager(int chunks, int chunkWidth, int chunkHeight);
 
-    std::vector<glp::Entity> entities;
+    std::vector<glp::Entity*> entities;
 
     void updateChunks(int originX, int originY);
 
