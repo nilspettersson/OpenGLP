@@ -33,11 +33,6 @@ public:
 
     std::unordered_map<std::string, ChunkGenerator>& chunksList;
 
-    /*ChunkGenerator& chunkLeft;
-    ChunkGenerator& chunkRight;
-    ChunkGenerator& chunkTop;
-    ChunkGenerator& chunkBottom;*/
-
     void generateTerain();
 
     glp::Mesh generateMesh();

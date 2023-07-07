@@ -156,54 +156,11 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 		return this->cells[x][z][y];
 	}
 
-	/*bool xIsNotNegativeOne = false;
-	bool zIsNotNegativeOne = false;
-	if (x != -1) {
-		xIsNotNegativeOne = true;
-		x++;
-	}
-	if (z != -1) {
-		zIsNotNegativeOne = true;
-		z++;
-	}
-
 	int chunkX = this->chunkX + glm::floor((float)x / width);
 	int chunkZ = this->chunkZ + glm::floor((float)z / width);
-
-	if (x < 0) {
-		x = (width) - glm::abs(x) % ((int)width);
-	}
-	else if (x > (int)width) {
-		x = x % ((int)width);
-	}
-	if (z < 0) {
-		z = (width) - glm::abs(z) % ((int)width) + 1;
-	}
-	else if (z > (int)width) {
-		z = z % ((int)width);
-	}
-
-	if (xIsNotNegativeOne) {
-		x--;
-	}
-	if (zIsNotNegativeOne) {
-		z--;
-	}
-
-	std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
-	if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
-		int blockValue = this->chunksList.at(chunkKey).cells[x][z][y];
-		return blockValue;
-	}*/
-
-	int chunkX = this->chunkX + glm::floor((float)x / width);
-	int chunkZ = this->chunkZ + glm::floor((float)z / width);
-
+	
 	x = (int)glm::mod((float)x, width);
 	z = (int)glm::mod((float)z, width);
-	//y = glm::mod((float)y, width);
-
-	//int test = glm::mod(-1.0f, 16.0f);
 
 	std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
 	if (this->chunksList.find(chunkKey) != this->chunksList.end()) {

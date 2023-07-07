@@ -47,6 +47,27 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 				detail /= 16;
 			}
 			this->chunks.emplace(key, ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, 1, this->textureAtlas, this->chunks));
+
+
+			std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
+			if (this->chunks.find(keyLeft) != this->chunks.end()) {
+				this->chunks.at(keyLeft).status = ChunkStatus::TERAIN_GENERATED;
+			}
+
+			std::string keyRight = std::to_string((int)x + 1) + "|" + std::to_string((int)y);
+			if (this->chunks.find(keyRight) != this->chunks.end()) {
+				this->chunks.at(keyRight).status = ChunkStatus::TERAIN_GENERATED;
+			}
+
+			std::string keyForward = std::to_string((int)x) + "|" + std::to_string((int)y + 1);
+			if (this->chunks.find(keyForward) != this->chunks.end()) {
+				this->chunks.at(keyForward).status = ChunkStatus::TERAIN_GENERATED;
+			}
+
+			std::string keyBackward = std::to_string((int)x) + "|" + std::to_string((int)y - 1);
+			if (this->chunks.find(keyBackward) != this->chunks.end()) {
+				this->chunks.at(keyBackward).status = ChunkStatus::TERAIN_GENERATED;
+			}
 		}
 	}
 	this->CreateEntities();
@@ -58,6 +79,14 @@ void ChunkManager::CreateEntities() {
 		if (chunk->status == ChunkStatus::TERAIN_GENERATED) {
 			auto mesh = chunk->generateMesh();
 			auto vao = new glp::Vao(mesh, false);
+
+			//TODO: improve performance
+			for (int i = 0; i < this->entities.size(); i++) {
+				if (this->entities[i].getX() == chunk->chunkX * chunk->chunkWidth && this->entities[i].getZ() == chunk->chunkZ * chunk->chunkWidth) {
+					this->entities[i].setModel(*vao);
+					return;
+				}
+			}
 
 			auto entity = glp::Entity(*vao, &this->shader, 1);
 			entity.setX(chunk->chunkX * chunk->chunkWidth);
