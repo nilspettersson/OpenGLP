@@ -24,6 +24,7 @@ private:
     int GetTerainHeight(float x, float z, FastNoiseLite noise);
 public:
     ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator>& chunksList);
+    ~ChunkGenerator();
 
     int chunkX;
     int chunkZ;

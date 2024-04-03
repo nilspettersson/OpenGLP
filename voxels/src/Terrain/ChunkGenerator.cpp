@@ -15,6 +15,12 @@ ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHe
 	this->generateTerain();
 }
 
+ChunkGenerator::~ChunkGenerator()
+{
+	//std::cout << "delete chunk destructor" << std::endl;
+	//delete this->chunkEntity;
+}
+
 float NoiseStandard(float x, float y, float multiplier, int octaves, float gain, float lacunarity, FastNoiseLite noise) {
 	noise.SetFractalOctaves(octaves);
 	noise.SetFractalGain(gain);

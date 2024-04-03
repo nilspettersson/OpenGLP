@@ -4,7 +4,7 @@
 
 int main(void) {
 
-	auto window = glp::Window(1920, 1080);
+    auto window = glp::Window(720, 480);
 	auto camera = glp::Camera3d(window);
 	camera.setZ(-3);
     camera.setY(-40);
@@ -12,7 +12,7 @@ int main(void) {
 	auto renderer = glp::Renderer(camera);
 
     int chunkSize = 16;
-    auto chunckManager = ChunkManager(12, chunkSize, 255);
+    auto chunckManager = ChunkManager(16, chunkSize, 255);
     chunckManager.CreateEntities();
 
     window.getInput().setCursorDisabled(true);
@@ -20,7 +20,7 @@ int main(void) {
 	while (!window.shouldClose()) {
 		window.drawStart();
 
-        chunckManager.updateChunks((camera.getX()) / chunkSize, camera.getZ() / chunkSize);
+        chunckManager.updateChunks((camera.getX()) / (chunkSize), camera.getZ() / (chunkSize));
 
         for (int i = 0; i < chunckManager.entities.size(); i++) {
             renderer.render(*chunckManager.entities[i]);
