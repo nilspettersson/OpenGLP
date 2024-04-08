@@ -15,7 +15,8 @@ namespace glp {
 
 	public:
 		Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indicesCount, const float* vertices, int verticesCount, bool dynamic);
-		Vao(Mesh mesh, bool dynamic);
+		Vao(Mesh& mesh, bool dynamic);
+		~Vao();
 		void render();
 		void bind();
 		unsigned int getVaoArrayId();

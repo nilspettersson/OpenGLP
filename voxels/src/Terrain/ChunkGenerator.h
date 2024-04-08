@@ -38,7 +38,7 @@ public:
 
     void generateTerain();
 
-    glp::Mesh generateMesh();
+    glp::Mesh* generateMesh();
 
     int getBlockValue(int x, int y, int z);
 

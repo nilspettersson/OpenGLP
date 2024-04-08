@@ -178,7 +178,7 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 	return 0;
 }
 
-glp::Mesh ChunkGenerator::generateMesh() {
+glp::Mesh* ChunkGenerator::generateMesh() {
 	auto vertices = std::vector<float>();
 	auto indices = std::vector<unsigned int>();
 
@@ -224,7 +224,7 @@ glp::Mesh ChunkGenerator::generateMesh() {
 	}
 
 	this->status = ChunkStatus::MESH_GENERATED;
-	return glp::Mesh(glp::Mesh::DefaultVertexLayout, vertices, indices);
+	return new glp::Mesh(glp::Mesh::DefaultVertexLayout, vertices, indices);
 }
 
 Block ChunkGenerator::GetBlock(BLOCK block) {

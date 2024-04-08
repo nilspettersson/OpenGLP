@@ -12,7 +12,7 @@ int main(void) {
 	auto renderer = glp::Renderer(camera);
 
     int chunkSize = 16;
-    auto chunckManager = ChunkManager(16, chunkSize, 255);
+    auto chunckManager = ChunkManager(32, chunkSize, 255);
     chunckManager.CreateEntities();
 
     window.getInput().setCursorDisabled(true);

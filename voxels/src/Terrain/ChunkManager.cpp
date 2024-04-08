@@ -114,9 +114,10 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 		if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > chunkCount) {
 			for (int j = 0; j < this->entities.size(); j++) {
 				if (this->entities[j] == chunk->chunkEntity) {
-					//TODO: remove chunk?
+
+
 					chunksToBeRemoved.push_back(this->chunks.at(i->first));
-					std::cout << "remove entity " << i->first << " x:" << deltaX << " z:" << deltaZ << std::endl;
+					//std::cout << "remove entity " << i->first << " x:" << deltaX << " z:" << deltaZ << std::endl;
 					//delete chunk;
 					this->entities.erase(this->entities.begin() + j);
 					break;
@@ -129,8 +130,9 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 		for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
 			if (i->second.chunkEntity == chunk.chunkEntity) {
 				this->chunks.erase(i->first);
-				//delete& chunk;
-				std::cout << "remove chunk done" << std::endl;
+				delete &chunk.chunkEntity->getModel();
+				delete chunk.chunkEntity;
+				std::cout << "chunk removed" << std::endl;
 				break;
 			}
 		}
@@ -143,7 +145,7 @@ void ChunkManager::CreateEntities() {
 		auto chunk = &i->second;
 		if (chunk->status == ChunkStatus::TERAIN_GENERATED) {
 			auto mesh = chunk->generateMesh();
-			auto vao = new glp::Vao(mesh, false);
+			auto vao = new glp::Vao(*mesh, false);
 
 			/*if (chunk->chunkEntityIndex != -1) {
 				this->entities[chunk->chunkEntityIndex].setModel(*vao);
@@ -152,6 +154,7 @@ void ChunkManager::CreateEntities() {
 
 			if (chunk->chunkEntity != NULL) {
 				chunk->chunkEntity->setModel(*vao);
+				delete mesh;
 				return;
 			}
 
@@ -169,6 +172,8 @@ void ChunkManager::CreateEntities() {
 			this->entities.push_back(entity);
 
 			chunk->chunkEntity = entity;
+
+			delete mesh;
 		}
 	}
 }

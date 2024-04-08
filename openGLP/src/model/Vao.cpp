@@ -39,18 +39,12 @@ Vao::Vao(std::vector<int> vertexLayout, const unsigned int* indices, int indices
 	}
 }
 
-glp::Vao::Vao(Mesh mesh, bool dynamic) {
+
+glp::Vao::Vao(Mesh& mesh, bool dynamic) {
 	this->vertexLayout = mesh.vertexLayout;
 
-	float* vertices = {};
-	unsigned int* indices;
 	if (mesh.vertices.size() > 0 && mesh.indices.size() > 0) {
-		vertices = &mesh.vertices[0];
-		indices = &mesh.indices[0];
-	}
-	else {
-		vertices = {};
-		indices = {};
+		
 	}
 
 	this->indicesCount = mesh.indices.size();
@@ -70,11 +64,11 @@ glp::Vao::Vao(Mesh mesh, bool dynamic) {
 
 	glGenBuffers(1, &this->vaoArrayId);
 	glBindBuffer(GL_ARRAY_BUFFER, this->vaoArrayId);
-	glBufferData(GL_ARRAY_BUFFER, verticesCount * this->vertexSize, vertices, drawType);
+	glBufferData(GL_ARRAY_BUFFER, verticesCount * this->vertexSize, &mesh.vertices[0], drawType);
 
 	glGenBuffers(1, &this->vaoElementId);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vaoElementId);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesCount * sizeof(unsigned int), indices, drawType);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesCount * sizeof(unsigned int), &mesh.indices[0], drawType);
 
 
 	int offset = 0;
@@ -83,6 +77,15 @@ glp::Vao::Vao(Mesh mesh, bool dynamic) {
 		glVertexAttribPointer(i, this->vertexLayout[i], GL_FLOAT, GL_FALSE, this->vertexSize, (const void*)offset);
 		offset += this->vertexLayout[i] * 4;
 	}
+
+}
+
+glp::Vao::~Vao()
+{
+	std::cout << "vao destructor" << std::endl;
+	// Release the buffer objects
+	glDeleteBuffers(1, &vaoArrayId);
+	glDeleteBuffers(1, &vaoElementId);
 }
 
 void Vao::setVertexSize() {
