@@ -78,7 +78,7 @@ void ChunkGenerator::generateTerain() {
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
 
-
+	this->cells.clear();
 	for (int x = 0; x < this->chunkWidth * detailMultiplier; x++) {
 		this->cells.push_back({});
 		for (int z = 0; z < this->chunkWidth * detailMultiplier; z++) {
@@ -147,19 +147,19 @@ void createPlane(PlaneType planeType, std::vector<float>& vertices, std::vector<
 }
 
 int ChunkGenerator::getBlockValue(int x, int y, int z) {
-	x = x / this->detailMultiplier;
-	y = y / this->detailMultiplier;
-	z = z / this->detailMultiplier;
+	/*x = x * this->detailMultiplier;
+	y = y * this->detailMultiplier;
+	z = z * this->detailMultiplier;*/
 	int oldX = x;
 	int oldY = y;
 	int oldZ = z;
-	float width = this->chunkWidth / this->detailMultiplier;
-	float height = this->maxHeight / this->detailMultiplier;
+	float width = this->chunkWidth * this->detailMultiplier;
+	float height = this->maxHeight * this->detailMultiplier;
 
 	if (y < 0 || y > height - 1) {
 		return 1;
 	}
-	if (x >= 0 && x <= this->chunkWidth - 1 && z >= 0 && z <= this->chunkWidth - 1) {
+	if (x >= 0 && x <= width - 1 && z >= 0 && z <= width - 1) {
 		return this->cells[x][z][y];
 	}
 

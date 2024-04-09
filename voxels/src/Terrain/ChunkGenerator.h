@@ -18,7 +18,6 @@ struct Block {
 class ChunkGenerator {
 private:
     std::vector<std::vector<std::vector<int>>> cells;
-    float detailMultiplier;
     TextureAtlas& textureAtlas;
 
     int GetTerainHeight(float x, float z, FastNoiseLite noise);
@@ -26,6 +25,7 @@ public:
     ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator>& chunksList);
     ~ChunkGenerator();
 
+    float detailMultiplier;
     int chunkX;
     int chunkZ;
     int maxHeight;

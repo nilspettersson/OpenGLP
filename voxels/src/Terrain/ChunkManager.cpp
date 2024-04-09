@@ -14,8 +14,27 @@ ChunkManager::ChunkManager(int chunks, int chunkWidth, int chunkHeight):
 void ChunkManager::updateChunks(int originX, int originZ) {
 	for (int x = -chunkCount / 2 - originX; x < chunkCount / 2 - originX; x++) {
 		for (int y = -chunkCount / 2 - originZ; y < chunkCount / 2 - originZ; y++) {
+			float deltaX = (x + originX);
+			float deltaZ = (y + originZ);
+			/*deltaX = x;
+			deltaZ = y;*/
+			float detail = 1;
+			if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > 96) {
+				detail /= 16;
+			}
+			else if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > 48) {
+				detail /= 8;
+			}
+			else if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > 24) {
+				detail /= 4;
+			}
+			else if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > 12) {
+				detail /= 2;
+			}
+
 			std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
 			if (this->chunks.find(key) == this->chunks.end()) {
+
 				this->chunks.emplace(key, ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, 1, this->textureAtlas, this->chunks));
 
 				std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
@@ -38,69 +57,25 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 					this->chunks.at(keyBackward).status = ChunkStatus::TERAIN_GENERATED;
 				}
 			}
+			else if (this->chunks.at(key).detailMultiplier != detail) {
+				//replace chunk with different detail level
+				/*this->chunks.at(key).status = ChunkStatus::NONE;
+				this->chunks.at(key).detailMultiplier = detail;
+				this->chunks.at(key).generateTerain();
+
+				for (int j = 0; j < this->entities.size(); j++) {
+					if (this->entities[j] == this->chunks.at(key).chunkEntity) {
+						delete& this->chunks.at(key).chunkEntity->getModel();
+						delete this->chunks.at(key).chunkEntity;
+						this->chunks.erase(key);
+						this->entities.erase(this->entities.begin() + j);
+						break;
+					}
+				}*/
+			}
 			
 		}
 	}
-
-	/*float currentChunkLayer = 0;
-	float angle = 0;
-	while (currentChunkLayer < chunkCount) {
-		int x = 0;
-		int y = 0;
-		if (currentChunkLayer == 0) {
-			currentChunkLayer++;
-			continue;
-		}
-		else {
-			x = glm::cos(angle) * currentChunkLayer - originX;
-			y = glm::sin(angle) * currentChunkLayer - originZ;
-			angle += (glm::pi<float>() * 2) / (14 * currentChunkLayer);
-			if (angle > (glm::pi<float>() * 2) * currentChunkLayer) {
-				currentChunkLayer++;
-			}
-		}
-		std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
-		if (this->chunks.find(key) == this->chunks.end()) {
-			float detail = 1;
-			if (currentChunkLayer < 12) {
-				detail /= 1;
-			}
-			else if (currentChunkLayer < 24) {
-				detail /= 2;
-			}
-			else if (currentChunkLayer < 45) {
-				detail /= 4;
-			}
-			else if (currentChunkLayer < 60) {
-				detail /= 8;
-			}
-			else {
-				detail /= 16;
-			}
-			this->chunks.emplace(key, ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, 1, this->textureAtlas, this->chunks));
-
-
-			std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
-			if (this->chunks.find(keyLeft) != this->chunks.end()) {
-				this->chunks.at(keyLeft).status = ChunkStatus::TERAIN_GENERATED;
-			}
-
-			std::string keyRight = std::to_string((int)x + 1) + "|" + std::to_string((int)y);
-			if (this->chunks.find(keyRight) != this->chunks.end()) {
-				this->chunks.at(keyRight).status = ChunkStatus::TERAIN_GENERATED;
-			}
-
-			std::string keyForward = std::to_string((int)x) + "|" + std::to_string((int)y + 1);
-			if (this->chunks.find(keyForward) != this->chunks.end()) {
-				this->chunks.at(keyForward).status = ChunkStatus::TERAIN_GENERATED;
-			}
-
-			std::string keyBackward = std::to_string((int)x) + "|" + std::to_string((int)y - 1);
-			if (this->chunks.find(keyBackward) != this->chunks.end()) {
-				this->chunks.at(keyBackward).status = ChunkStatus::TERAIN_GENERATED;
-			}
-		}
-	}*/
 	this->CreateEntities();
 
 	//std::cout << "entity count " << this->entities.size() << std::endl;
@@ -155,7 +130,7 @@ void ChunkManager::CreateEntities() {
 			if (chunk->chunkEntity != NULL) {
 				chunk->chunkEntity->setModel(*vao);
 				delete mesh;
-				return;
+				continue;
 			}
 
 			/*for (int i = 0; i < this->entities.size(); i++) {
@@ -174,6 +149,7 @@ void ChunkManager::CreateEntities() {
 			chunk->chunkEntity = entity;
 
 			delete mesh;
+			break;
 		}
 	}
 }
