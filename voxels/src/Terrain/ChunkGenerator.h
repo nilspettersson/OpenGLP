@@ -3,7 +3,7 @@
 #include "FastNoiseLite.h"
 #include "../textureAtlas/TextureAtlas.h"
 
-enum ChunkStatus { NONE, TERAIN_GENERATED, MESH_GENERATED };
+enum ChunkStatus { NONE, TERAIN_GENERATED, MESH_GENERATED, RENDERED };
 
 enum BLOCK {
     Air, GRASS, DIRT
@@ -22,7 +22,7 @@ private:
 
     int GetTerainHeight(float x, float z, FastNoiseLite noise);
 public:
-    ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator>& chunksList);
+    ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator*>& chunksList);
     ~ChunkGenerator();
 
     float detailMultiplier;
@@ -30,15 +30,16 @@ public:
     int chunkZ;
     int maxHeight;
     int chunkWidth;
+    glp::Mesh* mesh;
     ChunkStatus status;
 
     glp::Entity *chunkEntity;
 
-    std::unordered_map<std::string, ChunkGenerator>& chunksList;
+    std::unordered_map<std::string, ChunkGenerator*>& chunksList;
 
     void generateTerain();
 
-    glp::Mesh* generateMesh();
+    void generateMesh();
 
     int getBlockValue(int x, int y, int z);
 

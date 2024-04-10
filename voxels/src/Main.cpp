@@ -12,18 +12,17 @@ int main(void) {
 	auto renderer = glp::Renderer(camera);
 
     int chunkSize = 16;
-    auto chunckManager = ChunkManager(24, chunkSize, 255);
-    chunckManager.CreateEntities();
+    auto chunckManager = new ChunkManager(32, chunkSize, 255);
 
     window.getInput().setCursorDisabled(true);
     window.getInput().setCursorPosition(0, 0);
 	while (!window.shouldClose()) {
 		window.drawStart();
 
-        chunckManager.updateChunks((camera.getX()) / (chunkSize), camera.getZ() / (chunkSize));
+        chunckManager->updateChunks((camera.getX()) / (chunkSize), camera.getZ() / (chunkSize));
 
-        for (int i = 0; i < chunckManager.entities.size(); i++) {
-            renderer.render(*chunckManager.entities[i]);
+        for (int i = 0; i < chunckManager->entities.size(); i++) {
+            renderer.render(*chunckManager->entities[i]);
         }
 
 
@@ -52,5 +51,7 @@ int main(void) {
 
 		window.drawEnd();
 	}
+
+    delete chunckManager;
 
 }

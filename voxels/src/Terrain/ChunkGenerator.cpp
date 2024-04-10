@@ -1,6 +1,6 @@
 #include "ChunkGenerator.h"
 
-ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator>& chunksList) :
+ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator*>& chunksList) :
 	chunksList(chunksList),
 	textureAtlas(textureAtlas) {
 	this->chunkWidth = chunkWidth;
@@ -9,6 +9,7 @@ ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHe
 	this->chunkZ = chunkZ;
 	this->cells = {};
 	this->detailMultiplier = detailMultiplier;
+	this->mesh = nullptr;
 	this->chunkEntity = NULL;
 
 	this->status = ChunkStatus::NONE;
@@ -17,8 +18,12 @@ ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHe
 
 ChunkGenerator::~ChunkGenerator()
 {
-	//std::cout << "delete chunk destructor" << std::endl;
-	//delete this->chunkEntity;
+	std::cout << "delete chunk destructor " << std::endl;
+
+	if (this->chunkEntity) {
+		delete& this->chunkEntity->getModel();
+	}
+	delete this->mesh;
 }
 
 float NoiseStandard(float x, float y, float multiplier, int octaves, float gain, float lacunarity, FastNoiseLite noise) {
@@ -171,14 +176,17 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 
 	std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
 	if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
-		int blockValue = this->chunksList.at(chunkKey).cells[x][z][y];
+		int blockValue = this->chunksList.at(chunkKey)->cells[x][z][y];
 		return blockValue;
 	}
 
 	return 0;
 }
 
-glp::Mesh* ChunkGenerator::generateMesh() {
+void ChunkGenerator::generateMesh() {
+	delete this->mesh;
+	this->mesh = nullptr;
+
 	auto vertices = std::vector<float>();
 	auto indices = std::vector<unsigned int>();
 
@@ -224,7 +232,8 @@ glp::Mesh* ChunkGenerator::generateMesh() {
 	}
 
 	this->status = ChunkStatus::MESH_GENERATED;
-	return new glp::Mesh(glp::Mesh::DefaultVertexLayout, vertices, indices);
+	//std::cout << "generateMesh" << std::endl;
+	this->mesh = new glp::Mesh(glp::Mesh::DefaultVertexLayout, vertices, indices);
 }
 
 Block ChunkGenerator::GetBlock(BLOCK block) {

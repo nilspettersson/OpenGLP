@@ -1,4 +1,5 @@
 #include "ChunkManager.h"
+#include <thread>
 
 ChunkManager::ChunkManager(int chunks, int chunkWidth, int chunkHeight):
 	shader("res/shaders/main.shader"),
@@ -8,16 +9,29 @@ ChunkManager::ChunkManager(int chunks, int chunkWidth, int chunkHeight):
 	this->chunkHeight = chunkHeight;
 	this->chunkCount = chunks;
 
+	this->originX = 0;
+	this->originZ = 0;
+
+	this->isRunning = true;
 	this->updateChunks(0, 0);
+	this->meshThread = std::thread(&ChunkManager::CreateChunkMesh, this);
+	//this->chunkThread = std::thread(&ChunkManager::CreateChunkMesh, this);
+	//this->meshThread.detach();
 }
 
 void ChunkManager::updateChunks(int originX, int originZ) {
+	this->originX = originX;
+	this->originZ = originZ;
+
+	this->CreateEntities();
+}
+
+void ChunkManager::generateChunks() {
+	std::unique_lock<std::mutex> lock(chunksMutex);
 	for (int x = -chunkCount / 2 - originX; x < chunkCount / 2 - originX; x++) {
 		for (int y = -chunkCount / 2 - originZ; y < chunkCount / 2 - originZ; y++) {
 			float deltaX = (x + originX);
 			float deltaZ = (y + originZ);
-			/*deltaX = x;
-			deltaZ = y;*/
 			float detail = 1;
 			if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > 96) {
 				detail /= 16;
@@ -59,28 +73,29 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 			}
 			else if (this->chunks.at(key)->detailMultiplier != detail) {
 				//replace chunk with different detail level
-				/*this->chunks.at(key).status = ChunkStatus::NONE;
-				this->chunks.at(key).detailMultiplier = detail;
-				this->chunks.at(key).generateTerain();
+				/*this->chunks.at(key)->status = ChunkStatus::NONE;
+				this->chunks.at(key)->detailMultiplier = detail;
+				this->chunks.at(key)->generateTerain();*/
 
-				for (int j = 0; j < this->entities.size(); j++) {
-					if (this->entities[j] == this->chunks.at(key).chunkEntity) {
-						delete& this->chunks.at(key).chunkEntity->getModel();
-						delete this->chunks.at(key).chunkEntity;
+				/*for (int j = 0; j < this->entities.size(); j++) {
+					if (this->entities[j] == this->chunks.at(key)->chunkEntity) {
+						delete& this->chunks.at(key)->chunkEntity->getModel();
+						delete this->chunks.at(key)->chunkEntity;
 						this->chunks.erase(key);
 						this->entities.erase(this->entities.begin() + j);
 						break;
 					}
 				}*/
 			}
-			
+
 		}
 	}
-	this->CreateEntities();
+	lock.unlock();
 
 	//std::cout << "entity count " << this->entities.size() << std::endl;
 	//std::cout << "chunk count " << this->chunks.size() << std::endl;
 
+	lock.lock();
 	auto chunksToBeRemoved = std::vector<ChunkGenerator*>();
 	for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
 		auto chunk = i->second;
@@ -94,7 +109,7 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 					break;
 				}
 			}
-			
+
 		}
 	}
 	for (auto chunk : chunksToBeRemoved) {
@@ -106,33 +121,64 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 				break;
 			}
 		}
-		
+
+	}
+	lock.unlock();
+}
+
+using namespace std::chrono_literals;
+void ChunkManager::CreateChunkMesh() {
+	while (isRunning) {
+		generateChunks();
+
+		//std::cout << "CreateChunkMesh " << std::endl;
+		std::unique_lock<std::mutex> lock(chunksMutex);
+		for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
+			auto chunk = i->second;
+			if (chunk->status == ChunkStatus::TERAIN_GENERATED) {
+				chunk->generateMesh();
+			}
+		}
+		lock.unlock();
+		std::this_thread::sleep_for(40ms);
 	}
 }
 
+
 void ChunkManager::CreateEntities() {
-	for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
-		auto chunk = i->second;
-		if (chunk->status == ChunkStatus::TERAIN_GENERATED) {
-			chunk->generateMesh();
-			auto vao = new glp::Vao(*chunk->mesh, false);
+	//std::unique_lock<std::mutex> lock(chunksMutex, std::defer_lock);
+	//if (lock.try_lock()) {
+		for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
+			auto chunk = i->second;
+			if (chunk->status == ChunkStatus::MESH_GENERATED) {
+				//if (chunk->chunkEntity != NULL) continue;
+				//std::cout << "create vao " << std::endl;
+				if (chunk->mesh == nullptr) continue;
+				auto vao = new glp::Vao(*chunk->mesh, false);
 
-			if (chunk->chunkEntity != NULL) {
-				chunk->chunkEntity->setModel(*vao);
-				continue;
+				if (chunk->chunkEntity != NULL) {
+					chunk->chunkEntity->setModel(*vao);
+					chunk->status = ChunkStatus::RENDERED;
+					delete chunk->mesh;
+					chunk->mesh = nullptr;
+					continue;
+				}
+
+				//std::cout << "create entity " << chunk->chunkX << " " << chunk->chunkZ << std::endl;
+				auto entity = new glp::Entity(*vao, &this->shader, 1);
+				entity->setX(chunk->chunkX * chunk->chunkWidth);
+				entity->setZ(chunk->chunkZ * chunk->chunkWidth);
+				entity->addTexture(&this->textureAtlas.texture);
+				this->entities.push_back(entity);
+
+				chunk->chunkEntity = entity;
+				chunk->status = ChunkStatus::RENDERED;
+
+				delete chunk->mesh;
+				chunk->mesh = nullptr;
+				//break;
 			}
-
-			std::cout << "create entity " << chunk->chunkX << " " << chunk->chunkZ << std::endl;
-			auto entity = new glp::Entity(*vao, &this->shader, 1);
-			entity->setX(chunk->chunkX * chunk->chunkWidth);
-			entity->setZ(chunk->chunkZ * chunk->chunkWidth);
-			entity->addTexture(&this->textureAtlas.texture);
-			this->entities.push_back(entity);
-
-			chunk->chunkEntity = entity;
-
-
-			//break;
 		}
-	}
+		//lock.unlock();
+	//}
 }
