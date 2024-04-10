@@ -6,8 +6,6 @@
 
 class ChunkManager {
 private:
-    //std::vector<ChunkGenerator> chunks;
-    std::unordered_map<std::string, ChunkGenerator*> chunks;
     TextureAtlas textureAtlas;
     glp::Shader shader;
     int chunkWidth;
@@ -16,7 +14,6 @@ private:
 
     std::thread chunkThread;
     std::thread meshThread;
-    std::mutex chunksMutex;
     bool isRunning;
 
 public:
@@ -29,8 +26,10 @@ public:
     }
     int originX;
     int originZ;
-
+    std::unordered_map<std::string, ChunkGenerator*> chunks;
     std::vector<glp::Entity*> entities;
+    
+    std::mutex chunksMutex;
 
     void updateChunks(int originX, int originY);
 

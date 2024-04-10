@@ -24,6 +24,35 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 	this->originZ = originZ;
 
 	this->CreateEntities();
+
+
+	std::unique_lock<std::mutex> lock(chunksMutex);
+	auto chunksToBeRemoved = std::vector<ChunkGenerator*>();
+	for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
+		auto chunk = i->second;
+		float deltaX = (chunk->chunkX + originX);
+		float deltaZ = (chunk->chunkZ + originZ);
+		if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > chunkCount) {
+			for (int j = 0; j < this->entities.size(); j++) {
+				if (this->entities[j] == chunk->chunkEntity) {
+					chunksToBeRemoved.push_back(this->chunks.at(i->first));
+					delete chunk->chunkEntity;
+					this->entities.erase(this->entities.begin() + j);
+					break;
+				}
+			}
+
+		}
+	}
+
+	for (auto chunk : chunksToBeRemoved) {
+		std::string key = std::to_string((int)chunk->chunkX) + "|" + std::to_string((int)chunk->chunkZ);
+		delete chunk;
+		this->chunks.erase(key);
+		std::cout << "chunk removed " << this->chunks.size() << std::endl;
+	}
+
+	lock.unlock();
 }
 
 void ChunkManager::generateChunks() {
@@ -51,7 +80,7 @@ void ChunkManager::generateChunks() {
 
 				this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, 1, this->textureAtlas, this->chunks));
 
-				std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
+				/*std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
 				if (this->chunks.find(keyLeft) != this->chunks.end()) {
 					this->chunks.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
 				}
@@ -69,7 +98,7 @@ void ChunkManager::generateChunks() {
 				std::string keyBackward = std::to_string((int)x) + "|" + std::to_string((int)y - 1);
 				if (this->chunks.find(keyBackward) != this->chunks.end()) {
 					this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
-				}
+				}*/
 			}
 			else if (this->chunks.at(key)->detailMultiplier != detail) {
 				//replace chunk with different detail level
@@ -90,13 +119,10 @@ void ChunkManager::generateChunks() {
 
 		}
 	}
-	lock.unlock();
-
 	//std::cout << "entity count " << this->entities.size() << std::endl;
 	//std::cout << "chunk count " << this->chunks.size() << std::endl;
 
-	lock.lock();
-	auto chunksToBeRemoved = std::vector<ChunkGenerator*>();
+	/*auto chunksToBeRemoved = std::vector<ChunkGenerator*>();
 	for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
 		auto chunk = i->second;
 		float deltaX = (chunk->chunkX + originX);
@@ -105,6 +131,7 @@ void ChunkManager::generateChunks() {
 			for (int j = 0; j < this->entities.size(); j++) {
 				if (this->entities[j] == chunk->chunkEntity) {
 					chunksToBeRemoved.push_back(this->chunks.at(i->first));
+					delete chunk->chunkEntity;
 					this->entities.erase(this->entities.begin() + j);
 					break;
 				}
@@ -112,17 +139,17 @@ void ChunkManager::generateChunks() {
 
 		}
 	}
-	for (auto chunk : chunksToBeRemoved) {
-		for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
-			if (&i->second->chunkEntity == &chunk->chunkEntity) {
-				this->chunks.erase(i->first);
-				delete chunk;
-				std::cout << "chunk removed" << std::endl;
-				break;
-			}
-		}
 
-	}
+	for (auto chunk : chunksToBeRemoved) {
+		//delete chunk->chunkEntity;
+
+		std::string key = std::to_string((int)chunk->chunkX) + "|" + std::to_string((int)chunk->chunkZ);
+		//delete this->chunks.at(key);
+		delete chunk;
+		this->chunks.erase(key);
+		std::cout << "chunk removed " << this->chunks.size() << std::endl;
+	}*/
+
 	lock.unlock();
 }
 
@@ -146,7 +173,7 @@ void ChunkManager::CreateChunkMesh() {
 
 
 void ChunkManager::CreateEntities() {
-	//std::unique_lock<std::mutex> lock(chunksMutex, std::defer_lock);
+	//std::unique_lock<std::mutex> lock(chunksMutex);
 	//if (lock.try_lock()) {
 		for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
 			auto chunk = i->second;
@@ -159,8 +186,8 @@ void ChunkManager::CreateEntities() {
 				if (chunk->chunkEntity != NULL) {
 					chunk->chunkEntity->setModel(*vao);
 					chunk->status = ChunkStatus::RENDERED;
-					delete chunk->mesh;
-					chunk->mesh = nullptr;
+					/*delete chunk->mesh;
+					chunk->mesh = nullptr;*/
 					continue;
 				}
 
@@ -174,9 +201,9 @@ void ChunkManager::CreateEntities() {
 				chunk->chunkEntity = entity;
 				chunk->status = ChunkStatus::RENDERED;
 
-				delete chunk->mesh;
-				chunk->mesh = nullptr;
-				//break;
+				/*delete chunk->mesh;
+				chunk->mesh = nullptr;*/
+				break;
 			}
 		}
 		//lock.unlock();
