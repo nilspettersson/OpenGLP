@@ -12,7 +12,7 @@ int main(void) {
 	auto renderer = glp::Renderer(camera);
 
     int chunkSize = 16;
-    auto chunckManager = new ChunkManager(32, chunkSize, 255);
+    auto chunckManager = new ChunkManager(12, chunkSize, 255);
 
     window.getInput().setCursorDisabled(true);
     window.getInput().setCursorPosition(0, 0);
@@ -26,7 +26,7 @@ int main(void) {
         }
 
 
-        float speed = 0.4;
+        float speed = 0.05;
         if (window.getInput().isKeyDown(GLP_KEY_W)) {
             camera.moveForward(speed);
         }
