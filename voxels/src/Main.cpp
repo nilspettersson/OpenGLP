@@ -36,10 +36,8 @@ int main(void) {
             }
             chunckManager->chunks.clear();
             for (int j = chunckManager->entities.size() - 1; j >= 0; j--) {
-                if (chunckManager->entities[j]->model != nullptr) {
-                    delete chunckManager->entities[j]->model;
-                    chunckManager->entities[j]->model = nullptr;
-                }
+                delete chunckManager->entities[j]->model;
+                chunckManager->entities[j]->model = nullptr;
                 delete chunckManager->entities[j];
                 chunckManager->entities.erase(chunckManager->entities.begin() + j);
             }

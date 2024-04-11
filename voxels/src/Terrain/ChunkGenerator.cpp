@@ -19,11 +19,6 @@ ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHe
 ChunkGenerator::~ChunkGenerator()
 {
 	std::cout << "delete chunk destructor " << std::endl;
-	
-	/*if (this->chunkEntity) {
-		delete this->chunkEntity->model;
-		this->chunkEntity->setModel(nullptr);
-	}*/
 	delete this->mesh;
 }
 
