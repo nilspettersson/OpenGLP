@@ -115,30 +115,30 @@ enum PlaneType {
 	VERTICALZ,
 	HORIZONTAL
 };
-void createPlane(PlaneType planeType, std::vector<float>& vertices, std::vector<unsigned int>& indices, float x, float y, float z, float size, TextureCoordinates textureCoordinates, float light) {
+void createPlane(PlaneType planeType, std::vector<float>& vertices, std::vector<unsigned int>& indices, float x, float y, float z, float size, TextureCoordinates textureCoordinates, glm::vec4 light) {
 	std::vector<float> planeVertices;
 	if (planeType == PlaneType::VERTICALX) {
 		planeVertices = {
-			T(-0.5f, x, size), T(-0.5f, y, size), T(0.0f, z, size), textureCoordinates.x1, textureCoordinates.y1, light, 1.0f, 1.0f,
-			T(0.5f, x, size), T(-0.5f, y, size), T(0.0f, z, size), textureCoordinates.x2, textureCoordinates.y1, light, 1.0f, 1.0f,
-			T(0.5f, x, size), T(0.5f, y, size), T(0.0f, z, size), textureCoordinates.x2, textureCoordinates.y2, light, 1.0f, 1.0f,
-			T(-0.5f, x, size), T(0.5f, y, size), T(0.0f, z, size), textureCoordinates.x1, textureCoordinates.y2, light, 1.0f, 1.0f,
+			T(-0.5f, x, size), T(-0.5f, y, size), T(0.0f, z, size), textureCoordinates.x1, textureCoordinates.y1, light.x, 1.0f, 1.0f,
+			T(0.5f, x, size), T(-0.5f, y, size), T(0.0f, z, size), textureCoordinates.x2, textureCoordinates.y1, light.y, 1.0f, 1.0f,
+			T(0.5f, x, size), T(0.5f, y, size), T(0.0f, z, size), textureCoordinates.x2, textureCoordinates.y2, light.z, 1.0f, 1.0f,
+			T(-0.5f, x, size), T(0.5f, y, size), T(0.0f, z, size), textureCoordinates.x1, textureCoordinates.y2, light.w, 1.0f, 1.0f,
 		};
 	}
 	else if (planeType == PlaneType::VERTICALZ) {
 		planeVertices = {
-			T(0, x, size), T(-0.5f, y, size), T(0.5f, z, size), textureCoordinates.x1, textureCoordinates.y1, light, 1.0f, 1.0f,
-			T(0, x, size), T(-0.5f, y, size), T(-0.5f, z, size), textureCoordinates.x2, textureCoordinates.y1, light, 1.0f, 1.0f,
-			T(0, x, size), T(0.5f, y, size), T(-0.5f, z, size), textureCoordinates.x2, textureCoordinates.y2, light, 1.0f, 1.0f,
-			T(0, x, size), T(0.5f, y, size), T(0.5f, z, size), textureCoordinates.x1, textureCoordinates.y2, light, 1.0f, 1.0f,
+			T(0, x, size), T(-0.5f, y, size), T(0.5f, z, size), textureCoordinates.x1, textureCoordinates.y1, light.x, 1.0f, 1.0f,
+			T(0, x, size), T(-0.5f, y, size), T(-0.5f, z, size), textureCoordinates.x2, textureCoordinates.y1, light.y, 1.0f, 1.0f,
+			T(0, x, size), T(0.5f, y, size), T(-0.5f, z, size), textureCoordinates.x2, textureCoordinates.y2, light.z, 1.0f, 1.0f,
+			T(0, x, size), T(0.5f, y, size), T(0.5f, z, size), textureCoordinates.x1, textureCoordinates.y2, light.w, 1.0f, 1.0f,
 		};
 	}
 	else if (planeType == PlaneType::HORIZONTAL) {
 		planeVertices = {
-			T(-0.5f, x, size), T(0, y, size), T(-0.5f, z, size), textureCoordinates.x1, textureCoordinates.y1, light, 1.0f, 1.0f,
-			T(0.5f, x, size), T(0, y, size), T(-0.5f, z, size), textureCoordinates.x2, textureCoordinates.y1, light, 1.0f, 1.0f,
-			T(0.5f, x, size), T(0, y, size), T(0.5f, z, size), textureCoordinates.x2, textureCoordinates.y2, light, 1.0f, 1.0f,
-			T(-0.5f, x, size), T(0, y, size), T(0.5f, z, size), textureCoordinates.x1, textureCoordinates.y2, light, 1.0f, 1.0f,
+			T(-0.5f, x, size), T(0, y, size), T(-0.5f, z, size), textureCoordinates.x1, textureCoordinates.y1, light.x, 1.0f, 1.0f,
+			T(0.5f, x, size), T(0, y, size), T(-0.5f, z, size), textureCoordinates.x2, textureCoordinates.y1, light.y, 1.0f, 1.0f,
+			T(0.5f, x, size), T(0, y, size), T(0.5f, z, size), textureCoordinates.x2, textureCoordinates.y2, light.z, 1.0f, 1.0f,
+			T(-0.5f, x, size), T(0, y, size), T(0.5f, z, size), textureCoordinates.x1, textureCoordinates.y2, light.w, 1.0f, 1.0f,
 		};
 	}
 
@@ -207,6 +207,8 @@ void ChunkGenerator::generateMesh() {
 		positionOffset = size / 4;
 	}
 
+	float AmbientOcclusionPerVoxel = 0.25;
+
 	for (int x = 0; x < this->cells.size(); x++) {
 		for (int z = 0; z < this->cells[x].size(); z++) {
 			for (int y = 0; y < this->cells[x][z].size(); y++) {
@@ -219,35 +221,78 @@ void ChunkGenerator::generateMesh() {
 					Block coordinates = GetBlock((BLOCK)block);
 					if (block == BLOCK::WATER) {
 						if (this->getBlockValue(x, y + 1, z) != BLOCK::Air) continue;
-						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + offset, positionZ, size, coordinates.top, 1);
+						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + offset, positionZ, size, coordinates.top, {1, 1, 1, 1});
 						continue;
 					}
 
-					auto blockType = this->getBlockValue(x, y, z + 1);
-					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
-						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ + offset, size, coordinates.side, 0.6);
+					auto blockBeforeUp = this->getBlockValue(x, y + 1, z + 1);
+					auto blockAfterUp = this->getBlockValue(x, y + 1, z - 1);
+					auto blockLeftUp = this->getBlockValue(x - 1, y + 1, z);
+					auto blockRightUp = this->getBlockValue(x + 1, y + 1, z);
+
+					auto blockAfterLeftUp = this->getBlockValue(x - 1, y + 1, z - 1);
+					auto blockAfterRightUp = this->getBlockValue(x + 1, y + 1, z - 1);
+					auto blockBeforeLeftUp = this->getBlockValue(x - 1, y + 1, z + 1);
+					auto blockBeforeRightUp = this->getBlockValue(x + 1, y + 1, z + 1);
+
+					auto blockBefore = this->getBlockValue(x, y, z + 1);
+					if (blockBefore == BLOCK::Air || blockBefore == BLOCK::WATER) {
+						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ + offset, size, coordinates.side, { 0.6, 0.6, 0.6, 0.6 });
 					}
-					blockType = this->getBlockValue(x, y, z - 1);
-					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
-						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ - offset, size, coordinates.side, 0.6);
+					auto blockAfter = this->getBlockValue(x, y, z - 1);
+					if (blockAfter == BLOCK::Air || blockAfter == BLOCK::WATER) {
+						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ - offset, size, coordinates.side, { 0.6, 0.6, 0.6, 0.6 });
 					}
 
-					blockType = this->getBlockValue(x + 1, y, z);
+					auto blockType = this->getBlockValue(x + 1, y, z);
 					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
-						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX + offset, positionY, positionZ, size, coordinates.side, 0.8);
+						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX + offset, positionY, positionZ, size, coordinates.side, { 0.8, 0.8, 0.8, 0.8 });
 					}
 					blockType = this->getBlockValue(x - 1, y, z);
 					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
-						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX - offset, positionY, positionZ, size, coordinates.side, 0.8);
+						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX - offset, positionY, positionZ, size, coordinates.side, { 0.8, 0.8, 0.8, 0.8 });
 					}
 					
 					blockType = this->getBlockValue(x, y + 1, z);
 					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
-						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + offset, positionZ, size, coordinates.top, 1);
+						glm::vec4 light = { 1, 1, 1, 1 };
+						if (blockAfterUp != BLOCK::Air) {
+							light[0] -= AmbientOcclusionPerVoxel;
+							light[1] -= AmbientOcclusionPerVoxel;
+						}
+						if (blockBeforeUp != BLOCK::Air) {
+							light[2] -= AmbientOcclusionPerVoxel;
+							light[3] -= AmbientOcclusionPerVoxel;
+						}
+						if (blockLeftUp != BLOCK::Air) {
+							light[0] -= AmbientOcclusionPerVoxel;
+							light[3] -= AmbientOcclusionPerVoxel;
+						}
+						if (blockRightUp != BLOCK::Air) {
+							light[1] -= AmbientOcclusionPerVoxel;
+							light[2] -= AmbientOcclusionPerVoxel;
+						}
+
+						if (blockAfterLeftUp != BLOCK::Air) {
+							light[0] -= AmbientOcclusionPerVoxel;
+						}
+						if (blockAfterRightUp != BLOCK::Air) {
+							light[1] -= AmbientOcclusionPerVoxel;
+						}
+
+						if (blockBeforeLeftUp != BLOCK::Air) {
+							light[3] -= AmbientOcclusionPerVoxel;
+						}
+						if (blockBeforeRightUp != BLOCK::Air) {
+							light[2] -= AmbientOcclusionPerVoxel;
+						}
+
+						
+						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + offset, positionZ, size, coordinates.top, light); // front-left front-right back.right back-left
 					}
 					blockType = this->getBlockValue(x, y - 1, z);
 					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
-						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY - offset, positionZ, size, coordinates.bottom, 0.6);
+						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY - offset, positionZ, size, coordinates.bottom, { 0.6, 0.6, 0.6, 0.6 });
 					}
 				}
 			}
