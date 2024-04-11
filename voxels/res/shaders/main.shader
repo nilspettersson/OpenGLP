@@ -27,5 +27,5 @@ in vec2 v_texCoord;
 in vec3 v_normal;
 void main() {
 	vec4 texture = texture2D(sampler[1], v_texCoord);
-	colorOutput = vec4(texture.xyz * v_normal.x, 1);
+	colorOutput = vec4(texture.xyz * v_normal.x, texture.w);
 };

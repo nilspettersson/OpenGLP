@@ -6,7 +6,7 @@
 enum ChunkStatus { NONE, TERAIN_GENERATED, MESH_GENERATED, RENDERED };
 
 enum BLOCK {
-    Air, GRASS, DIRT
+    Air, GRASS, DIRT, SAND, WATER
 };
 
 struct Block {

@@ -78,6 +78,8 @@ void ChunkGenerator::generateTerain() {
 	FastNoiseLite noise;
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
+	int waterLevel = 100;
+
 
 	this->cells.clear();
 	for (int x = 0; x < this->chunkWidth * detailMultiplier; x++) {
@@ -88,7 +90,13 @@ void ChunkGenerator::generateTerain() {
 			for (int y = 0; y < this->maxHeight * detailMultiplier; y++) {
 				int block = 0;
 				if (y <= terainHeight) {
-					block = 1;
+					block = BLOCK::GRASS;
+					if (y <= waterLevel + 2) {
+						block = BLOCK::SAND;
+					}
+				}
+				else if (y <= waterLevel) {
+					block = BLOCK::WATER;
 				}
 				this->cells[x][z].push_back(block);
 			}
@@ -207,27 +215,38 @@ void ChunkGenerator::generateMesh() {
 				float positionX = x * size + positionOffset;
 				float positionZ = z * size + positionOffset;
 				float positionY = y * size + positionOffset - (1 / this->detailMultiplier * 2);
-				if (block > 0) {
+				if (block != BLOCK::Air) {
 					Block coordinates = GetBlock((BLOCK)block);
+					if (block == BLOCK::WATER) {
+						if (this->getBlockValue(x, y + 1, z) != BLOCK::Air) continue;
+						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + offset, positionZ, size, coordinates.top, 1);
+						continue;
+					}
 
-					if (this->getBlockValue(x, y, z + 1) == 0) {
+					auto blockType = this->getBlockValue(x, y, z + 1);
+					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
 						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ + offset, size, coordinates.side, 0.6);
 					}
-					if (this->getBlockValue(x, y, z - 1) == 0) {
+					blockType = this->getBlockValue(x, y, z - 1);
+					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
 						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ - offset, size, coordinates.side, 0.6);
 					}
 
-					if (this->getBlockValue(x + 1, y, z) == 0) {
+					blockType = this->getBlockValue(x + 1, y, z);
+					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
 						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX + offset, positionY, positionZ, size, coordinates.side, 0.8);
 					}
-					if (this->getBlockValue(x - 1, y, z) == 0) {
+					blockType = this->getBlockValue(x - 1, y, z);
+					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
 						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX - offset, positionY, positionZ, size, coordinates.side, 0.8);
 					}
 					
-					if (this->getBlockValue(x, y + 1, z) == 0) {
+					blockType = this->getBlockValue(x, y + 1, z);
+					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
 						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + offset, positionZ, size, coordinates.top, 1);
 					}
-					if (this->getBlockValue(x, y - 1, z) == 0) {
+					blockType = this->getBlockValue(x, y - 1, z);
+					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
 						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY - offset, positionZ, size, coordinates.bottom, 0.6);
 					}
 				}
@@ -254,6 +273,18 @@ Block ChunkGenerator::GetBlock(BLOCK block) {
 		block.top = this->textureAtlas.getTextureCoordinates(0, 1);
 		block.side = this->textureAtlas.getTextureCoordinates(0, 1);
 		block.bottom = this->textureAtlas.getTextureCoordinates(0, 1);
+		return block;
+	case SAND:
+		block;
+		block.top = this->textureAtlas.getTextureCoordinates(3, 0);
+		block.side = this->textureAtlas.getTextureCoordinates(3, 0);
+		block.bottom = this->textureAtlas.getTextureCoordinates(3, 0);
+		return block;
+	case WATER:
+		block;
+		block.top = this->textureAtlas.getTextureCoordinates(1, 2);
+		block.side = this->textureAtlas.getTextureCoordinates(1, 2);
+		block.bottom = this->textureAtlas.getTextureCoordinates(1, 2);
 		return block;
 	default:
 		block;
