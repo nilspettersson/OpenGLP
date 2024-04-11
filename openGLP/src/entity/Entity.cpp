@@ -2,13 +2,12 @@
 
 using namespace glp;
 
-glp::Entity::Entity(Vao& model, Shader* shader, float scale): material(shader), model(model) {
+glp::Entity::Entity(Vao* model, Shader* shader, float scale): material(shader), model(model) {
 	this->x = 0;
 	this->y = 0;
 	this->z = 0;
 	this->scale = scale;
 	this->textures = std::vector<Texture*>();
-	this->model = model;
 }
 
 Shader& Entity::getShader() { 
@@ -20,10 +19,10 @@ void Entity::setShader(Shader& shader) {
 }
 
 Vao& Entity::getModel() {
-	return this->model;
+	return *this->model;
 }
 
-void Entity::setModel(Vao& model) {
+void Entity::setModel(Vao* model) {
 	this->model = model;
 }
 

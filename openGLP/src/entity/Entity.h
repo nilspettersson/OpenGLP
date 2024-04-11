@@ -12,18 +12,19 @@ namespace glp {
 		float z;
 		float scale;
 		Material material;
-		Vao& model;
 		std::vector<Entity> children;
 		std::vector<Texture*> textures;
 
 	public:
-		Entity(Vao& model, Shader* shader, float scale);
+		Entity(Vao* model, Shader* shader, float scale);
+
+		Vao* model;
 
 		Shader& getShader();
 		void setShader(Shader& shader);
 
 		Vao& getModel();
-		void setModel(Vao& model);
+		void setModel(Vao* model);
 
 		std::vector<Texture*> getTextures();
 		void addTexture(Texture* texture);
