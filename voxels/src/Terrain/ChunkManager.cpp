@@ -69,23 +69,24 @@ void ChunkManager::generateChunks() {
 			float deltaX = (x + originX);
 			float deltaZ = (y + originZ);
 			float detail = 1;
-			if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > 96) {
+			if (glm::abs(deltaX) + glm::abs(deltaZ) > 96) {
 				detail /= 16;
 			}
-			else if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > 48) {
+			else if (glm::abs(deltaX) + glm::abs(deltaZ) > 48) {
 				detail /= 8;
 			}
-			else if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > 24) {
+			else if (glm::abs(deltaX) + glm::abs(deltaZ) > 24) {
 				detail /= 4;
 			}
-			else if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > 12) {
+			else if (glm::abs(deltaX) + glm::abs(deltaZ) > 12) {
 				detail /= 2;
 			}
+			detail = 1;
 
 			std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
 			if (this->chunks.find(key) == this->chunks.end()) {
 
-				this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, 1, this->textureAtlas, this->chunks));
+				this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, detail, this->textureAtlas, this->chunks));
 
 				std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
 				if (this->chunks.find(keyLeft) != this->chunks.end()) {
@@ -109,54 +110,36 @@ void ChunkManager::generateChunks() {
 			}
 			else if (this->chunks.at(key)->detailMultiplier != detail) {
 				//replace chunk with different detail level
-				/*this->chunks.at(key)->status = ChunkStatus::NONE;
+				this->chunks.at(key)->status = ChunkStatus::NONE;
 				this->chunks.at(key)->detailMultiplier = detail;
-				this->chunks.at(key)->generateTerain();*/
+				this->chunks.at(key)->generateTerain();
 
-				/*for (int j = 0; j < this->entities.size(); j++) {
-					if (this->entities[j] == this->chunks.at(key)->chunkEntity) {
-						delete& this->chunks.at(key)->chunkEntity->getModel();
-						delete this->chunks.at(key)->chunkEntity;
-						this->chunks.erase(key);
-						this->entities.erase(this->entities.begin() + j);
-						break;
-					}
-				}*/
+				std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
+				if (this->chunks.find(keyLeft) != this->chunks.end()) {
+					this->chunks.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
+				}
+
+				std::string keyRight = std::to_string((int)x + 1) + "|" + std::to_string((int)y);
+				if (this->chunks.find(keyRight) != this->chunks.end()) {
+					this->chunks.at(keyRight)->status = ChunkStatus::TERAIN_GENERATED;
+				}
+
+				std::string keyForward = std::to_string((int)x) + "|" + std::to_string((int)y + 1);
+				if (this->chunks.find(keyForward) != this->chunks.end()) {
+					this->chunks.at(keyForward)->status = ChunkStatus::TERAIN_GENERATED;
+				}
+
+				std::string keyBackward = std::to_string((int)x) + "|" + std::to_string((int)y - 1);
+				if (this->chunks.find(keyBackward) != this->chunks.end()) {
+					this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
+				}
+
 			}
 
 		}
 	}
 	//std::cout << "entity count " << this->entities.size() << std::endl;
 	//std::cout << "chunk count " << this->chunks.size() << std::endl;
-
-	/*auto chunksToBeRemoved = std::vector<ChunkGenerator*>();
-	for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
-		auto chunk = i->second;
-		float deltaX = (chunk->chunkX + originX);
-		float deltaZ = (chunk->chunkZ + originZ);
-		if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > chunkCount) {
-			for (int j = 0; j < this->entities.size(); j++) {
-				if (this->entities[j] == chunk->chunkEntity) {
-					chunksToBeRemoved.push_back(this->chunks.at(i->first));
-					delete chunk->chunkEntity;
-					this->entities.erase(this->entities.begin() + j);
-					break;
-				}
-			}
-
-		}
-	}
-
-	for (auto chunk : chunksToBeRemoved) {
-		//delete chunk->chunkEntity;
-
-		std::string key = std::to_string((int)chunk->chunkX) + "|" + std::to_string((int)chunk->chunkZ);
-		//delete this->chunks.at(key);
-		delete chunk;
-		this->chunks.erase(key);
-		std::cout << "chunk removed " << this->chunks.size() << std::endl;
-	}*/
-
 	lock.unlock();
 }
 
@@ -193,8 +176,8 @@ void ChunkManager::CreateEntities() {
 
 					chunk->chunkEntity->setModel(vao);
 					chunk->status = ChunkStatus::RENDERED;
-					/*delete chunk->mesh;
-					chunk->mesh = nullptr;*/
+					delete chunk->mesh;
+					chunk->mesh = nullptr;
 					continue;
 				}
 
@@ -208,8 +191,8 @@ void ChunkManager::CreateEntities() {
 				chunk->chunkEntity = entity;
 				chunk->status = ChunkStatus::RENDERED;
 
-				/*delete chunk->mesh;
-				chunk->mesh = nullptr;*/
+				delete chunk->mesh;
+				chunk->mesh = nullptr;
 				break;
 			}
 		}

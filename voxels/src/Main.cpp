@@ -12,10 +12,12 @@ int main(void) {
 	auto renderer = glp::Renderer(camera);
 
     int chunkSize = 16;
-    auto chunckManager = new ChunkManager(24, chunkSize, 255);
+    auto chunckManager = new ChunkManager(34, chunkSize, 255);
 
-    window.getInput().setCursorDisabled(true);
-    window.getInput().setCursorPosition(0, 0);
+    /*window.getInput().setCursorDisabled(true);
+    window.getInput().setCursorPosition(0, 0);*/
+
+    bool useCursorMovement = false;
 
 	while (!window.shouldClose()) {
 		window.drawStart();
@@ -64,9 +66,21 @@ int main(void) {
         if (window.getInput().isKeyDown(GLP_KEY_Q)) {
             camera.moveDown(speed);
         }
-        camera.rotateX(window.getInput().getMouseY() / 800);
-        camera.rotateY(window.getInput().getMouseX() / 800);
-        window.getInput().setCursorPosition(0, 0);
+
+        if (window.getInput().isKeyDown(GLP_KEY_C)) {
+            useCursorMovement = true;
+            window.getInput().setCursorDisabled(true);
+            window.getInput().setCursorPosition(0, 0);
+        }
+        if (window.getInput().isKeyDown(GLP_KEY_V)) {
+            useCursorMovement = false;
+            window.getInput().setCursorNormal();
+        }
+        if (useCursorMovement) {
+            camera.rotateX(window.getInput().getMouseY() / 800);
+            camera.rotateY(window.getInput().getMouseX() / 800);
+            window.getInput().setCursorPosition(0, 0);
+        }
 
 		window.drawEnd();
 	}

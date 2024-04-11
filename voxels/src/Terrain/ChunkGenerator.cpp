@@ -172,7 +172,11 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 
 	std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
 	if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
-		int blockValue = this->chunksList.at(chunkKey)->cells[x][z][y];
+		auto chunk = this->chunksList.at(chunkKey);
+		x = x * chunk->detailMultiplier / this->detailMultiplier;
+		z = z * chunk->detailMultiplier / this->detailMultiplier;
+		y = y * chunk->detailMultiplier / this->detailMultiplier;
+		int blockValue = chunk->cells[x][z][y];
 		return blockValue;
 	}
 
@@ -190,15 +194,19 @@ void ChunkGenerator::generateMesh() {
 	int width = this->chunkWidth * this->detailMultiplier;
 	int height = this->maxHeight * this->detailMultiplier;
 	float offset = size / 2;
+	float positionOffset = 0;
+	if (this->detailMultiplier != 1) {
+		positionOffset = size / 4;
+	}
 
 	for (int x = 0; x < this->cells.size(); x++) {
 		for (int z = 0; z < this->cells[x].size(); z++) {
 			for (int y = 0; y < this->cells[x][z].size(); y++) {
 				int block = this->cells[x][z][y];
 
-				float positionX = x * size;
-				float positionZ = z * size;
-				float positionY = y * size;
+				float positionX = x * size + positionOffset;
+				float positionZ = z * size + positionOffset;
+				float positionY = y * size + positionOffset - (1 / this->detailMultiplier * 2);
 				if (block > 0) {
 					Block coordinates = GetBlock((BLOCK)block);
 
