@@ -91,12 +91,12 @@ void ChunkGenerator::generateTerain() {
 				int block = BLOCK::Air;
 				if (y <= terainHeight) {
 					block = BLOCK::GRASS;
-					if (y <= waterLevel + 20) {
+					if (y <= waterLevel + 2) {
 						block = BLOCK::SAND;
 					}
 				}
 				else if (y <= waterLevel) {
-					block = BLOCK::WATER;
+					//block = BLOCK::WATER;
 				}
 				this->cells[x][z].push_back(block);
 			}

@@ -33,7 +33,10 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 			auto chunk = i->second;
 			float deltaX = (chunk->chunkX + originX);
 			float deltaZ = (chunk->chunkZ + originZ);
-			if (glm::sqrt(deltaX * deltaX + deltaZ * deltaZ) > chunkCount) {
+
+			float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
+
+			if (distance > chunkCount) {
 				for (int j = 0; j < this->entities.size(); j++) {
 					if (this->entities[j] == chunk->chunkEntity) {
 						chunksToBeRemoved.push_back(this->chunks.at(i->first));
@@ -64,28 +67,32 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 
 void ChunkManager::generateChunks() {
 	std::unique_lock<std::mutex> lock(chunksMutex);
-	for (int x = -chunkCount / 2 - originX; x < chunkCount / 2 - originX; x++) {
-		for (int y = -chunkCount / 2 - originZ; y < chunkCount / 2 - originZ; y++) {
+	for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
+		for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
 			float deltaX = (x + originX);
 			float deltaZ = (y + originZ);
 			float detail = 1;
-			if (glm::abs(deltaX) + glm::abs(deltaZ) > 124) {
+			float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
+
+			if (distance > chunkCount) continue;
+
+			if (distance > 64) {
 				detail /= 16;
 			}
-			else if (glm::abs(deltaX) + glm::abs(deltaZ) > 64) {
+			else if (distance > 32) {
 				detail /= 8;
 			}
-			else if (glm::abs(deltaX) + glm::abs(deltaZ) > 32) {
+			else if (distance > 16) {
 				detail /= 4;
 			}
-			else if (glm::abs(deltaX) + glm::abs(deltaZ) > 16) {
+			else if (distance > 10) {
 				detail /= 2;
 			}
 			//detail = 1;
 
 			std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
 			if (this->chunks.find(key) == this->chunks.end()) {
-
+				std::cout << "chunk created " << this->chunks.size() << std::endl;
 				this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, detail, this->textureAtlas, this->chunks));
 
 				std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
@@ -138,8 +145,6 @@ void ChunkManager::generateChunks() {
 
 		}
 	}
-	//std::cout << "entity count " << this->entities.size() << std::endl;
-	//std::cout << "chunk count " << this->chunks.size() << std::endl;
 	lock.unlock();
 }
 
