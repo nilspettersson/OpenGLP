@@ -67,7 +67,7 @@ int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
 	value = (value + 1) / 2;
 	value *= 0.4;
 
-	value *= this->maxHeight * this->detailMultiplier;
+	value *= this->maxHeight /* this->detailMultiplier*/;
 	value += 1;
 
 	return value;
@@ -78,7 +78,7 @@ void ChunkGenerator::generateTerain() {
 	FastNoiseLite noise;
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
-	int waterLevel = 100 * detailMultiplier;
+	int waterLevel = 100;
 
 
 	this->cells.clear();
@@ -87,7 +87,7 @@ void ChunkGenerator::generateTerain() {
 		for (int z = 0; z < this->chunkWidth * detailMultiplier; z++) {
 			int terainHeight = this->GetTerainHeight((float)x, (float)z, noise);
 			this->cells[x].push_back({});
-			for (int y = 0; y < this->maxHeight * detailMultiplier; y++) {
+			for (int y = 0; y < this->maxHeight; y++) {
 				int block = BLOCK::Air;
 				if (y <= terainHeight) {
 					block = BLOCK::GRASS;
@@ -116,29 +116,31 @@ enum PlaneType {
 	HORIZONTAL
 };
 void createPlane(PlaneType planeType, std::vector<float>& vertices, std::vector<unsigned int>& indices, float x, float y, float z, float size, TextureCoordinates textureCoordinates, glm::vec4 light) {
+	float voxelHeight = 1;
+
 	std::vector<float> planeVertices;
 	if (planeType == PlaneType::VERTICALX) {
 		planeVertices = {
-			T(-0.5f, x, size), T(-0.5f, y, size), T(0.0f, z, size), textureCoordinates.x1, textureCoordinates.y1, light.x, 1.0f, 1.0f,
-			T(0.5f, x, size), T(-0.5f, y, size), T(0.0f, z, size), textureCoordinates.x2, textureCoordinates.y1, light.y, 1.0f, 1.0f,
-			T(0.5f, x, size), T(0.5f, y, size), T(0.0f, z, size), textureCoordinates.x2, textureCoordinates.y2, light.z, 1.0f, 1.0f,
-			T(-0.5f, x, size), T(0.5f, y, size), T(0.0f, z, size), textureCoordinates.x1, textureCoordinates.y2, light.w, 1.0f, 1.0f,
+			T(-0.5f, x, size), T(-0.5f, y, voxelHeight), T(0.0f, z, size), textureCoordinates.x1, textureCoordinates.y1, light.x, 1.0f, 1.0f,
+			T(0.5f, x, size), T(-0.5f, y, voxelHeight), T(0.0f, z, size), textureCoordinates.x2, textureCoordinates.y1, light.y, 1.0f, 1.0f,
+			T(0.5f, x, size), T(0.5f, y, voxelHeight), T(0.0f, z, size), textureCoordinates.x2, textureCoordinates.y2, light.z, 1.0f, 1.0f,
+			T(-0.5f, x, size), T(0.5f, y, voxelHeight), T(0.0f, z, size), textureCoordinates.x1, textureCoordinates.y2, light.w, 1.0f, 1.0f,
 		};
 	}
 	else if (planeType == PlaneType::VERTICALZ) {
 		planeVertices = {
-			T(0, x, size), T(-0.5f, y, size), T(0.5f, z, size), textureCoordinates.x1, textureCoordinates.y1, light.x, 1.0f, 1.0f,
-			T(0, x, size), T(-0.5f, y, size), T(-0.5f, z, size), textureCoordinates.x2, textureCoordinates.y1, light.y, 1.0f, 1.0f,
-			T(0, x, size), T(0.5f, y, size), T(-0.5f, z, size), textureCoordinates.x2, textureCoordinates.y2, light.z, 1.0f, 1.0f,
-			T(0, x, size), T(0.5f, y, size), T(0.5f, z, size), textureCoordinates.x1, textureCoordinates.y2, light.w, 1.0f, 1.0f,
+			T(0, x, size), T(-0.5f, y, voxelHeight), T(0.5f, z, size), textureCoordinates.x1, textureCoordinates.y1, light.x, 1.0f, 1.0f,
+			T(0, x, size), T(-0.5f, y, voxelHeight), T(-0.5f, z, size), textureCoordinates.x2, textureCoordinates.y1, light.y, 1.0f, 1.0f,
+			T(0, x, size), T(0.5f, y, voxelHeight), T(-0.5f, z, size), textureCoordinates.x2, textureCoordinates.y2, light.z, 1.0f, 1.0f,
+			T(0, x, size), T(0.5f, y, voxelHeight), T(0.5f, z, size), textureCoordinates.x1, textureCoordinates.y2, light.w, 1.0f, 1.0f,
 		};
 	}
 	else if (planeType == PlaneType::HORIZONTAL) {
 		planeVertices = {
-			T(-0.5f, x, size), T(0, y, size), T(-0.5f, z, size), textureCoordinates.x1, textureCoordinates.y1, light.x, 1.0f, 1.0f,
-			T(0.5f, x, size), T(0, y, size), T(-0.5f, z, size), textureCoordinates.x2, textureCoordinates.y1, light.y, 1.0f, 1.0f,
-			T(0.5f, x, size), T(0, y, size), T(0.5f, z, size), textureCoordinates.x2, textureCoordinates.y2, light.z, 1.0f, 1.0f,
-			T(-0.5f, x, size), T(0, y, size), T(0.5f, z, size), textureCoordinates.x1, textureCoordinates.y2, light.w, 1.0f, 1.0f,
+			T(-0.5f, x, size), T(0, y, voxelHeight), T(-0.5f, z, size), textureCoordinates.x1, textureCoordinates.y1, light.x, 1.0f, 1.0f,
+			T(0.5f, x, size), T(0, y, voxelHeight), T(-0.5f, z, size), textureCoordinates.x2, textureCoordinates.y1, light.y, 1.0f, 1.0f,
+			T(0.5f, x, size), T(0, y, voxelHeight), T(0.5f, z, size), textureCoordinates.x2, textureCoordinates.y2, light.z, 1.0f, 1.0f,
+			T(-0.5f, x, size), T(0, y, voxelHeight), T(0.5f, z, size), textureCoordinates.x1, textureCoordinates.y2, light.w, 1.0f, 1.0f,
 		};
 	}
 
@@ -163,7 +165,7 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 	int oldY = y;
 	int oldZ = z;
 	float width = this->chunkWidth * this->detailMultiplier;
-	float height = this->maxHeight * this->detailMultiplier;
+	float height = this->maxHeight; // * this->detailMultiplier;
 
 	if (y < 0 || y > height - 1) {
 		return 1;
@@ -183,7 +185,7 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 		auto chunk = this->chunksList.at(chunkKey);
 		x = x * chunk->detailMultiplier / this->detailMultiplier;
 		z = z * chunk->detailMultiplier / this->detailMultiplier;
-		y = y * chunk->detailMultiplier / this->detailMultiplier;
+		//y = y * chunk->detailMultiplier / this->detailMultiplier;
 		int blockValue = chunk->cells[x][z][y];
 		return blockValue;
 	}
@@ -200,11 +202,20 @@ void ChunkGenerator::generateMesh() {
 
 	float size = 1 / this->detailMultiplier;
 	int width = this->chunkWidth * this->detailMultiplier;
-	int height = this->maxHeight * this->detailMultiplier;
+	int height = this->maxHeight;
 	float offset = size / 2;
 	float positionOffset = 0;
 	if (this->detailMultiplier != 1) {
 		positionOffset = size / 4;
+	}
+	if (this->detailMultiplier <= 0.25) {
+		positionOffset += 0.5;
+	}
+	if (this->detailMultiplier <= 0.125) {
+		positionOffset += 1;
+	}
+	if (this->detailMultiplier <= 0.0625) {
+		positionOffset += 2;
 	}
 
 	float AmbientOcclusionPerVoxel = 0.2;
@@ -216,12 +227,15 @@ void ChunkGenerator::generateMesh() {
 
 				float positionX = x * size + positionOffset;
 				float positionZ = z * size + positionOffset;
-				float positionY = y * size + positionOffset - (1 / this->detailMultiplier * 2);
+				float positionY = y; // *size + positionOffset - (1 / this->detailMultiplier * 2);
+				if (this->detailMultiplier != 1) {
+					positionY -= size;
+				}
 				if (block != BLOCK::Air) {
 					Block coordinates = GetBlock((BLOCK)block);
 					if (block == BLOCK::WATER) {
 						if (this->getBlockValue(x, y + 1, z) != BLOCK::Air) continue;
-						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + offset, positionZ, size, coordinates.top, {1, 1, 1, 1});
+						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + 0.5, positionZ, size, coordinates.top, {1, 1, 1, 1});
 						continue;
 					}
 
@@ -343,11 +357,11 @@ void ChunkGenerator::generateMesh() {
 						}
 
 						
-						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + offset, positionZ, size, coordinates.top, light); // front-left front-right back.right back-left
+						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + 0.5, positionZ, size, coordinates.top, light); // front-left front-right back.right back-left
 					}
 					auto blockDown = this->getBlockValue(x, y - 1, z);
 					if (blockDown == BLOCK::Air || blockDown == BLOCK::WATER) {
-						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY - offset, positionZ, size, coordinates.bottom, { 0.6, 0.6, 0.6, 0.6 });
+						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + 0.5, positionZ, size, coordinates.bottom, { 0.6, 0.6, 0.6, 0.6 });
 					}
 				}
 			}
