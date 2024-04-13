@@ -78,7 +78,7 @@ void ChunkGenerator::generateTerain() {
 	FastNoiseLite noise;
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
-	int waterLevel = 100;
+	int waterLevel = 100 * detailMultiplier;
 
 
 	this->cells.clear();
@@ -88,10 +88,10 @@ void ChunkGenerator::generateTerain() {
 			int terainHeight = this->GetTerainHeight((float)x, (float)z, noise);
 			this->cells[x].push_back({});
 			for (int y = 0; y < this->maxHeight * detailMultiplier; y++) {
-				int block = 0;
+				int block = BLOCK::Air;
 				if (y <= terainHeight) {
 					block = BLOCK::GRASS;
-					if (y <= waterLevel + 2) {
+					if (y <= waterLevel + 20) {
 						block = BLOCK::SAND;
 					}
 				}
@@ -207,7 +207,7 @@ void ChunkGenerator::generateMesh() {
 		positionOffset = size / 4;
 	}
 
-	float AmbientOcclusionPerVoxel = 0.25;
+	float AmbientOcclusionPerVoxel = 0.2;
 
 	for (int x = 0; x < this->cells.size(); x++) {
 		for (int z = 0; z < this->cells[x].size(); z++) {
@@ -235,26 +235,81 @@ void ChunkGenerator::generateMesh() {
 					auto blockBeforeLeftUp = this->getBlockValue(x - 1, y + 1, z + 1);
 					auto blockBeforeRightUp = this->getBlockValue(x + 1, y + 1, z + 1);
 
+					auto blockBeforeDown = this->getBlockValue(x, y - 1, z + 1);
+					auto blockAfterDown = this->getBlockValue(x, y - 1, z - 1);
+					auto blockBeforeLeft = this->getBlockValue(x - 1, y, z + 1);
+					auto blockAfterLeft = this->getBlockValue(x - 1, y, z - 1);
+					auto blockBeforeRight = this->getBlockValue(x + 1, y, z + 1);
+					auto blockAfterRight = this->getBlockValue(x + 1, y, z - 1);
+
+					auto blockRightDown = this->getBlockValue(x + 1, y - 1, z);
+					auto blockLeftDown = this->getBlockValue(x - 1, y - 1, z);
+
+
 					auto blockBefore = this->getBlockValue(x, y, z + 1);
 					if (blockBefore == BLOCK::Air || blockBefore == BLOCK::WATER) {
-						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ + offset, size, coordinates.side, { 0.6, 0.6, 0.6, 0.6 });
+						glm::vec4 light = { 1, 1, 1, 1 };
+						if (blockBeforeDown != BLOCK::Air) {
+							light[0] -= AmbientOcclusionPerVoxel;
+							light[1] -= AmbientOcclusionPerVoxel;
+						}
+						if (blockBeforeLeft != BLOCK::Air) {
+							light[0] -= AmbientOcclusionPerVoxel;;
+						}
+						if (blockBeforeRight != BLOCK::Air) {
+							light[1] -= AmbientOcclusionPerVoxel;;
+						}
+						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ + offset, size, coordinates.side, light);
 					}
 					auto blockAfter = this->getBlockValue(x, y, z - 1);
 					if (blockAfter == BLOCK::Air || blockAfter == BLOCK::WATER) {
-						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ - offset, size, coordinates.side, { 0.6, 0.6, 0.6, 0.6 });
+						glm::vec4 light = { 1, 1, 1, 1 };
+						if (blockAfterDown != BLOCK::Air) {
+							light[0] -= AmbientOcclusionPerVoxel;
+							light[1] -= AmbientOcclusionPerVoxel;
+						}
+						if (blockAfterLeft != BLOCK::Air) {
+							light[0] -= AmbientOcclusionPerVoxel;;
+						}
+						if (blockAfterRight != BLOCK::Air) {
+							light[1] -= AmbientOcclusionPerVoxel;;
+						}
+						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ - offset, size, coordinates.side, light);
 					}
 
-					auto blockType = this->getBlockValue(x + 1, y, z);
-					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
-						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX + offset, positionY, positionZ, size, coordinates.side, { 0.8, 0.8, 0.8, 0.8 });
+					auto blockRight = this->getBlockValue(x + 1, y, z);
+					if (blockRight == BLOCK::Air || blockRight == BLOCK::WATER) {
+						glm::vec4 light = { 1, 1, 1, 1 };
+						if (blockRightDown != BLOCK::Air) {
+							light[0] -= AmbientOcclusionPerVoxel;
+							light[1] -= AmbientOcclusionPerVoxel;
+						}
+						if (blockBeforeRight != BLOCK::Air) {
+							light[0] -= AmbientOcclusionPerVoxel;
+						}
+						if (blockAfterRight != BLOCK::Air) {
+							light[1] -= AmbientOcclusionPerVoxel;
+						}
+						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX + offset, positionY, positionZ, size, coordinates.side, light);
 					}
-					blockType = this->getBlockValue(x - 1, y, z);
-					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
-						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX - offset, positionY, positionZ, size, coordinates.side, { 0.8, 0.8, 0.8, 0.8 });
+					auto blockLeft = this->getBlockValue(x - 1, y, z);
+					if (blockLeft == BLOCK::Air || blockLeft == BLOCK::WATER) {
+						glm::vec4 light = { 1, 1, 1, 1 };
+						if (blockLeftDown != BLOCK::Air) {
+							light[0] -= AmbientOcclusionPerVoxel;
+							light[1] -= AmbientOcclusionPerVoxel;
+						}
+						if (blockBeforeLeft != BLOCK::Air) {
+							light[0] -= AmbientOcclusionPerVoxel;
+						}
+						if (blockAfterLeft != BLOCK::Air) {
+							light[1] -= AmbientOcclusionPerVoxel;
+						}
+						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX - offset, positionY, positionZ, size, coordinates.side, light);
 					}
 					
-					blockType = this->getBlockValue(x, y + 1, z);
-					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
+					auto blockUp = this->getBlockValue(x, y + 1, z);
+					if (blockUp == BLOCK::Air || blockUp == BLOCK::WATER) {
 						glm::vec4 light = { 1, 1, 1, 1 };
 						if (blockAfterUp != BLOCK::Air) {
 							light[0] -= AmbientOcclusionPerVoxel;
@@ -290,8 +345,8 @@ void ChunkGenerator::generateMesh() {
 						
 						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + offset, positionZ, size, coordinates.top, light); // front-left front-right back.right back-left
 					}
-					blockType = this->getBlockValue(x, y - 1, z);
-					if (blockType == BLOCK::Air || blockType == BLOCK::WATER) {
+					auto blockDown = this->getBlockValue(x, y - 1, z);
+					if (blockDown == BLOCK::Air || blockDown == BLOCK::WATER) {
 						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY - offset, positionZ, size, coordinates.bottom, { 0.6, 0.6, 0.6, 0.6 });
 					}
 				}

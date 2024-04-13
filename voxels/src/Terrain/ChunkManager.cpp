@@ -69,19 +69,19 @@ void ChunkManager::generateChunks() {
 			float deltaX = (x + originX);
 			float deltaZ = (y + originZ);
 			float detail = 1;
-			if (glm::abs(deltaX) + glm::abs(deltaZ) > 96) {
+			if (glm::abs(deltaX) + glm::abs(deltaZ) > 124) {
 				detail /= 16;
 			}
-			else if (glm::abs(deltaX) + glm::abs(deltaZ) > 48) {
+			else if (glm::abs(deltaX) + glm::abs(deltaZ) > 64) {
 				detail /= 8;
 			}
-			else if (glm::abs(deltaX) + glm::abs(deltaZ) > 24) {
+			else if (glm::abs(deltaX) + glm::abs(deltaZ) > 32) {
 				detail /= 4;
 			}
-			else if (glm::abs(deltaX) + glm::abs(deltaZ) > 12) {
+			else if (glm::abs(deltaX) + glm::abs(deltaZ) > 16) {
 				detail /= 2;
 			}
-			detail = 1;
+			//detail = 1;
 
 			std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
 			if (this->chunks.find(key) == this->chunks.end()) {
