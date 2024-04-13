@@ -76,10 +76,10 @@ void ChunkManager::generateChunks() {
 
 			if (distance > chunkCount) continue;
 
-			if (distance > 64) {
+			if (distance > 32) {
 				detail /= 16;
 			}
-			else if (distance > 32) {
+			else if (distance > 24) {
 				detail /= 8;
 			}
 			else if (distance > 16) {
@@ -92,7 +92,7 @@ void ChunkManager::generateChunks() {
 
 			std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
 			if (this->chunks.find(key) == this->chunks.end()) {
-				std::cout << "chunk created " << this->chunks.size() << std::endl;
+				//std::cout << "chunk created " << this->chunks.size() << std::endl;
 				this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, detail, this->textureAtlas, this->chunks));
 
 				std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
@@ -122,22 +122,22 @@ void ChunkManager::generateChunks() {
 				this->chunks.at(key)->generateTerain();
 
 				std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
-				if (this->chunks.find(keyLeft) != this->chunks.end()) {
+				if (this->chunks.find(keyLeft) != this->chunks.end() && this->chunks.at(keyLeft)->detailMultiplier == detail) {
 					this->chunks.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
 				}
 
 				std::string keyRight = std::to_string((int)x + 1) + "|" + std::to_string((int)y);
-				if (this->chunks.find(keyRight) != this->chunks.end()) {
+				if (this->chunks.find(keyRight) != this->chunks.end() && this->chunks.at(keyRight)->detailMultiplier == detail) {
 					this->chunks.at(keyRight)->status = ChunkStatus::TERAIN_GENERATED;
 				}
 
 				std::string keyForward = std::to_string((int)x) + "|" + std::to_string((int)y + 1);
-				if (this->chunks.find(keyForward) != this->chunks.end()) {
+				if (this->chunks.find(keyForward) != this->chunks.end() && this->chunks.at(keyForward)->detailMultiplier == detail) {
 					this->chunks.at(keyForward)->status = ChunkStatus::TERAIN_GENERATED;
 				}
 
 				std::string keyBackward = std::to_string((int)x) + "|" + std::to_string((int)y - 1);
-				if (this->chunks.find(keyBackward) != this->chunks.end()) {
+				if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->detailMultiplier == detail) {
 					this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
 				}
 

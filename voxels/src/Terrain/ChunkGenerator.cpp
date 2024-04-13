@@ -96,12 +96,68 @@ void ChunkGenerator::generateTerain() {
 					}
 				}
 				else if (y <= waterLevel) {
-					//block = BLOCK::WATER;
+					block = BLOCK::WATER;
 				}
 				this->cells[x][z].push_back(block);
 			}
 		}
 	}
+
+
+	for (int x = 0; x < this->chunkWidth * detailMultiplier; x++) {
+		for (int z = 0; z < this->chunkWidth * detailMultiplier; z++) {
+			float xValue = (x / this->detailMultiplier + this->chunkX * this->chunkWidth);
+			float zValue = (z / this->detailMultiplier + this->chunkZ * this->chunkWidth);
+			float treePlacement = NoiseStandard(xValue, zValue, 50, 1, 1, 1, noise);
+			if (treePlacement > 0.9) {
+				treePlacement = 1;
+			}
+			else {
+				treePlacement = 0;
+			}
+			for (int y = 0; y < this->maxHeight - 1; y++) {
+
+				if (treePlacement == 1 && this->cells[x][z][y] == BLOCK::GRASS && this->cells[x][z][y + 1] == BLOCK::Air) {
+					if (this->detailMultiplier != 1 || x >= this->chunkWidth - 4 || x <= 4 || z >= this->chunkWidth - 4 || z <= 4) break;
+					this->cells[x][z][y + 1] = BLOCK::WOOD;
+					this->cells[x][z][y + 2] = BLOCK::WOOD;
+					this->cells[x][z][y + 3] = BLOCK::WOOD;
+					this->cells[x][z][y + 4] = BLOCK::WOOD;
+					this->cells[x][z][y + 5] = BLOCK::WOOD;
+					this->cells[x][z][y + 6] = BLOCK::WOOD;
+
+					this->cells[x + 1][z][y + 6] = BLOCK::Leaf;
+					this->cells[x + 2][z][y + 6] = BLOCK::Leaf;
+					this->cells[x + 3][z][y + 6] = BLOCK::Leaf;
+
+					this->cells[x - 1][z][y + 6] = BLOCK::Leaf;
+					this->cells[x - 2][z][y + 6] = BLOCK::Leaf;
+					this->cells[x - 3][z][y + 6] = BLOCK::Leaf;
+
+					this->cells[x][z + 1][y + 6] = BLOCK::Leaf;
+					this->cells[x][z + 2][y + 6] = BLOCK::Leaf;
+					this->cells[x][z + 3][y + 6] = BLOCK::Leaf;
+
+					this->cells[x][z - 1][y + 6] = BLOCK::Leaf;
+					this->cells[x][z - 2][y + 6] = BLOCK::Leaf;
+					this->cells[x][z - 3][y + 6] = BLOCK::Leaf;
+
+					this->cells[x + 1][z + 1][y + 6] = BLOCK::Leaf;
+					this->cells[x + 1][z - 1][y + 6] = BLOCK::Leaf;
+					this->cells[x - 1][z + 1][y + 6] = BLOCK::Leaf;
+					this->cells[x - 1][z - 1][y + 6] = BLOCK::Leaf;
+
+					this->cells[x][z][y + 7] = BLOCK::Leaf;
+					break;
+				}
+				
+			}
+		}
+	}
+
+
+
+
 	this->status = ChunkStatus::TERAIN_GENERATED;
 }
 
@@ -399,6 +455,18 @@ Block ChunkGenerator::GetBlock(BLOCK block) {
 		block.top = this->textureAtlas.getTextureCoordinates(1, 2);
 		block.side = this->textureAtlas.getTextureCoordinates(1, 2);
 		block.bottom = this->textureAtlas.getTextureCoordinates(1, 2);
+		return block;
+	case WOOD:
+		block;
+		block.top = this->textureAtlas.getTextureCoordinates(1, 1);
+		block.side = this->textureAtlas.getTextureCoordinates(1, 1);
+		block.bottom = this->textureAtlas.getTextureCoordinates(1, 1);
+		return block;
+	case Leaf:
+		block;
+		block.top = this->textureAtlas.getTextureCoordinates(2, 1);
+		block.side = this->textureAtlas.getTextureCoordinates(2, 1);
+		block.bottom = this->textureAtlas.getTextureCoordinates(2, 1);
 		return block;
 	default:
 		block;
