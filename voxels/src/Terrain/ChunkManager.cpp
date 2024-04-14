@@ -76,16 +76,16 @@ void ChunkManager::generateChunks() {
 
 			if (distance > chunkCount) continue;
 
-			if (distance > 32) {
+			if (distance > 20) {
 				detail /= 16;
 			}
-			else if (distance > 24) {
+			else if (distance > 14) {
 				detail /= 8;
 			}
-			else if (distance > 16) {
+			else if (distance > 8) {
 				detail /= 4;
 			}
-			else if (distance > 10) {
+			else if (distance > 4) {
 				detail /= 2;
 			}
 			//detail = 1;
@@ -153,7 +153,6 @@ void ChunkManager::CreateChunkMesh() {
 	while (isRunning) {
 		generateChunks();
 
-		//std::cout << "CreateChunkMesh " << std::endl;
 		std::unique_lock<std::mutex> lock(chunksMutex);
 		for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
 			auto chunk = i->second;
@@ -198,7 +197,7 @@ void ChunkManager::CreateEntities() {
 
 				delete chunk->mesh;
 				chunk->mesh = nullptr;
-				break;
+				//break;
 			}
 		}
 		//lock.unlock();

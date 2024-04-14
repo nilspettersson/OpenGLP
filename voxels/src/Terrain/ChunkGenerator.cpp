@@ -50,19 +50,21 @@ float NoisePingPong(float x, float y, float multiplier, int octaves, float gain,
 int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
 	float xValue = ((x / this->detailMultiplier) + this->chunkX * this->chunkWidth);
 	float zValue = ((z / this->detailMultiplier) + this->chunkZ * this->chunkWidth);
-	float noiseMultiplier = noise.GetNoise(xValue * 0.2, zValue * 0.2);
+	float noiseMultiplier = noise.GetNoise(xValue * 0.05, zValue * 0.05);
 	noiseMultiplier = (noiseMultiplier + 1) / 2;
 	noiseMultiplier = 1 - noiseMultiplier;
-	noiseMultiplier *= 0.8;
+	noiseMultiplier *= 1.5;
 
-	float value = NoiseRidged(xValue, zValue, 0.2, 4, 0.5, 2, noise);
-	value += NoiseStandard(xValue, zValue, 0.4, 4, noiseMultiplier, 2, noise);
+	float value = glm::pow(NoiseRidged(xValue, zValue, 0.1, 4, 0.5, 2, noise), 2);
 
-	value += noiseMultiplier * 8;
+	value *= noiseMultiplier;
+	value += noiseMultiplier * 1;
 
-	value += glm::min(NoisePingPong(xValue * 4, zValue * 4, 0.2, 1, 0.5, 2, 1, noise), 0.5f) * 0.5;
+	value -= glm::clamp<float>(glm::min(NoisePingPong(xValue * 0.8, zValue * 0.8, 0.2, 3, 0.5, 2, 1, noise), 0.5f) * 0.8f, 0, 0.5f);
 
-	value /= 3;
+	value += NoiseStandard(xValue, zValue, 0.8, 4, 0.5, 2, noise) / 2 - 0.5;
+
+	//value /= 3;
 
 	value = (value + 1) / 2;
 	value *= 0.4;
@@ -156,8 +158,6 @@ void ChunkGenerator::generateTerain() {
 	}
 
 
-
-
 	this->status = ChunkStatus::TERAIN_GENERATED;
 }
 
@@ -214,9 +214,6 @@ void createPlane(PlaneType planeType, std::vector<float>& vertices, std::vector<
 }
 
 int ChunkGenerator::getBlockValue(int x, int y, int z) {
-	/*x = x * this->detailMultiplier;
-	y = y * this->detailMultiplier;
-	z = z * this->detailMultiplier;*/
 	int oldX = x;
 	int oldY = y;
 	int oldZ = z;
