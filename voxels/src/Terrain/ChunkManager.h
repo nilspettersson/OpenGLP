@@ -3,6 +3,7 @@
 #include "./ChunkGenerator.h"
 #include "../textureAtlas/TextureAtlas.h"
 #include <mutex>
+#include <shared_mutex>
 
 class ChunkManager {
 private:
@@ -29,7 +30,7 @@ public:
     std::unordered_map<std::string, ChunkGenerator*> chunks;
     std::vector<glp::Entity*> entities;
     
-    std::mutex chunksMutex;
+    mutable std::shared_mutex chunksMutex;
 
     void updateChunks(int originX, int originY);
 

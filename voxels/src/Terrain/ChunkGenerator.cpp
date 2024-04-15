@@ -1,7 +1,8 @@
 #include "ChunkGenerator.h"
 
-ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator*>& chunksList) :
+ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator*>& chunksList, std::shared_mutex& chunkListLock) :
 	chunksList(chunksList),
+	chunkListLock(chunkListLock),
 	textureAtlas(textureAtlas) {
 	this->chunkWidth = chunkWidth;
 	this->maxHeight = maxHeight;
@@ -87,7 +88,8 @@ int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
 }
 
 void ChunkGenerator::generateTerain() {
-	// Create and configure FastNoise object
+	std::lock_guard<std::mutex> lock(this->chunkLock);
+
 	FastNoiseLite noise(1);
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
@@ -174,11 +176,13 @@ void ChunkGenerator::generateTerain() {
 
 void ChunkGenerator::generateDecorations()
 {
+	std::lock_guard<std::mutex> lock(this->chunkLock);
+
 	for (auto pos : this->decorations) {
 		this->cells[pos.x][pos.z][pos.y] = pos.w;
 	}
 
-	std::string keyLeft = std::to_string((int)this->chunkX + 1) + "|" + std::to_string((int)this->chunkZ);
+	/*std::string keyLeft = std::to_string((int)this->chunkX + 1) + "|" + std::to_string((int)this->chunkZ);
 	if (this->chunksList.find(keyLeft) != this->chunksList.end()) {
 		auto chunk = this->chunksList.at(keyLeft);
 		for (auto pos : chunk->overflowLeft) {
@@ -205,7 +209,7 @@ void ChunkGenerator::generateDecorations()
 		for (auto pos : chunk->overflowAfter) {
 			this->cells[pos.x / chunk->detailMultiplier * this->detailMultiplier][pos.z / chunk->detailMultiplier * this->detailMultiplier][pos.y] = pos.w;
 		}
-	}
+	}*/
 
 	this->status = ChunkStatus::DECORATIONS_GENERATED;
 }
@@ -311,19 +315,24 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 	z = (int)glm::mod((float)z, width);
 
 	std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
-	if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
+	//std::lock_guard<std::mutex> lock(this->chunkListLock);
+	/*if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
 		auto chunk = this->chunksList.at(chunkKey);
+		if (chunk == nullptr) return 1;
+		std::lock_guard<std::mutex> lock(chunk->chunkLock);
 		x = x * chunk->detailMultiplier / this->detailMultiplier;
 		z = z * chunk->detailMultiplier / this->detailMultiplier;
 		//y = y * chunk->detailMultiplier / this->detailMultiplier;
 		int blockValue = chunk->cells[x][z][y];
 		return blockValue;
-	}
+	}*/
 
 	return 1;
 }
 
 void ChunkGenerator::generateMesh() {
+	std::lock_guard<std::mutex> lock(this->chunkLock);
+
 	delete this->mesh;
 	this->mesh = nullptr;
 
@@ -498,9 +507,10 @@ void ChunkGenerator::generateMesh() {
 		}
 	}
 
-	this->status = ChunkStatus::MESH_GENERATED;
 	//std::cout << "generateMesh" << std::endl;
 	this->mesh = new glp::Mesh(glp::Mesh::DefaultVertexLayout, vertices, indices);
+
+	this->status = ChunkStatus::MESH_GENERATED;
 }
 
 Block ChunkGenerator::GetBlock(BLOCK block) {

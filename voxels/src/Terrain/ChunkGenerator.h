@@ -2,6 +2,8 @@
 #include "OpenGLP.h"
 #include "FastNoiseLite.h"
 #include "../textureAtlas/TextureAtlas.h"
+#include <mutex>
+#include <shared_mutex>
 
 enum ChunkStatus { NONE, TERAIN_GENERATED, DECORATIONS_GENERATED, MESH_GENERATED, RENDERED };
 
@@ -27,8 +29,11 @@ private:
 
     int GetTerainHeight(float x, float z, FastNoiseLite noise);
 public:
-    ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator*>& chunksList);
+    ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator*>& chunksList, std::shared_mutex& chunkListLock);
     ~ChunkGenerator();
+
+    std::mutex chunkLock;
+    std::shared_mutex& chunkListLock;
 
     float detailMultiplier;
     int chunkX;
