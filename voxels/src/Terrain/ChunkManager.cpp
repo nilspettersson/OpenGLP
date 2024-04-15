@@ -59,7 +59,7 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 			std::string key = std::to_string((int)chunk->chunkX) + "|" + std::to_string((int)chunk->chunkZ);
 			delete chunk;
 			this->chunks.erase(key);
-			std::cout << "chunk removed " << this->chunks.size() << std::endl;
+			//std::cout << "chunk removed " << this->chunks.size() << std::endl;
 		}
 		lock.unlock();
 	}
@@ -67,6 +67,7 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 
 void ChunkManager::generateChunks() {
 	std::unique_lock<std::mutex> lock(chunksMutex);
+	bool chunkCreated = false;
 	for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
 		for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
 			float deltaX = (x + originX);
@@ -92,6 +93,7 @@ void ChunkManager::generateChunks() {
 
 			std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
 			if (this->chunks.find(key) == this->chunks.end()) {
+				chunkCreated = true;
 				//std::cout << "chunk created " << this->chunks.size() << std::endl;
 				this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, detail, this->textureAtlas, this->chunks));
 
@@ -145,6 +147,34 @@ void ChunkManager::generateChunks() {
 
 		}
 	}
+	//lock.unlock();
+	if (chunkCreated) {
+		std::cout << "chunk created " << this->chunks.size() << std::endl;
+	}
+
+
+	std::cout << "chunks " << this->chunks.size() << std::endl;
+	std::cout << "entities " << this->entities.size() << std::endl;
+	//std::unique_lock<std::mutex> lock2(chunksMutex);
+	
+	for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
+		for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
+			float deltaX = (x + originX);
+			float deltaZ = (y + originZ);
+			float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
+			if (distance > chunkCount) continue;
+
+			std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
+			if (this->chunks.find(key) != this->chunks.end() && this->chunks.at(key)->status == ChunkStatus::TERAIN_GENERATED) {
+				this->chunks.at(key)->generateDecorations();
+				//break;
+			}
+
+		}
+	}
+
+
+
 	lock.unlock();
 }
 
@@ -156,7 +186,7 @@ void ChunkManager::CreateChunkMesh() {
 		std::unique_lock<std::mutex> lock(chunksMutex);
 		for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
 			auto chunk = i->second;
-			if (chunk->status == ChunkStatus::TERAIN_GENERATED) {
+			if (chunk->status == ChunkStatus::DECORATIONS_GENERATED) {
 				chunk->generateMesh();
 			}
 		}

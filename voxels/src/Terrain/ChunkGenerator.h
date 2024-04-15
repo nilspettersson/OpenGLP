@@ -3,7 +3,7 @@
 #include "FastNoiseLite.h"
 #include "../textureAtlas/TextureAtlas.h"
 
-enum ChunkStatus { NONE, TERAIN_GENERATED, MESH_GENERATED, RENDERED };
+enum ChunkStatus { NONE, TERAIN_GENERATED, DECORATIONS_GENERATED, MESH_GENERATED, RENDERED };
 
 enum BLOCK {
     Air, GRASS, DIRT, SAND, WATER, WOOD, Leaf
@@ -18,6 +18,11 @@ struct Block {
 class ChunkGenerator {
 private:
     std::vector<std::vector<std::vector<int>>> cells;
+    std::vector<glm::vec4> decorations;
+    std::vector<glm::vec4> overflowLeft;
+    std::vector<glm::vec4> overflowRight;
+    std::vector<glm::vec4> overflowBefore;
+    std::vector<glm::vec4> overflowAfter;
     TextureAtlas& textureAtlas;
 
     int GetTerainHeight(float x, float z, FastNoiseLite noise);
@@ -38,6 +43,9 @@ public:
     std::unordered_map<std::string, ChunkGenerator*>& chunksList;
 
     void generateTerain();
+
+    void generateDecorations();
+    void addCell(int x, int z, int y, BLOCK block);
 
     void generateMesh();
 

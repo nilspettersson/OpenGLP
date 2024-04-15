@@ -12,6 +12,12 @@ ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHe
 	this->mesh = nullptr;
 	this->chunkEntity = NULL;
 
+	this->decorations = {};
+	this->overflowLeft = {};
+	this->overflowRight = {};
+	this->overflowBefore = {};
+	this->overflowAfter = {};
+
 	this->status = ChunkStatus::NONE;
 	this->generateTerain();
 }
@@ -22,9 +28,10 @@ ChunkGenerator::~ChunkGenerator()
 	delete this->mesh;
 }
 
-float NoiseStandard(float x, float y, float multiplier, int octaves, float gain, float lacunarity, FastNoiseLite noise) {
+float NoiseStandard(float x, float y, float multiplier, int octaves, float gain, float lacunarity, float weight, FastNoiseLite noise) {
 	noise.SetFractalOctaves(octaves);
 	noise.SetFractalGain(gain);
+	noise.SetFractalWeightedStrength(weight);
 	noise.SetFractalLacunarity(lacunarity);
 	noise.SetFractalType(FastNoiseLite::FractalType::FractalType_FBm);
 	return noise.GetNoise(x * multiplier, y * multiplier);
@@ -50,24 +57,28 @@ float NoisePingPong(float x, float y, float multiplier, int octaves, float gain,
 int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
 	float xValue = ((x / this->detailMultiplier) + this->chunkX * this->chunkWidth);
 	float zValue = ((z / this->detailMultiplier) + this->chunkZ * this->chunkWidth);
-	float noiseMultiplier = noise.GetNoise(xValue * 0.05, zValue * 0.05);
-	noiseMultiplier = (noiseMultiplier + 1) / 2;
+	float noiseMultiplier = noise.GetNoise(xValue * 0.08, zValue * 0.08);
+	/*noiseMultiplier = (noiseMultiplier + 1) / 2;
 	noiseMultiplier = 1 - noiseMultiplier;
-	noiseMultiplier *= 1.5;
+	noiseMultiplier *= 1.5;*/
 
-	float value = glm::pow(NoiseRidged(xValue, zValue, 0.1, 4, 0.5, 2, noise), 2);
+	float value = 0.5 + (noiseMultiplier / 2 + 0.5) * 1.4;
+
+	value += NoiseStandard(xValue, zValue, 0.2, 4, 0.5, 2, 0.7 - noiseMultiplier / 2, noise) - 0.5;
+
+	/*float value = glm::pow(NoiseRidged(xValue, zValue, 0.1, 4, 0.5, 2, noise), 2);
 
 	value *= noiseMultiplier;
 	value += noiseMultiplier * 1;
 
 	value -= glm::clamp<float>(glm::min(NoisePingPong(xValue * 0.8, zValue * 0.8, 0.2, 3, 0.5, 2, 1, noise), 0.5f) * 0.8f, 0, 0.5f);
 
-	value += NoiseStandard(xValue, zValue, 0.8, 4, 0.5, 2, noise) / 2 - 0.5;
+	value += NoiseStandard(xValue, zValue, 0.8, 4, 0.5, 2, noise) / 2 - 0.5;*/
 
 	//value /= 3;
 
 	value = (value + 1) / 2;
-	value *= 0.4;
+	value *= 0.5;
 
 	value *= this->maxHeight /* this->detailMultiplier*/;
 	value += 1;
@@ -77,13 +88,18 @@ int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
 
 void ChunkGenerator::generateTerain() {
 	// Create and configure FastNoise object
-	FastNoiseLite noise;
+	FastNoiseLite noise(1);
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
 	int waterLevel = 100;
 
 
 	this->cells.clear();
+	this->decorations.clear();
+	this->overflowLeft.clear();
+	this->overflowRight.clear();
+	this->overflowBefore.clear();
+	this->overflowAfter.clear();
 	for (int x = 0; x < this->chunkWidth * detailMultiplier; x++) {
 		this->cells.push_back({});
 		for (int z = 0; z < this->chunkWidth * detailMultiplier; z++) {
@@ -105,60 +121,117 @@ void ChunkGenerator::generateTerain() {
 		}
 	}
 
-
 	for (int x = 0; x < this->chunkWidth * detailMultiplier; x++) {
 		for (int z = 0; z < this->chunkWidth * detailMultiplier; z++) {
 			float xValue = (x / this->detailMultiplier + this->chunkX * this->chunkWidth);
 			float zValue = (z / this->detailMultiplier + this->chunkZ * this->chunkWidth);
-			float treePlacement = NoiseStandard(xValue, zValue, 50, 1, 1, 1, noise);
+			float treePlacement = NoiseStandard(xValue, zValue, 50, 1, 1, 1, 0, noise);
 			if (treePlacement > 0.9) {
 				treePlacement = 1;
 			}
 			else {
 				treePlacement = 0;
 			}
-			for (int y = 0; y < this->maxHeight - 1; y++) {
+			for (int y = 0; y < this->maxHeight - 10; y++) {
 
-				if (treePlacement == 1 && this->cells[x][z][y] == BLOCK::GRASS && this->cells[x][z][y + 1] == BLOCK::Air) {
-					if (this->detailMultiplier != 1 || x >= this->chunkWidth - 4 || x <= 4 || z >= this->chunkWidth - 4 || z <= 4) break;
-					this->cells[x][z][y + 1] = BLOCK::WOOD;
-					this->cells[x][z][y + 2] = BLOCK::WOOD;
-					this->cells[x][z][y + 3] = BLOCK::WOOD;
-					this->cells[x][z][y + 4] = BLOCK::WOOD;
-					this->cells[x][z][y + 5] = BLOCK::WOOD;
-					this->cells[x][z][y + 6] = BLOCK::WOOD;
+				if (/*treePlacement == 1*/ x == (this->chunkWidth * detailMultiplier) / 2 && z == (this->chunkWidth * detailMultiplier) / 2 && this->cells[x][z][y] == BLOCK::GRASS && this->cells[x][z][y + 1] == BLOCK::Air) {
+					if (this->detailMultiplier != 1) break;
 
-					this->cells[x + 1][z][y + 6] = BLOCK::Leaf;
-					this->cells[x + 2][z][y + 6] = BLOCK::Leaf;
-					this->cells[x + 3][z][y + 6] = BLOCK::Leaf;
+					float height = 6 * this->detailMultiplier;
+					float size = 7 * this->detailMultiplier;
 
-					this->cells[x - 1][z][y + 6] = BLOCK::Leaf;
-					this->cells[x - 2][z][y + 6] = BLOCK::Leaf;
-					this->cells[x - 3][z][y + 6] = BLOCK::Leaf;
+					for (int i = 0; i < height; i++) {
+						this->addCell(x, z, y + 1 + i, BLOCK::WOOD);
+					}
+					for (int i = -size / 2; i < size / 2; i++) {
+						for (int j = -size / 2; j < size / 2; j++) {
+							for (int k = -size / 2; k < size / 2; k++) {
+								if (glm::sqrt(i * i + j * j + k * k) < size / 2) {
+									this->addCell(x + i, z + j, y + k + 1 + height + size / 2 - 1, BLOCK::Leaf);
+								}
+							}
+						}
+					}
 
-					this->cells[x][z + 1][y + 6] = BLOCK::Leaf;
-					this->cells[x][z + 2][y + 6] = BLOCK::Leaf;
-					this->cells[x][z + 3][y + 6] = BLOCK::Leaf;
 
-					this->cells[x][z - 1][y + 6] = BLOCK::Leaf;
-					this->cells[x][z - 2][y + 6] = BLOCK::Leaf;
-					this->cells[x][z - 3][y + 6] = BLOCK::Leaf;
-
-					this->cells[x + 1][z + 1][y + 6] = BLOCK::Leaf;
-					this->cells[x + 1][z - 1][y + 6] = BLOCK::Leaf;
-					this->cells[x - 1][z + 1][y + 6] = BLOCK::Leaf;
-					this->cells[x - 1][z - 1][y + 6] = BLOCK::Leaf;
-
-					this->cells[x][z][y + 7] = BLOCK::Leaf;
+					/*this->addCell(x, z, y + 1, BLOCK::WOOD);
+					this->addCell(x, z, y + 2, BLOCK::WOOD);
+					this->addCell(x, z, y + 3, BLOCK::WOOD);
+					this->addCell(x, z, y + 4, BLOCK::WOOD);
+					this->addCell(x, z, y + 5, BLOCK::WOOD);
+					this->addCell(x, z, y + 6, BLOCK::WOOD);
+					this->addCell(x - 1, z, y + 6, BLOCK::Leaf);
+					this->addCell(x - 2, z, y + 6, BLOCK::Leaf);
+					this->addCell(x - 3, z, y + 6, BLOCK::Leaf);
+					this->addCell(x - 4, z, y + 6, BLOCK::Leaf);*/
 					break;
 				}
-				
+
 			}
 		}
 	}
 
-
 	this->status = ChunkStatus::TERAIN_GENERATED;
+}
+
+void ChunkGenerator::generateDecorations()
+{
+	for (auto pos : this->decorations) {
+		this->cells[pos.x][pos.z][pos.y] = pos.w;
+	}
+
+	/*std::string keyLeft = std::to_string((int)this->chunkX + 1) + "|" + std::to_string((int)this->chunkZ);
+	if (this->chunksList.find(keyLeft) != this->chunksList.end()) {
+		this->chunksList.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
+		for (auto pos : this->chunksList.at(keyLeft)->overflowLeft) {
+			this->cells[pos.x][pos.z][pos.y] = pos.w;
+		}
+	}
+	std::string keyRight = std::to_string((int)this->chunkX - 1) + "|" + std::to_string((int)this->chunkZ);
+	if (this->chunksList.find(keyRight) != this->chunksList.end()) {
+		for (auto pos : this->chunksList.at(keyRight)->overflowRight) {
+			this->cells[pos.x][pos.z][pos.y] = pos.w;
+		}
+	}
+	std::string keyBefore = std::to_string((int)this->chunkX) + "|" + std::to_string((int)this->chunkZ + 1);
+	if (this->chunksList.find(keyBefore) != this->chunksList.end()) {
+		this->chunksList.at(keyBefore)->status = ChunkStatus::TERAIN_GENERATED;
+		for (auto pos : this->chunksList.at(keyBefore)->overflowBefore) {
+			this->cells[pos.x][pos.z][pos.y] = pos.w;
+		}
+	}
+	std::string keyAfter = std::to_string((int)this->chunkX) + "|" + std::to_string((int)this->chunkZ - 1);
+	if (this->chunksList.find(keyAfter) != this->chunksList.end()) {
+		for (auto pos : this->chunksList.at(keyAfter)->overflowAfter) {
+			this->cells[pos.x][pos.z][pos.y] = pos.w;
+		}
+	}*/
+
+	this->status = ChunkStatus::DECORATIONS_GENERATED;
+}
+
+void ChunkGenerator::addCell(int x, int z, int y, BLOCK block) {
+	glm::vec4 cell = { x, y, z, block };
+	if (x < 0) {
+		cell.x = this->chunkWidth * this->detailMultiplier + x;
+		this->overflowLeft.push_back(cell);
+	}
+	else if (x >= this->chunkWidth * this->detailMultiplier) {
+		cell.x = x - this->chunkWidth * this->detailMultiplier;
+		this->overflowRight.push_back(cell);
+	}
+	else if (z < 0) {
+		cell.z = this->chunkWidth * this->detailMultiplier + z;
+		this->overflowBefore.push_back(cell);
+	}
+	else if (z >= this->chunkWidth * this->detailMultiplier) {
+		cell.z = z - this->chunkWidth * this->detailMultiplier;
+		this->overflowAfter.push_back(cell);
+	}
+	else {
+		//this->cells[x][z][y] = block;
+		this->decorations.push_back(cell);
+	}
 }
 
 float T(float VertexPosition, float position, float size) {
@@ -243,7 +316,7 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 		return blockValue;
 	}
 
-	return 0;
+	return 1;
 }
 
 void ChunkGenerator::generateMesh() {
