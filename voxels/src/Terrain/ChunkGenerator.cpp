@@ -126,7 +126,7 @@ void ChunkGenerator::generateTerain() {
 			float xValue = (x / this->detailMultiplier + this->chunkX * this->chunkWidth);
 			float zValue = (z / this->detailMultiplier + this->chunkZ * this->chunkWidth);
 			float treePlacement = NoiseStandard(xValue, zValue, 50, 1, 1, 1, 0, noise);
-			if (treePlacement > 0.9) {
+			if (treePlacement > 0.96) {
 				treePlacement = 1;
 			}
 			else {
@@ -134,36 +134,34 @@ void ChunkGenerator::generateTerain() {
 			}
 			for (int y = 0; y < this->maxHeight - 10; y++) {
 
-				if (/*treePlacement == 1*/ x == (this->chunkWidth * detailMultiplier) / 2 && z == (this->chunkWidth * detailMultiplier) / 2 && this->cells[x][z][y] == BLOCK::GRASS && this->cells[x][z][y + 1] == BLOCK::Air) {
-					if (this->detailMultiplier != 1) break;
+				if (treePlacement == 1 /*x == (this->chunkWidth * detailMultiplier) / 2 && z == (this->chunkWidth * detailMultiplier) / 2*/ && this->cells[x][z][y] == BLOCK::GRASS && this->cells[x][z][y + 1] == BLOCK::Air) {
 
-					float height = 6 * this->detailMultiplier;
-					float size = 7 * this->detailMultiplier;
+					float height = 7;
+					float trunkSize = 1;
+					float sphereWidth = 6 * this->detailMultiplier;
+					float sphereHeight = 6;
 
-					for (int i = 0; i < height; i++) {
-						this->addCell(x, z, y + 1 + i, BLOCK::WOOD);
+					for (int i = -trunkSize / 2; i < trunkSize / 2; i++) {
+						for (int j = -trunkSize / 2; j < trunkSize / 2; j++) {
+							for (int k = 0; k < height; k++) {
+								if (glm::sqrt(i * i + j * j) < trunkSize / 2) {
+									this->addCell(x + i, z + j, y + 1 + k, BLOCK::WOOD);
+								}
+								
+							}
+						}
 					}
-					for (int i = -size / 2; i < size / 2; i++) {
-						for (int j = -size / 2; j < size / 2; j++) {
-							for (int k = -size / 2; k < size / 2; k++) {
-								if (glm::sqrt(i * i + j * j + k * k) < size / 2) {
-									this->addCell(x + i, z + j, y + k + 1 + height + size / 2 - 1, BLOCK::Leaf);
+					for (float i = -sphereWidth / 2; i < sphereWidth / 2; i++) {
+						for (float j = -sphereWidth / 2; j < sphereWidth / 2; j++) {
+							for (float k = -sphereHeight / 2; k < sphereHeight / 2; k++) {
+								float k2 = k * this->detailMultiplier;
+								if (glm::sqrt(i * i + j * j + k2 * k2) < sphereWidth / 2 /*+ glm::min(k, 0)*/) {
+									this->addCell(x + i, z + j, y + k + 1 + height + sphereHeight / 2 - 1 - 2, BLOCK::Leaf);
 								}
 							}
 						}
 					}
 
-
-					/*this->addCell(x, z, y + 1, BLOCK::WOOD);
-					this->addCell(x, z, y + 2, BLOCK::WOOD);
-					this->addCell(x, z, y + 3, BLOCK::WOOD);
-					this->addCell(x, z, y + 4, BLOCK::WOOD);
-					this->addCell(x, z, y + 5, BLOCK::WOOD);
-					this->addCell(x, z, y + 6, BLOCK::WOOD);
-					this->addCell(x - 1, z, y + 6, BLOCK::Leaf);
-					this->addCell(x - 2, z, y + 6, BLOCK::Leaf);
-					this->addCell(x - 3, z, y + 6, BLOCK::Leaf);
-					this->addCell(x - 4, z, y + 6, BLOCK::Leaf);*/
 					break;
 				}
 
@@ -180,32 +178,34 @@ void ChunkGenerator::generateDecorations()
 		this->cells[pos.x][pos.z][pos.y] = pos.w;
 	}
 
-	/*std::string keyLeft = std::to_string((int)this->chunkX + 1) + "|" + std::to_string((int)this->chunkZ);
+	std::string keyLeft = std::to_string((int)this->chunkX + 1) + "|" + std::to_string((int)this->chunkZ);
 	if (this->chunksList.find(keyLeft) != this->chunksList.end()) {
-		this->chunksList.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
-		for (auto pos : this->chunksList.at(keyLeft)->overflowLeft) {
-			this->cells[pos.x][pos.z][pos.y] = pos.w;
+		auto chunk = this->chunksList.at(keyLeft);
+		for (auto pos : chunk->overflowLeft) {
+			this->cells[pos.x / chunk->detailMultiplier * this->detailMultiplier][pos.z / chunk->detailMultiplier * this->detailMultiplier][pos.y] = pos.w;
 		}
 	}
 	std::string keyRight = std::to_string((int)this->chunkX - 1) + "|" + std::to_string((int)this->chunkZ);
 	if (this->chunksList.find(keyRight) != this->chunksList.end()) {
-		for (auto pos : this->chunksList.at(keyRight)->overflowRight) {
-			this->cells[pos.x][pos.z][pos.y] = pos.w;
+		auto chunk = this->chunksList.at(keyRight);
+		for (auto pos : chunk->overflowRight) {
+			this->cells[pos.x / chunk->detailMultiplier * this->detailMultiplier][pos.z / chunk->detailMultiplier * this->detailMultiplier][pos.y] = pos.w;
 		}
 	}
 	std::string keyBefore = std::to_string((int)this->chunkX) + "|" + std::to_string((int)this->chunkZ + 1);
 	if (this->chunksList.find(keyBefore) != this->chunksList.end()) {
-		this->chunksList.at(keyBefore)->status = ChunkStatus::TERAIN_GENERATED;
-		for (auto pos : this->chunksList.at(keyBefore)->overflowBefore) {
-			this->cells[pos.x][pos.z][pos.y] = pos.w;
+		auto chunk = this->chunksList.at(keyBefore);
+		for (auto pos : chunk->overflowBefore) {
+			this->cells[pos.x / chunk->detailMultiplier * this->detailMultiplier][pos.z / chunk->detailMultiplier * this->detailMultiplier][pos.y] = pos.w;
 		}
 	}
 	std::string keyAfter = std::to_string((int)this->chunkX) + "|" + std::to_string((int)this->chunkZ - 1);
 	if (this->chunksList.find(keyAfter) != this->chunksList.end()) {
-		for (auto pos : this->chunksList.at(keyAfter)->overflowAfter) {
-			this->cells[pos.x][pos.z][pos.y] = pos.w;
+		auto chunk = this->chunksList.at(keyAfter);
+		for (auto pos : chunk->overflowAfter) {
+			this->cells[pos.x / chunk->detailMultiplier * this->detailMultiplier][pos.z / chunk->detailMultiplier * this->detailMultiplier][pos.y] = pos.w;
 		}
-	}*/
+	}
 
 	this->status = ChunkStatus::DECORATIONS_GENERATED;
 }
@@ -213,18 +213,22 @@ void ChunkGenerator::generateDecorations()
 void ChunkGenerator::addCell(int x, int z, int y, BLOCK block) {
 	glm::vec4 cell = { x, y, z, block };
 	if (x < 0) {
+		if (z < 0 || z >= this->chunkWidth * this->detailMultiplier) return;
 		cell.x = this->chunkWidth * this->detailMultiplier + x;
 		this->overflowLeft.push_back(cell);
 	}
 	else if (x >= this->chunkWidth * this->detailMultiplier) {
+		if (z < 0 || z >= this->chunkWidth * this->detailMultiplier) return;
 		cell.x = x - this->chunkWidth * this->detailMultiplier;
 		this->overflowRight.push_back(cell);
 	}
 	else if (z < 0) {
+		if (x < 0 || x >= this->chunkWidth * this->detailMultiplier) return;
 		cell.z = this->chunkWidth * this->detailMultiplier + z;
 		this->overflowBefore.push_back(cell);
 	}
 	else if (z >= this->chunkWidth * this->detailMultiplier) {
+		if (x < 0 || x >= this->chunkWidth * this->detailMultiplier) return;
 		cell.z = z - this->chunkWidth * this->detailMultiplier;
 		this->overflowAfter.push_back(cell);
 	}
