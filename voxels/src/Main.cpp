@@ -4,15 +4,15 @@
 
 int main(void) {
 
-    auto window = glp::Window(1200, 920);
+    auto window = glp::Window(1000, 800);
 	auto camera = glp::Camera3d(window);
 	camera.setZ(-3);
     camera.setY(-126);
 
 	auto renderer = glp::Renderer(camera);
 
-    int chunkSize = 16;
-    auto chunckManager = new ChunkManager(6, chunkSize, 356);
+    int chunkSize = 64;
+    auto chunckManager = new ChunkManager(10, chunkSize, 356);
 
     bool useCursorMovement = true;
 
@@ -26,34 +26,22 @@ int main(void) {
         chunckManager->originX = (camera.getX()) / (chunkSize);
         chunckManager->originZ = (camera.getZ()) / (chunkSize);
 
-        //std::shared_lock<std::shared_mutex> chunkListLock(chunckManager->chunksMutex);
+        std::shared_lock<std::shared_mutex> chunkListLock(chunckManager->chunksMutex);
         for (auto i = chunckManager->chunks.begin(); i != chunckManager->chunks.end(); i++) {
             auto chunk = i->second;
-            std::lock_guard<std::mutex> lock(chunk->chunkLock);
+            //std::lock_guard<std::mutex> lock(chunk->chunkLock);
             if (chunk->chunkEntity == nullptr) continue;
             renderer.render(*chunk->chunkEntity);
         }
-        //chunkListLock.unlock();
-
-        /*for (int i = 0; i < chunckManager->entities.size(); i++) {
-            //std::lock_guard<std::mutex> lock(chunckManager->)
-            renderer.render(*chunckManager->entities[i]);
-        }*/
+        chunkListLock.unlock();
 
         if (window.getInput().isKeyDown(GLP_KEY_DELETE)) {
             std::unique_lock<std::shared_mutex> lock(chunckManager->chunksMutex);
             for (auto it = chunckManager->chunks.begin(); it != chunckManager->chunks.end(); ) {
                 std::unique_lock<std::mutex> lock2(it->second->chunkLock);
                 delete it->second;
-                chunckManager->chunks.erase(it);
             }
             chunckManager->chunks.clear();
-            /*for (int j = chunckManager->entities.size() - 1; j >= 0; j--) {
-                delete chunckManager->entities[j]->model;
-                chunckManager->entities[j]->model = nullptr;
-                delete chunckManager->entities[j];
-                chunckManager->entities.erase(chunckManager->entities.begin() + j);
-            }*/
             lock.unlock();
         }
 

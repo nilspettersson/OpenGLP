@@ -97,7 +97,7 @@ void ChunkGenerator::generateTerain() {
 	FastNoiseLite noise(1);
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
-	int waterLevel = 100;
+	int waterLevel = this->maxHeight / 3;
 
 
 	this->cells.clear();
