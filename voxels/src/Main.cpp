@@ -26,14 +26,14 @@ int main(void) {
         chunckManager->originX = (camera.getX()) / (chunkSize);
         chunckManager->originZ = (camera.getZ()) / (chunkSize);
 
-        std::shared_lock<std::shared_mutex> chunkListLock(chunckManager->chunksMutex);
+        //std::shared_lock<std::shared_mutex> chunkListLock(chunckManager->chunksMutex);
         for (auto i = chunckManager->chunks.begin(); i != chunckManager->chunks.end(); i++) {
             auto chunk = i->second;
             std::lock_guard<std::mutex> lock(chunk->chunkLock);
             if (chunk->chunkEntity == nullptr) continue;
             renderer.render(*chunk->chunkEntity);
         }
-        chunkListLock.unlock();
+        //chunkListLock.unlock();
 
         /*for (int i = 0; i < chunckManager->entities.size(); i++) {
             //std::lock_guard<std::mutex> lock(chunckManager->)
@@ -48,12 +48,12 @@ int main(void) {
                 chunckManager->chunks.erase(it);
             }
             chunckManager->chunks.clear();
-            for (int j = chunckManager->entities.size() - 1; j >= 0; j--) {
+            /*for (int j = chunckManager->entities.size() - 1; j >= 0; j--) {
                 delete chunckManager->entities[j]->model;
                 chunckManager->entities[j]->model = nullptr;
                 delete chunckManager->entities[j];
                 chunckManager->entities.erase(chunckManager->entities.begin() + j);
-            }
+            }*/
             lock.unlock();
         }
 

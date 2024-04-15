@@ -27,6 +27,12 @@ ChunkGenerator::~ChunkGenerator()
 {
 	std::cout << "delete chunk destructor " << std::endl;
 	delete this->mesh;
+	if (this->chunkEntity != nullptr) {
+		delete this->chunkEntity->model;
+		this->chunkEntity->model = nullptr;
+		delete this->chunkEntity;
+		this->chunkEntity = nullptr;
+	}
 }
 
 float NoiseStandard(float x, float y, float multiplier, int octaves, float gain, float lacunarity, float weight, FastNoiseLite noise) {
@@ -88,8 +94,6 @@ int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
 }
 
 void ChunkGenerator::generateTerain() {
-	std::lock_guard<std::mutex> lock(this->chunkLock);
-
 	FastNoiseLite noise(1);
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
@@ -176,8 +180,6 @@ void ChunkGenerator::generateTerain() {
 
 void ChunkGenerator::generateDecorations()
 {
-	std::lock_guard<std::mutex> lock(this->chunkLock);
-
 	for (auto pos : this->decorations) {
 		this->cells[pos.x][pos.z][pos.y] = pos.w;
 	}
@@ -315,24 +317,21 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 	z = (int)glm::mod((float)z, width);
 
 	std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
-	//std::lock_guard<std::mutex> lock(this->chunkListLock);
-	/*if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
+	if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
 		auto chunk = this->chunksList.at(chunkKey);
 		if (chunk == nullptr) return 1;
-		std::lock_guard<std::mutex> lock(chunk->chunkLock);
+		//std::lock_guard<std::mutex> lock(chunk->chunkLock);
 		x = x * chunk->detailMultiplier / this->detailMultiplier;
 		z = z * chunk->detailMultiplier / this->detailMultiplier;
 		//y = y * chunk->detailMultiplier / this->detailMultiplier;
 		int blockValue = chunk->cells[x][z][y];
 		return blockValue;
-	}*/
+	}
 
 	return 1;
 }
 
 void ChunkGenerator::generateMesh() {
-	std::lock_guard<std::mutex> lock(this->chunkLock);
-
 	delete this->mesh;
 	this->mesh = nullptr;
 

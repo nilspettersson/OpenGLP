@@ -28,7 +28,6 @@ public:
     int originX;
     int originZ;
     std::unordered_map<std::string, ChunkGenerator*> chunks;
-    std::vector<glp::Entity*> entities;
     
     mutable std::shared_mutex chunksMutex;
 
