@@ -11,8 +11,8 @@ int main(void) {
 
 	auto renderer = glp::Renderer(camera);
 
-    int chunkSize = 16;
-    auto chunckManager = new ChunkManager(32, chunkSize, 256);
+    int chunkSize = 64;
+    auto chunckManager = new ChunkManager(24, chunkSize, 256);
 
     bool useCursorMovement = true;
 
@@ -50,7 +50,7 @@ int main(void) {
         }
 
 
-        float speed = 2;
+        float speed = 0.4;
         if (window.getInput().isKeyDown(GLP_KEY_W)) {
             camera.moveForward(speed);
         }
