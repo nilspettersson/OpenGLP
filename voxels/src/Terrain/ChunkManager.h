@@ -13,18 +13,12 @@ private:
     int chunkHeight;
     int chunkCount;
 
-    std::thread chunkThread;
-    std::thread meshThread;
+    std::vector<std::thread> meshThreads;
     bool isRunning;
 
 public:
     ChunkManager(int chunks, int chunkWidth, int chunkHeight);
-    ~ChunkManager() {
-        isRunning = false;
-        if (meshThread.joinable()) {
-            meshThread.join();
-        }
-    }
+    ~ChunkManager();
     int originX;
     int originZ;
     std::unordered_map<std::string, ChunkGenerator*> chunks;

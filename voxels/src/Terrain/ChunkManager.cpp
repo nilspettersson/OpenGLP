@@ -1,6 +1,7 @@
 #include "ChunkManager.h"
 #include <thread>
 
+using namespace std::chrono_literals;
 ChunkManager::ChunkManager(int chunks, int chunkWidth, int chunkHeight):
 	shader("res/shaders/main.shader"),
 	textureAtlas("res/textures/test.png", glp::Texture::FILTER::LINEAR, 16) {
@@ -14,28 +15,65 @@ ChunkManager::ChunkManager(int chunks, int chunkWidth, int chunkHeight):
 
 	this->isRunning = true;
 	this->updateChunks(0, 0);
-	this->meshThread = std::thread(&ChunkManager::CreateChunkMesh, this);
+
+	const auto processorCount = glm::max(std::thread::hardware_concurrency(), 4u) - 1;
+
+	for (int i = 0; i < processorCount; i++) {
+		this->meshThreads.push_back(std::thread(&ChunkManager::CreateChunkMesh, this));
+	}
 }
 
+ChunkManager::~ChunkManager() {
+	isRunning = false;
+	for (auto &thread: meshThreads) {
+		if (thread.joinable()) {
+			thread.join();
+		}
+	}
+
+}
 void ChunkManager::updateChunks(int originX, int originZ) {
-	//std::cout << "updateChunks " << this->chunks.size() << std::endl;
+	std::cout << "updateChunks " << this->chunks.size() << std::endl;
 	this->originX = originX;
 	this->originZ = originZ;
+
+
+
+	for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
+		for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
+			float deltaX = (x + originX);
+			float deltaZ = (y + originZ);
+			float detail = 1;
+			float distance = deltaX * deltaX + deltaZ * deltaZ;
+			if (distance > chunkCount * chunkCount) continue;
+
+			std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
+			std::unique_lock<std::shared_mutex> lock(chunksMutex, std::defer_lock);
+			if (this->chunks.find(key) == this->chunks.end()) {
+			if (lock.try_lock()) {
+					this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, detail, this->textureAtlas, this->chunks, this->chunksMutex));
+					lock.unlock();
+				}
+			}
+		}
+	}
+
+
 
 	this->CreateEntities();
 
 	std::shared_lock<std::shared_mutex> lock(chunksMutex, std::defer_lock);
 	auto chunksToBeRemoved = std::vector<ChunkGenerator*>();
 	if (lock.try_lock()) {
-		int removeCount = 8;
+		int removeCount = 20;
 		for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
 			auto chunk = i->second;
 			float deltaX = (chunk->chunkX + originX);
 			float deltaZ = (chunk->chunkZ + originZ);
 
-			float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
+			float distance = deltaX * deltaX + deltaZ * deltaZ;
 
-			if (distance > chunkCount) {
+			if (distance > chunkCount * chunkCount) {
 				chunksToBeRemoved.push_back(this->chunks.at(i->first));
 				removeCount--;
 			}
@@ -45,135 +83,168 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 	}
 
 	if (chunksToBeRemoved.size() > 0) {
-		std::unique_lock<std::shared_mutex> lock2(chunksMutex, std::defer_lock);
-		if (lock2.try_lock()) {
-			for (auto chunk : chunksToBeRemoved) {
-				//std::lock_guard<std::mutex> lock(chunk->chunkLock);
-				std::string key = std::to_string((int)chunk->chunkX) + "|" + std::to_string((int)chunk->chunkZ);
-				delete chunk;
-				this->chunks.at(key) = nullptr;
-				this->chunks.erase(key);
-			}
-			lock2.unlock();
+		std::unique_lock<std::shared_mutex> lock2(chunksMutex);
+		for (auto chunk : chunksToBeRemoved) {
+			//std::lock_guard<std::mutex> lock(chunk->chunkLock);
+			std::string key = std::to_string((int)chunk->chunkX) + "|" + std::to_string((int)chunk->chunkZ);
+			delete chunk;
+			this->chunks.at(key) = nullptr;
+			this->chunks.erase(key);
 		}
+		lock2.unlock();
 	}
 }
 
 void ChunkManager::generateChunks() {
 	bool chunkCreated = false;
-	for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
-		for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
-			float deltaX = (x + originX);
-			float deltaZ = (y + originZ);
-			float detail = 1;
-			float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
-			float distance2 = glm::sqrt(x * x + y * y);
+	//std::unique_lock<std::shared_mutex> lock(chunksMutex);
+	//if (lock.try_lock()) {
+		for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
+			for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
+				float deltaX = (x + originX);
+				float deltaZ = (y + originZ);
+				float detail = 1;
 
-			if (distance > chunkCount) continue;
+				float distance = deltaX * deltaX + deltaZ * deltaZ;
+				if (distance > chunkCount * chunkCount) continue;
 
-			if (distance > 46) {
-				detail /= 16;
-			}
-			else if (distance > 24) {
-				detail /= 8;
-			}
-			else if (distance > 12) {
-				detail /= 4;
-			}
-			else if (distance > 6) {
-				detail /= 2;
-			}
-			//detail = 1;
-
-			std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
-			std::shared_lock<std::shared_mutex> lock(chunksMutex);
-			if (this->chunks.find(key) == this->chunks.end()) {
-				chunkCreated = true;
-				//std::cout << "chunk created " << this->chunks.size() << std::endl;
-				//std::cout << "chunk added " << key << std::endl;
-				this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, detail, this->textureAtlas, this->chunks, this->chunksMutex));
-
-				std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
-				if (this->chunks.find(keyLeft) != this->chunks.end()) {
-					this->chunks.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
+				if (distance > 46) {
+					detail /= 16;
 				}
-
-				std::string keyRight = std::to_string((int)x + 1) + "|" + std::to_string((int)y);
-				if (this->chunks.find(keyRight) != this->chunks.end()) {
-					this->chunks.at(keyRight)->status = ChunkStatus::TERAIN_GENERATED;
+				else if (distance > 24) {
+					detail /= 8;
 				}
-
-				std::string keyForward = std::to_string((int)x) + "|" + std::to_string((int)y + 1);
-				if (this->chunks.find(keyForward) != this->chunks.end()) {
-					this->chunks.at(keyForward)->status = ChunkStatus::TERAIN_GENERATED;
+				else if (distance > 12) {
+					detail /= 4;
 				}
-
-				std::string keyBackward = std::to_string((int)x) + "|" + std::to_string((int)y - 1);
-				if (this->chunks.find(keyBackward) != this->chunks.end()) {
-					this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
+				else if (distance > 6) {
+					detail /= 2;
 				}
-				break;
-			}
-			else if (this->chunks.at(key)->detailMultiplier != detail) {
-				//replace chunk with different detail level
-				this->chunks.at(key)->status = ChunkStatus::NONE;
-				this->chunks.at(key)->detailMultiplier = detail;
-				this->chunks.at(key)->generateTerain();
+				detail = 1;
 
-				std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
-				if (this->chunks.find(keyLeft) != this->chunks.end() && this->chunks.at(keyLeft)->detailMultiplier == detail) {
-					this->chunks.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
-				}
-
-				std::string keyRight = std::to_string((int)x + 1) + "|" + std::to_string((int)y);
-				if (this->chunks.find(keyRight) != this->chunks.end() && this->chunks.at(keyRight)->detailMultiplier == detail) {
-					this->chunks.at(keyRight)->status = ChunkStatus::TERAIN_GENERATED;
-				}
-
-				std::string keyForward = std::to_string((int)x) + "|" + std::to_string((int)y + 1);
-				if (this->chunks.find(keyForward) != this->chunks.end() && this->chunks.at(keyForward)->detailMultiplier == detail) {
-					this->chunks.at(keyForward)->status = ChunkStatus::TERAIN_GENERATED;
-				}
-
-				std::string keyBackward = std::to_string((int)x) + "|" + std::to_string((int)y - 1);
-				if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->detailMultiplier == detail) {
-					this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
-				}
-
-			}
-			lock.unlock();
-		}
-	}
-
-
-	std::cout << "chunks " << this->chunks.size() << std::endl;
-
-	std::shared_lock<std::shared_mutex> lock(chunksMutex);
-	for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
-		for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
-			float deltaX = (x + originX);
-			float deltaZ = (y + originZ);
-			float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
-			if (distance > chunkCount) continue;
-
-			std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
-			if (this->chunks.find(key) != this->chunks.end()) {
-				auto currentChunk = this->chunks.at(key);
-				std::unique_lock<std::mutex> chunkLock(currentChunk->chunkLock, std::defer_lock);
-				if (chunkLock.try_lock()) {
-					if (currentChunk->status == ChunkStatus::TERAIN_GENERATED) {
-						currentChunk->generateDecorations();
+				std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
+				bool chunkEmpty = false;
+				std::shared_lock<std::shared_mutex> shared_lock(chunksMutex);
+				if (this->chunks.find(key) != this->chunks.end()) {
+					auto chunk = this->chunks.at(key);
+					if (chunk->status == ChunkStatus::NONE) {
+						std::lock_guard<std::mutex> chunk_lock(chunk->chunkLock);
+						chunk->generateTerain();
+						break;
 					}
-					chunkLock.unlock();
 				}
-			}
 
+				shared_lock.unlock();
+
+				/*if (!chunkEmpty) {
+					if (this->chunks.at(key)->detailMultiplier != detail) {
+						std::lock_guard<std::mutex> chunkLock(this->chunks.at(key)->chunkLock);
+						//replace chunk with different detail level
+						this->chunks.at(key)->status = ChunkStatus::NONE;
+						this->chunks.at(key)->detailMultiplier = detail;
+						this->chunks.at(key)->generateTerain();
+
+						std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
+						if (this->chunks.find(keyLeft) != this->chunks.end() && this->chunks.at(keyLeft)->detailMultiplier == detail) {
+							this->chunks.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
+						}
+
+						std::string keyRight = std::to_string((int)x + 1) + "|" + std::to_string((int)y);
+						if (this->chunks.find(keyRight) != this->chunks.end() && this->chunks.at(keyRight)->detailMultiplier == detail) {
+							this->chunks.at(keyRight)->status = ChunkStatus::TERAIN_GENERATED;
+						}
+
+						std::string keyForward = std::to_string((int)x) + "|" + std::to_string((int)y + 1);
+						if (this->chunks.find(keyForward) != this->chunks.end() && this->chunks.at(keyForward)->detailMultiplier == detail) {
+							this->chunks.at(keyForward)->status = ChunkStatus::TERAIN_GENERATED;
+						}
+
+						std::string keyBackward = std::to_string((int)x) + "|" + std::to_string((int)y - 1);
+						if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->detailMultiplier == detail) {
+							this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
+						}
+					}
+				}
+				shared_lock.unlock();
+				if (chunkEmpty) {
+					auto newChunk = new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, detail, this->textureAtlas, this->chunks, this->chunksMutex);
+
+					std::unique_lock<std::shared_mutex> lock(chunksMutex, std::defer_lock);
+					//lock.lock();
+					if (lock.try_lock()) {
+						if (this->chunks.find(key) == this->chunks.end()) {
+							chunkCreated = true;
+
+							this->chunks.emplace(key, newChunk);
+							lock.unlock();
+
+							std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
+							if (this->chunks.find(keyLeft) != this->chunks.end()) {
+								this->chunks.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
+							}
+
+							std::string keyRight = std::to_string((int)x + 1) + "|" + std::to_string((int)y);
+							if (this->chunks.find(keyRight) != this->chunks.end()) {
+								this->chunks.at(keyRight)->status = ChunkStatus::TERAIN_GENERATED;
+							}
+
+							std::string keyForward = std::to_string((int)x) + "|" + std::to_string((int)y + 1);
+							if (this->chunks.find(keyForward) != this->chunks.end()) {
+								this->chunks.at(keyForward)->status = ChunkStatus::TERAIN_GENERATED;
+							}
+
+							std::string keyBackward = std::to_string((int)x) + "|" + std::to_string((int)y - 1);
+							if (this->chunks.find(keyBackward) != this->chunks.end()) {
+								this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
+							}
+							//break;
+							
+						}
+						else {
+							lock.unlock();
+							delete newChunk;
+						}
+
+					}
+					else {
+						delete newChunk;
+					}
+				}*/
+			}
 		}
-	}
-	lock.unlock();
+		//lock.unlock();
+	//}
+
+	//std::cout << "chunks " << this->chunks.size() << std::endl;
+
+	/*std::shared_lock<std::shared_mutex> lock2(chunksMutex, std::defer_lock);
+	if (lock2.try_lock()) {
+		for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
+			for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
+				float deltaX = (x + originX);
+				float deltaZ = (y + originZ);
+				float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
+				if (distance > chunkCount) continue;
+
+				std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
+				if (this->chunks.find(key) != this->chunks.end()) {
+					auto currentChunk = this->chunks.at(key);
+					std::unique_lock<std::mutex> chunkLock(currentChunk->chunkLock, std::defer_lock);
+					if (chunkLock.try_lock()) {
+						if (currentChunk->status == ChunkStatus::TERAIN_GENERATED) {
+							currentChunk->generateDecorations();
+						}
+						chunkLock.unlock();
+					}
+				}
+
+			}
+		}
+		lock2.unlock();
+	}*/
+	
 }
 
-using namespace std::chrono_literals;
 void ChunkManager::CreateChunkMesh() {
 	while (isRunning) {
 		generateChunks();
@@ -191,11 +262,11 @@ void ChunkManager::CreateChunkMesh() {
 
 				auto currentChunk = this->chunks.at(key);
 				std::unique_lock<std::mutex> lock2(currentChunk->chunkLock, std::defer_lock);
-				if (lock2.try_lock()) {
-					if (currentChunk->status == ChunkStatus::DECORATIONS_GENERATED) {
-					currentChunk->generateMesh();
+				if (currentChunk->status == ChunkStatus::TERAIN_GENERATED) {
+					if (lock2.try_lock()) {
+						currentChunk->generateMesh();
+						lock2.unlock();
 					}
-					lock2.unlock();
 				}
 				
 			}
@@ -212,8 +283,9 @@ void ChunkManager::CreateEntities() {
 		for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
 			auto chunk = i->second;
 			std::unique_lock<std::mutex> chunkLock(chunk->chunkLock, std::defer_lock);
-			if (chunkLock.try_lock()) {
-				if (chunk->status == ChunkStatus::MESH_GENERATED) {
+			if (chunk->status == ChunkStatus::MESH_GENERATED) {
+				if (chunkLock.try_lock()) {
+				
 					if (chunk->mesh == nullptr) continue;
 					auto vao = new glp::Vao(*chunk->mesh, false);
 
@@ -236,8 +308,9 @@ void ChunkManager::CreateEntities() {
 
 					delete chunk->mesh;
 					chunk->mesh = nullptr;
+
+					chunkLock.unlock();
 				}
-				chunkLock.unlock();
 			}
 			
 		}

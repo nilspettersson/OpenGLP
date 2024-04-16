@@ -11,8 +11,8 @@ int main(void) {
 
 	auto renderer = glp::Renderer(camera);
 
-    int chunkSize = 64;
-    auto chunckManager = new ChunkManager(10, chunkSize, 356);
+    int chunkSize = 16;
+    auto chunckManager = new ChunkManager(32, chunkSize, 256);
 
     bool useCursorMovement = true;
 
@@ -26,27 +26,31 @@ int main(void) {
         chunckManager->originX = (camera.getX()) / (chunkSize);
         chunckManager->originZ = (camera.getZ()) / (chunkSize);
 
-        std::shared_lock<std::shared_mutex> chunkListLock(chunckManager->chunksMutex);
+        //std::shared_lock<std::shared_mutex> chunkListLock(chunckManager->chunksMutex);
         for (auto i = chunckManager->chunks.begin(); i != chunckManager->chunks.end(); i++) {
             auto chunk = i->second;
             //std::lock_guard<std::mutex> lock(chunk->chunkLock);
             if (chunk->chunkEntity == nullptr) continue;
             renderer.render(*chunk->chunkEntity);
         }
-        chunkListLock.unlock();
+        //chunkListLock.unlock();
 
         if (window.getInput().isKeyDown(GLP_KEY_DELETE)) {
             std::unique_lock<std::shared_mutex> lock(chunckManager->chunksMutex);
-            for (auto it = chunckManager->chunks.begin(); it != chunckManager->chunks.end(); ) {
-                std::unique_lock<std::mutex> lock2(it->second->chunkLock);
-                delete it->second;
+            for (auto i = chunckManager->chunks.begin(); i != chunckManager->chunks.end(); i++) {
+                //std::unique_lock<std::mutex> lock2(it->second->chunkLock);
+                if (i->second != nullptr) {
+                    delete i->second;
+                }
+                
+                //lock2.unlock();
             }
             chunckManager->chunks.clear();
             lock.unlock();
         }
 
 
-        float speed = 0.4;
+        float speed = 2;
         if (window.getInput().isKeyDown(GLP_KEY_W)) {
             camera.moveForward(speed);
         }

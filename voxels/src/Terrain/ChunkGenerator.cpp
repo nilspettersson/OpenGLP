@@ -20,12 +20,12 @@ ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHe
 	this->overflowAfter = {};
 
 	this->status = ChunkStatus::NONE;
-	this->generateTerain();
+	//this->generateTerain();
 }
 
 ChunkGenerator::~ChunkGenerator()
 {
-	std::cout << "delete chunk destructor " << std::endl;
+	//std::cout << "delete chunk destructor " << std::endl;
 	delete this->mesh;
 	if (this->chunkEntity != nullptr) {
 		delete this->chunkEntity->model;
@@ -316,7 +316,7 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 	x = (int)glm::mod((float)x, width);
 	z = (int)glm::mod((float)z, width);
 
-	std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
+	/*std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
 	if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
 		auto chunk = this->chunksList.at(chunkKey);
 		if (chunk == nullptr) return 1;
@@ -326,7 +326,7 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 		//y = y * chunk->detailMultiplier / this->detailMultiplier;
 		int blockValue = chunk->cells[x][z][y];
 		return blockValue;
-	}
+	}*/
 
 	return 1;
 }
