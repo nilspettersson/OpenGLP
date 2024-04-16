@@ -32,7 +32,7 @@ public:
     ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator*>& chunksList, std::shared_mutex& chunkListLock);
     ~ChunkGenerator();
 
-    std::mutex chunkLock;
+    std::shared_mutex chunkLock;
     std::shared_mutex& chunkListLock;
 
     float detailMultiplier;

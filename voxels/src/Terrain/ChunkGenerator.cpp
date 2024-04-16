@@ -320,16 +320,16 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 	if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
 		int blockValue = 1;
 		auto chunk = this->chunksList.at(chunkKey);
-		if (chunk == nullptr || (chunk->status != ChunkStatus::TERAIN_GENERATED && chunk->status != ChunkStatus::DECORATIONS_GENERATED)) return 1;
-		std::unique_lock<std::mutex> lock(chunk->chunkLock, std::defer_lock);
-		lock.lock();
+		if (chunk == nullptr || chunk->status == ChunkStatus::NONE) return 1;
+		//std::shared_lock<std::shared_mutex> lock(chunk->chunkLock, std::defer_lock);
+		//lock.lock();
 		//if (lock.try_lock()) {
 			x = x * chunk->detailMultiplier / this->detailMultiplier;
 			z = z * chunk->detailMultiplier / this->detailMultiplier;
 			//y = y * chunk->detailMultiplier / this->detailMultiplier;
 			blockValue = chunk->cells[x][z][y];
 
-			lock.unlock();
+			//lock.unlock();
 		//}
 
 		return blockValue;

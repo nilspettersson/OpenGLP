@@ -128,10 +128,48 @@ void ChunkManager::generateChunks() {
 				if (this->chunks.find(key) != this->chunks.end()) {
 					auto chunk = this->chunks.at(key);
 					if (chunk->status == ChunkStatus::NONE) {
-						std::unique_lock<std::mutex> chunk_lock(chunk->chunkLock, std::defer_lock);
+						std::unique_lock<std::shared_mutex> chunk_lock(chunk->chunkLock, std::defer_lock);
 						if (chunk_lock.try_lock()) {
 							chunk->generateTerain();
 							chunk_lock.unlock();
+
+
+
+							std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
+							if (this->chunks.find(keyLeft) != this->chunks.end() && this->chunks.at(keyLeft)->status != ChunkStatus::NONE) {
+								std::unique_lock<std::shared_mutex> chunk_lock2(this->chunks.at(keyLeft)->chunkLock, std::defer_lock);
+								chunk_lock2.lock();
+								this->chunks.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
+								chunk_lock2.unlock();
+							}
+
+							std::string keyRight = std::to_string((int)x + 1) + "|" + std::to_string((int)y);
+							if (this->chunks.find(keyRight) != this->chunks.end() && this->chunks.at(keyRight)->status != ChunkStatus::NONE) {
+								std::unique_lock<std::shared_mutex> chunk_lock2(this->chunks.at(keyRight)->chunkLock, std::defer_lock);
+								chunk_lock2.lock();
+								this->chunks.at(keyRight)->status = ChunkStatus::TERAIN_GENERATED;
+								chunk_lock2.unlock();
+							}
+
+							std::string keyForward = std::to_string((int)x) + "|" + std::to_string((int)y + 1);
+							if (this->chunks.find(keyForward) != this->chunks.end() && this->chunks.at(keyForward)->status != ChunkStatus::NONE) {
+								std::unique_lock<std::shared_mutex> chunk_lock2(this->chunks.at(keyForward)->chunkLock, std::defer_lock);
+								chunk_lock2.lock();
+								this->chunks.at(keyForward)->status = ChunkStatus::TERAIN_GENERATED;
+								chunk_lock2.unlock();
+							}
+
+							std::string keyBackward = std::to_string((int)x) + "|" + std::to_string((int)y - 1);
+							if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->status != ChunkStatus::NONE) {
+								std::unique_lock<std::shared_mutex> chunk_lock2(this->chunks.at(keyBackward)->chunkLock, std::defer_lock);
+								chunk_lock2.lock();
+								this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
+								chunk_lock2.unlock();
+							}
+
+
+
+
 							break;
 						}
 					}
@@ -232,7 +270,7 @@ void ChunkManager::generateChunks() {
 				std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
 				if (this->chunks.find(key) != this->chunks.end()) {
 					auto currentChunk = this->chunks.at(key);
-					std::unique_lock<std::mutex> chunkLock(currentChunk->chunkLock, std::defer_lock);
+					std::unique_lock<std::shared_mutex> chunkLock(currentChunk->chunkLock, std::defer_lock);
 					if (chunkLock.try_lock()) {
 						if (currentChunk->status == ChunkStatus::TERAIN_GENERATED) {
 							currentChunk->generateDecorations();
@@ -255,21 +293,66 @@ void ChunkManager::CreateChunkMesh() {
 		std::shared_lock<std::shared_mutex> lock(this->chunksMutex);
 		for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
 			for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
-				float deltaX = (x + originX);
-				float deltaZ = (y + originZ);
-				float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
-				if (distance > chunkCount) continue;
+				bool done = false;
+				while (!done) {
+					done = true;
+					float deltaX = (x + originX);
+					float deltaZ = (y + originZ);
+					float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
+					if (distance > chunkCount) continue;
 
-				std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
-				if (this->chunks.find(key) == this->chunks.end()) continue;
+					std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
+					if (this->chunks.find(key) == this->chunks.end()) continue;
 
-				auto currentChunk = this->chunks.at(key);
-				std::unique_lock<std::mutex> lock2(currentChunk->chunkLock, std::defer_lock);
-				if (currentChunk->status == ChunkStatus::DECORATIONS_GENERATED) {
-					if (lock2.try_lock()) {
-						currentChunk->generateMesh();
-						lock2.unlock();
+					std::vector<ChunkGenerator*> relevantChunks = {};
+					for (int dx = -1; dx <= 1; dx++) {
+						for (int dy = -1; dy <= 1; dy++) {
+							int nx = x + dx;
+							int ny = y + dy;
+							std::string key = std::to_string(nx) + "|" + std::to_string(ny);
+							if (this->chunks.find(key) != this->chunks.end()) {
+								relevantChunks.push_back(this->chunks.at(key));
+							}
+						}
 					}
+
+					std::vector<std::unique_lock<std::shared_mutex>> locks;
+
+					bool allLocked = true;
+					for (auto chunk : relevantChunks) {
+						if (this->chunks.at(key)->status != ChunkStatus::DECORATIONS_GENERATED) {
+							allLocked = false;
+							break;
+						}
+						std::unique_lock<std::shared_mutex> chunkLock(chunk->chunkLock, std::defer_lock);
+						if (!chunkLock.try_lock()) {
+							done = false;
+							allLocked = false;
+							break;
+						}
+						locks.push_back(std::move(chunkLock));
+					}
+
+					if (allLocked) {
+						if (this->chunks.at(key)->status == ChunkStatus::DECORATIONS_GENERATED) {
+							this->chunks.at(key)->generateMesh();
+						}
+						locks.clear();
+					}
+					else {
+						locks.clear();
+						//std::this_thread::sleep_for(std::chrono::milliseconds(10));
+					}
+
+					/*auto currentChunk = this->chunks.at(key);
+					std::unique_lock<std::shared_mutex> lock2(currentChunk->chunkLock, std::defer_lock);
+					if (lock2.try_lock()) {
+						if (currentChunk->status == ChunkStatus::DECORATIONS_GENERATED) {
+							currentChunk->generateMesh();
+
+						}
+						lock2.unlock();
+					}*/
 				}
 				
 			}
@@ -285,7 +368,7 @@ void ChunkManager::CreateEntities() {
 	if (lock.try_lock()) {
 		for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
 			auto chunk = i->second;
-			std::unique_lock<std::mutex> chunkLock(chunk->chunkLock, std::defer_lock);
+			std::unique_lock<std::shared_mutex> chunkLock(chunk->chunkLock, std::defer_lock);
 			if (chunk->status == ChunkStatus::MESH_GENERATED) {
 				if (chunkLock.try_lock()) {
 				
