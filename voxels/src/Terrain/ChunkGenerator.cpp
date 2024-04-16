@@ -20,7 +20,6 @@ ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHe
 	this->overflowAfter = {};
 
 	this->status = ChunkStatus::NONE;
-	//this->generateTerain();
 }
 
 ChunkGenerator::~ChunkGenerator()
@@ -296,6 +295,7 @@ void createPlane(PlaneType planeType, std::vector<float>& vertices, std::vector<
 	}
 }
 
+using namespace std::chrono_literals;
 int ChunkGenerator::getBlockValue(int x, int y, int z) {
 	int oldX = x;
 	int oldY = y;
@@ -316,17 +316,24 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 	x = (int)glm::mod((float)x, width);
 	z = (int)glm::mod((float)z, width);
 
-	/*std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
+	std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
 	if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
+		int blockValue = 1;
 		auto chunk = this->chunksList.at(chunkKey);
-		if (chunk == nullptr) return 1;
-		//std::lock_guard<std::mutex> lock(chunk->chunkLock);
-		x = x * chunk->detailMultiplier / this->detailMultiplier;
-		z = z * chunk->detailMultiplier / this->detailMultiplier;
-		//y = y * chunk->detailMultiplier / this->detailMultiplier;
-		int blockValue = chunk->cells[x][z][y];
+		if (chunk == nullptr || (chunk->status != ChunkStatus::TERAIN_GENERATED && chunk->status != ChunkStatus::DECORATIONS_GENERATED)) return 1;
+		std::unique_lock<std::mutex> lock(chunk->chunkLock, std::defer_lock);
+		lock.lock();
+		//if (lock.try_lock()) {
+			x = x * chunk->detailMultiplier / this->detailMultiplier;
+			z = z * chunk->detailMultiplier / this->detailMultiplier;
+			//y = y * chunk->detailMultiplier / this->detailMultiplier;
+			blockValue = chunk->cells[x][z][y];
+
+			lock.unlock();
+		//}
+
 		return blockValue;
-	}*/
+	}
 
 	return 1;
 }
