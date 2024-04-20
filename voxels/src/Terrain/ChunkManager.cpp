@@ -111,16 +111,16 @@ void ChunkManager::generateChunks() {
 				float distance = deltaX * deltaX + deltaZ * deltaZ;
 				if (distance > chunkCount * chunkCount) continue;
 
-				if (distance > 46 * 46) {
+				if (distance > 20 * 20) {
 					detail /= 16;
 				}
-				else if (distance > 24 * 24) {
+				else if (distance > 12 * 12) {
 					detail /= 8;
 				}
-				else if (distance > 12 * 12) {
+				else if (distance > 8 * 8) {
 					detail /= 4;
 				}
-				else if (distance > 6 * 6) {
+				else if (distance > 4 * 4) {
 					detail /= 2;
 				}
 				//detail = 1;
@@ -255,7 +255,7 @@ void ChunkManager::CreateChunkMesh() {
 					float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
 					if (distance > chunkCount) continue;
 
-					std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
+					std::string key = std::to_string(x) + "|" + std::to_string(y);
 					if (this->chunks.find(key) == this->chunks.end()) continue;
 
 					std::vector<ChunkGenerator*> relevantChunks = {};

@@ -407,7 +407,7 @@ void ChunkGenerator::generateMesh() {
 
 					auto blockBefore = this->getBlockValue(x, y, z + 1);
 					if (blockBefore == BLOCK::Air || blockBefore == BLOCK::WATER) {
-						glm::vec4 light = { 1, 1, 1, 1 };
+						glm::vec4 light = { 0.6f, 0.6f, 0.6f, 0.6f };
 						if (blockBeforeDown != BLOCK::Air) {
 							light[0] -= AmbientOcclusionPerVoxel;
 							light[1] -= AmbientOcclusionPerVoxel;
@@ -422,7 +422,7 @@ void ChunkGenerator::generateMesh() {
 					}
 					auto blockAfter = this->getBlockValue(x, y, z - 1);
 					if (blockAfter == BLOCK::Air || blockAfter == BLOCK::WATER) {
-						glm::vec4 light = { 1, 1, 1, 1 };
+						glm::vec4 light = { 0.8f, 0.8f, 0.8f, 0.8f };
 						if (blockAfterDown != BLOCK::Air) {
 							light[0] -= AmbientOcclusionPerVoxel;
 							light[1] -= AmbientOcclusionPerVoxel;
@@ -438,7 +438,7 @@ void ChunkGenerator::generateMesh() {
 
 					auto blockRight = this->getBlockValue(x + 1, y, z);
 					if (blockRight == BLOCK::Air || blockRight == BLOCK::WATER) {
-						glm::vec4 light = { 1, 1, 1, 1 };
+						glm::vec4 light = { 0.8f, 0.8f, 0.8f, 0.8f };
 						if (blockRightDown != BLOCK::Air) {
 							light[0] -= AmbientOcclusionPerVoxel;
 							light[1] -= AmbientOcclusionPerVoxel;
@@ -453,7 +453,7 @@ void ChunkGenerator::generateMesh() {
 					}
 					auto blockLeft = this->getBlockValue(x - 1, y, z);
 					if (blockLeft == BLOCK::Air || blockLeft == BLOCK::WATER) {
-						glm::vec4 light = { 1, 1, 1, 1 };
+						glm::vec4 light = { 0.6f, 0.6f, 0.6f, 0.6f };
 						if (blockLeftDown != BLOCK::Air) {
 							light[0] -= AmbientOcclusionPerVoxel;
 							light[1] -= AmbientOcclusionPerVoxel;

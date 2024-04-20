@@ -4,15 +4,15 @@
 
 int main(void) {
 
-    auto window = glp::Window(1000, 800);
+    auto window = glp::Window(800, 800);
 	auto camera = glp::Camera3d(window);
 	camera.setZ(-3);
     camera.setY(-126);
 
 	auto renderer = glp::Renderer(camera);
 
-    int chunkSize = 64;
-    auto chunckManager = new ChunkManager(24, chunkSize, 256);
+    int chunkSize = 32;
+    auto chunckManager = new ChunkManager(28, chunkSize, 256);
 
     bool useCursorMovement = true;
 
