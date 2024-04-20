@@ -123,7 +123,7 @@ void ChunkManager::generateChunks() {
 				else if (distance > 4 * 4) {
 					detail /= 2;
 				}
-				//detail = 1;
+				detail = 1;
 
 				std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
 				bool chunkEmpty = false;

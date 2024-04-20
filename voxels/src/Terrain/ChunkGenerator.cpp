@@ -321,16 +321,10 @@ int ChunkGenerator::getBlockValue(int x, int y, int z) {
 		int blockValue = 1;
 		auto chunk = this->chunksList.at(chunkKey);
 		if (chunk == nullptr || chunk->status == ChunkStatus::NONE) return 1;
-		//std::shared_lock<std::shared_mutex> lock(chunk->chunkLock, std::defer_lock);
-		//lock.lock();
-		//if (lock.try_lock()) {
-			x = x * chunk->detailMultiplier / this->detailMultiplier;
-			z = z * chunk->detailMultiplier / this->detailMultiplier;
-			//y = y * chunk->detailMultiplier / this->detailMultiplier;
-			blockValue = chunk->cells[x][z][y];
-
-			//lock.unlock();
-		//}
+		x = x * chunk->detailMultiplier / this->detailMultiplier;
+		z = z * chunk->detailMultiplier / this->detailMultiplier;
+		//y = y * chunk->detailMultiplier / this->detailMultiplier;
+		blockValue = chunk->cells[x][z][y];
 
 		return blockValue;
 	}
