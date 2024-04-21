@@ -169,9 +169,6 @@ void ChunkManager::generateChunks() {
 								chunk_lock2.unlock();
 							}
 
-
-
-
 							break;
 						}
 					}

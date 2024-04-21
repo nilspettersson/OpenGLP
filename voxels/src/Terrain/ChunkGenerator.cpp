@@ -106,11 +106,18 @@ void ChunkGenerator::generateTerain() {
 	this->overflowRight.clear();
 	this->overflowBefore.clear();
 	this->overflowAfter.clear();
+
+	size_t dim1 = chunkWidth;
+	this->cells.reserve(dim1);
 	for (int x = 0; x < this->chunkWidth * detailMultiplier; x++) {
 		this->cells.push_back({});
+		size_t dim2 = chunkWidth;
+		this->cells[this->cells.size() - 1].reserve(dim2);
 		for (int z = 0; z < this->chunkWidth * detailMultiplier; z++) {
 			int terainHeight = this->GetTerainHeight((float)x, (float)z, noise);
 			this->cells[x].push_back({});
+			size_t dim3 = chunkWidth;
+			this->cells[x][this->cells[x].size() - 1].reserve(dim3);
 			for (int y = 0; y < this->maxHeight; y++) {
 				int block = BLOCK::Air;
 				if (y <= terainHeight) {
