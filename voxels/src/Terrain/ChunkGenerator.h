@@ -4,6 +4,7 @@
 #include "../textureAtlas/TextureAtlas.h"
 #include <mutex>
 #include <shared_mutex>
+#include <tuple>
 
 enum ChunkStatus { NONE, TERAIN_GENERATED, DECORATIONS_GENERATED, MESH_GENERATED, RENDERED };
 
@@ -19,7 +20,7 @@ struct Block {
 
 class ChunkGenerator {
 private:
-    std::vector<std::vector<std::vector<int>>> cells;
+    std::vector<int> cells;
     std::vector<glm::vec4> decorations;
     std::vector<glm::vec4> overflowLeft;
     std::vector<glm::vec4> overflowRight;
@@ -57,5 +58,17 @@ public:
     int getBlockValue(int x, int y, int z, std::unordered_map<int64_t, ChunkGenerator*> &closeChunks);
 
     Block GetBlock(BLOCK block);
+
+    int getIndex(int x, int z, int y) const {
+        return x * chunkWidth * maxHeight + z * maxHeight + y;
+    }
+
+    glm::ivec3 getXYZ(int index) {
+        int y = index % maxHeight;
+        int z = (index / maxHeight) % chunkWidth;
+        int x = index / (chunkWidth * maxHeight);
+        return { x, y, z };
+    }
+
 
 };
