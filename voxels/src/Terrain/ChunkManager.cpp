@@ -33,12 +33,11 @@ ChunkManager::~ChunkManager() {
 
 }
 void ChunkManager::updateChunks(int originX, int originZ) {
-	std::cout << "updateChunks " << this->chunks.size() << std::endl;
+	//std::cout << "updateChunks " << this->chunks.size() << std::endl;
 	this->originX = originX;
 	this->originZ = originZ;
 
-
-
+	//std::cout << "key " << getKey(2, 1) << std::endl;
 	for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
 		for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
 			float deltaX = (x + originX);
@@ -47,7 +46,7 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 			float distance = deltaX * deltaX + deltaZ * deltaZ;
 			if (distance > chunkCount * chunkCount) continue;
 
-			std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
+			int64_t key = getKey(x, y);
 			std::unique_lock<std::shared_mutex> lock(chunksMutex, std::defer_lock);
 			if (this->chunks.find(key) == this->chunks.end()) {
 			if (lock.try_lock()) {
@@ -88,7 +87,7 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 		if (lock2.try_lock()) {
 			for (auto chunk : chunksToBeRemoved) {
 				//std::lock_guard<std::mutex> lock(chunk->chunkLock);
-				std::string key = std::to_string((int)chunk->chunkX) + "|" + std::to_string((int)chunk->chunkZ);
+				auto key = getKey(chunk->chunkX, chunk->chunkZ);
 				delete chunk;
 				this->chunks.at(key) = nullptr;
 				this->chunks.erase(key);
@@ -125,7 +124,7 @@ void ChunkManager::generateChunks() {
 				}
 				detail = 1;
 
-				std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
+				auto key = getKey(x, y);
 				bool chunkEmpty = false;
 				std::shared_lock<std::shared_mutex> shared_lock(chunksMutex);
 				if (this->chunks.find(key) != this->chunks.end()) {
@@ -138,7 +137,7 @@ void ChunkManager::generateChunks() {
 							chunk_lock.unlock();
 
 
-							std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
+							auto keyLeft = getKey(x - 1, y);
 							if (this->chunks.find(keyLeft) != this->chunks.end() && this->chunks.at(keyLeft)->status != ChunkStatus::NONE) {
 								std::unique_lock<std::shared_mutex> chunk_lock2(this->chunks.at(keyLeft)->chunkLock, std::defer_lock);
 								chunk_lock2.lock();
@@ -146,7 +145,7 @@ void ChunkManager::generateChunks() {
 								chunk_lock2.unlock();
 							}
 
-							std::string keyRight = std::to_string((int)x + 1) + "|" + std::to_string((int)y);
+							auto keyRight = getKey(x + 1, y);
 							if (this->chunks.find(keyRight) != this->chunks.end() && this->chunks.at(keyRight)->status != ChunkStatus::NONE) {
 								std::unique_lock<std::shared_mutex> chunk_lock2(this->chunks.at(keyRight)->chunkLock, std::defer_lock);
 								chunk_lock2.lock();
@@ -154,7 +153,7 @@ void ChunkManager::generateChunks() {
 								chunk_lock2.unlock();
 							}
 
-							std::string keyForward = std::to_string((int)x) + "|" + std::to_string((int)y + 1);
+							auto keyForward = getKey(x, y + 1);
 							if (this->chunks.find(keyForward) != this->chunks.end() && this->chunks.at(keyForward)->status != ChunkStatus::NONE) {
 								std::unique_lock<std::shared_mutex> chunk_lock2(this->chunks.at(keyForward)->chunkLock, std::defer_lock);
 								chunk_lock2.lock();
@@ -162,7 +161,7 @@ void ChunkManager::generateChunks() {
 								chunk_lock2.unlock();
 							}
 
-							std::string keyBackward = std::to_string((int)x) + "|" + std::to_string((int)y - 1);
+							auto keyBackward = getKey(x, y - 1);
 							if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->status != ChunkStatus::NONE) {
 								std::unique_lock<std::shared_mutex> chunk_lock2(this->chunks.at(keyBackward)->chunkLock, std::defer_lock);
 								chunk_lock2.lock();
@@ -221,7 +220,7 @@ void ChunkManager::generateChunks() {
 				float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
 				if (distance > chunkCount) continue;
 
-				std::string key = std::to_string((int)x) + "|" + std::to_string((int)y);
+				auto key = getKey(x, y);
 				if (this->chunks.find(key) != this->chunks.end()) {
 					auto currentChunk = this->chunks.at(key);
 					std::unique_lock<std::shared_mutex> chunkLock(currentChunk->chunkLock, std::defer_lock);
@@ -255,7 +254,7 @@ void ChunkManager::CreateChunkMesh() {
 					float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
 					if (distance > chunkCount) continue;
 
-					std::string key = std::to_string(x) + "|" + std::to_string(y);
+					auto key = getKey(x, y);
 					if (this->chunks.find(key) == this->chunks.end()) continue;
 
 					std::vector<ChunkGenerator*> relevantChunks = {};
@@ -263,7 +262,7 @@ void ChunkManager::CreateChunkMesh() {
 						for (int dy = -1; dy <= 1; dy++) {
 							int nx = x + dx;
 							int ny = y + dy;
-							std::string key = std::to_string(nx) + "|" + std::to_string(ny);
+							auto key = getKey(nx, ny);
 							if (this->chunks.find(key) != this->chunks.end()) {
 								relevantChunks.push_back(this->chunks.at(key));
 							}
@@ -297,15 +296,6 @@ void ChunkManager::CreateChunkMesh() {
 						locks.clear();
 						//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 					}
-
-					/*auto currentChunk = this->chunks.at(key);
-					std::unique_lock<std::shared_mutex> lock2(currentChunk->chunkLock, std::defer_lock);
-					if (lock2.try_lock()) {
-						if (currentChunk->status == ChunkStatus::DECORATIONS_GENERATED) {
-							currentChunk->generateMesh();
-						}
-						lock2.unlock();
-					}*/
 				}
 				
 			}

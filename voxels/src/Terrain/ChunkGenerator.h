@@ -29,7 +29,7 @@ private:
 
     int GetTerainHeight(float x, float z, FastNoiseLite noise);
 public:
-    ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator*>& chunksList, std::shared_mutex& chunkListLock);
+    ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<int64_t, ChunkGenerator*>& chunksList, std::shared_mutex& chunkListLock);
     ~ChunkGenerator();
 
     std::shared_mutex chunkLock;
@@ -45,7 +45,7 @@ public:
 
     glp::Entity *chunkEntity;
 
-    std::unordered_map<std::string, ChunkGenerator*>& chunksList;
+    std::unordered_map<int64_t, ChunkGenerator*>& chunksList;
 
     void generateTerain();
 
@@ -54,7 +54,7 @@ public:
 
     void generateMesh();
 
-    int getBlockValue(int x, int y, int z);
+    int getBlockValue(int x, int y, int z, std::unordered_map<int64_t, ChunkGenerator*> &closeChunks);
 
     Block GetBlock(BLOCK block);
 

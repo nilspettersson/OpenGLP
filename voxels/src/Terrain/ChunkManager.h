@@ -21,7 +21,7 @@ public:
     ~ChunkManager();
     int originX;
     int originZ;
-    std::unordered_map<std::string, ChunkGenerator*> chunks;
+    std::unordered_map<int64_t, ChunkGenerator*> chunks;
     
     mutable std::shared_mutex chunksMutex;
 
@@ -33,5 +33,9 @@ public:
     void CreateEntities();
 
     void CreateChunkMesh();
+
+    static int64_t getKey(int32_t x, int32_t z) {
+        return (static_cast<std::uint64_t>(x) << 32) | (static_cast<std::uint64_t>(z) & 0xFFFFFFFF);
+    }
 
 };
