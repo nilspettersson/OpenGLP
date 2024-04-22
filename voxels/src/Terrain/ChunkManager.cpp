@@ -243,9 +243,6 @@ void ChunkManager::CreateChunkMesh() {
 		std::shared_lock<std::shared_mutex> lock(this->chunksMutex);
 		for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
 			for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
-				bool done = false;
-				while (!done) {
-					done = true;
 					float deltaX = (x + originX);
 					float deltaZ = (y + originZ);
 					float distance = glm::sqrt(deltaX * deltaX + deltaZ * deltaZ);
@@ -255,6 +252,7 @@ void ChunkManager::CreateChunkMesh() {
 					if (this->chunks.find(key) == this->chunks.end()) continue;
 
 					std::vector<ChunkGenerator*> relevantChunks = {};
+					bool allChunksFound = true;
 					for (int dx = -1; dx <= 1; dx++) {
 						for (int dy = -1; dy <= 1; dy++) {
 							int nx = x + dx;
@@ -263,20 +261,26 @@ void ChunkManager::CreateChunkMesh() {
 							if (this->chunks.find(key) != this->chunks.end()) {
 								relevantChunks.push_back(this->chunks.at(key));
 							}
+							else {
+								allChunksFound = false;
+								break;
+							}
 						}
+					}
+					if (!allChunksFound) {
+						continue;
 					}
 
 					std::vector<std::unique_lock<std::shared_mutex>> locks;
 
 					bool allLocked = true;
 					for (auto chunk : relevantChunks) {
-						if (this->chunks.at(key)->status != ChunkStatus::DECORATIONS_GENERATED) {
+						if (chunk->status == ChunkStatus::NONE || chunk->status == ChunkStatus::TERAIN_GENERATED) {
 							allLocked = false;
 							break;
 						}
 						std::unique_lock<std::shared_mutex> chunkLock(chunk->chunkLock, std::defer_lock);
 						if (!chunkLock.try_lock()) {
-							//done = false;
 							allLocked = false;
 							break;
 						}
@@ -293,12 +297,10 @@ void ChunkManager::CreateChunkMesh() {
 						locks.clear();
 						//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 					}
-				}
-				
 			}
 		}
 		lock.unlock();
-		std::this_thread::sleep_for(60ms);
+		std::this_thread::sleep_for(40ms);
 	}
 }
 
