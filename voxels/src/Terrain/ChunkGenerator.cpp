@@ -297,31 +297,22 @@ void createPlane(PlaneType planeType, std::vector<float>& vertices, std::vector<
 
 using namespace std::chrono_literals;
 int ChunkGenerator::getBlockValue(int x, int y, int z, std::unordered_map<int64_t, ChunkGenerator*> &closeChunks) {
-	int oldX = x;
-	int oldY = y;
-	int oldZ = z;
 	float width = this->chunkWidth * this->detailMultiplier;
-	float height = this->maxHeight;
-
-	if (y < 0 || y > height - 1) {
+	if (y < 0 || y > this->maxHeight - 1) {
 		return 1;
 	}
-	if (x >= 0 && x <= width - 1 && z >= 0 && z <= width - 1) {
-		auto index = this->getIndex(x, z, y);
-		auto number = this->cells[this->getIndex(x, z, y)];
+	else if (x >= 0 && x <= width - 1 && z >= 0 && z <= width - 1) {
 		return this->cells[this->getIndex(x, z, y)];
 	}
 
 	int chunkX = this->chunkX + glm::floor((float)x / width);
 	int chunkZ = this->chunkZ + glm::floor((float)z / width);
-	x = (int)glm::mod((float)x, width);
-	z = (int)glm::mod((float)z, width);
-
 	auto chunkKey = ChunkManager::getKey(chunkX, chunkZ);
 	if (closeChunks.find(chunkKey) != closeChunks.end()) {
 		int blockValue = 1;
 		auto chunk = closeChunks.at(chunkKey);
-		if (chunk == nullptr || chunk->status == ChunkStatus::NONE) return 1;
+		x = (int)glm::mod((float)x, width);
+		z = (int)glm::mod((float)z, width);
 		x = x * chunk->detailMultiplier / this->detailMultiplier;
 		z = z * chunk->detailMultiplier / this->detailMultiplier;
 		blockValue = chunk->cells[this->getIndex(x, z, y)];
@@ -376,19 +367,19 @@ void ChunkGenerator::generateMesh() {
 	float AmbientOcclusionPerVoxel = 0.2;
 	for (int i = 0; i < this->cells.size(); i++) {
 		int block = this->cells[i];
-
-		auto position = this->getXYZ(i);
-		auto x = position.x;
-		auto y = position.y;
-		auto z = position.z;
-
-		float positionX = x * size + positionOffset;
-		float positionZ = z * size + positionOffset;
-		float positionY = y;
-		if (this->detailMultiplier != 1) {
-			positionY -= size;
-		}
 		if (block != BLOCK::Air) {
+			auto position = this->getXYZ(i);
+			auto x = position.x;
+			auto y = position.y;
+			auto z = position.z;
+
+			float positionX = x * size + positionOffset;
+			float positionZ = z * size + positionOffset;
+			float positionY = y;
+			if (this->detailMultiplier != 1) {
+				positionY -= size;
+			}
+
 			Block coordinates = GetBlock((BLOCK)block);
 			if (block == BLOCK::WATER) {
 				if (this->getBlockValue(x, y + 1, z, nearChunks) != BLOCK::Air) continue;
@@ -396,29 +387,29 @@ void ChunkGenerator::generateMesh() {
 				continue;
 			}
 
-			auto blockBeforeUp = this->getBlockValue(x, y + 1, z + 1, nearChunks);
-			auto blockAfterUp = this->getBlockValue(x, y + 1, z - 1, nearChunks);
-			auto blockLeftUp = this->getBlockValue(x - 1, y + 1, z, nearChunks);
-			auto blockRightUp = this->getBlockValue(x + 1, y + 1, z, nearChunks);
-
-			auto blockAfterLeftUp = this->getBlockValue(x - 1, y + 1, z - 1, nearChunks);
-			auto blockAfterRightUp = this->getBlockValue(x + 1, y + 1, z - 1, nearChunks);
-			auto blockBeforeLeftUp = this->getBlockValue(x - 1, y + 1, z + 1, nearChunks);
-			auto blockBeforeRightUp = this->getBlockValue(x + 1, y + 1, z + 1, nearChunks);
-
-			auto blockBeforeDown = this->getBlockValue(x, y - 1, z + 1, nearChunks);
-			auto blockAfterDown = this->getBlockValue(x, y - 1, z - 1, nearChunks);
-			auto blockBeforeLeft = this->getBlockValue(x - 1, y, z + 1, nearChunks);
 			auto blockAfterLeft = this->getBlockValue(x - 1, y, z - 1, nearChunks);
-			auto blockBeforeRight = this->getBlockValue(x + 1, y, z + 1, nearChunks);
 			auto blockAfterRight = this->getBlockValue(x + 1, y, z - 1, nearChunks);
 
-			auto blockRightDown = this->getBlockValue(x + 1, y - 1, z, nearChunks);
-			auto blockLeftDown = this->getBlockValue(x - 1, y - 1, z, nearChunks);
-
+			auto blockBeforeLeft = 1;
+			auto blockBeforeRight = 1;
 
 			auto blockBefore = this->getBlockValue(x, y, z + 1, nearChunks);
+			auto blockAfter = this->getBlockValue(x, y, z - 1, nearChunks);
+			auto blockRight = this->getBlockValue(x + 1, y, z, nearChunks);
+			auto blockLeft = this->getBlockValue(x - 1, y, z, nearChunks);
+			auto blockUp = this->getBlockValue(x, y + 1, z, nearChunks);
+			auto blockDown = this->getBlockValue(x, y - 1, z, nearChunks);
+
+			if (blockBefore == BLOCK::Air || blockBefore == BLOCK::WATER || blockLeft == BLOCK::Air || blockLeft == BLOCK::WATER) {
+				blockBeforeLeft = this->getBlockValue(x - 1, y, z + 1, nearChunks);
+			}
+			if (blockBefore == BLOCK::Air || blockBefore == BLOCK::WATER || blockRight == BLOCK::Air || blockRight == BLOCK::WATER) {
+				blockBeforeRight = this->getBlockValue(x + 1, y, z + 1, nearChunks);
+			}
+
 			if (blockBefore == BLOCK::Air || blockBefore == BLOCK::WATER) {
+				auto blockBeforeDown = this->getBlockValue(x, y - 1, z + 1, nearChunks);
+
 				glm::vec4 light = { 0.6f, 0.6f, 0.6f, 0.6f };
 				if (blockBeforeDown != BLOCK::Air) {
 					light[0] -= AmbientOcclusionPerVoxel;
@@ -432,8 +423,10 @@ void ChunkGenerator::generateMesh() {
 				}
 				createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ + offset, size, coordinates.side, light);
 			}
-			auto blockAfter = this->getBlockValue(x, y, z - 1, nearChunks);
+			
 			if (blockAfter == BLOCK::Air || blockAfter == BLOCK::WATER) {
+				auto blockAfterDown = this->getBlockValue(x, y - 1, z - 1, nearChunks);
+
 				glm::vec4 light = { 0.8f, 0.8f, 0.8f, 0.8f };
 				if (blockAfterDown != BLOCK::Air) {
 					light[0] -= AmbientOcclusionPerVoxel;
@@ -448,8 +441,10 @@ void ChunkGenerator::generateMesh() {
 				createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ - offset, size, coordinates.side, light);
 			}
 
-			auto blockRight = this->getBlockValue(x + 1, y, z, nearChunks);
+			
 			if (blockRight == BLOCK::Air || blockRight == BLOCK::WATER) {
+				auto blockRightDown = this->getBlockValue(x + 1, y - 1, z, nearChunks);
+
 				glm::vec4 light = { 0.8f, 0.8f, 0.8f, 0.8f };
 				if (blockRightDown != BLOCK::Air) {
 					light[0] -= AmbientOcclusionPerVoxel;
@@ -463,8 +458,10 @@ void ChunkGenerator::generateMesh() {
 				}
 				createPlane(PlaneType::VERTICALZ, vertices, indices, positionX + offset, positionY, positionZ, size, coordinates.side, light);
 			}
-			auto blockLeft = this->getBlockValue(x - 1, y, z, nearChunks);
+			
 			if (blockLeft == BLOCK::Air || blockLeft == BLOCK::WATER) {
+				auto blockLeftDown = this->getBlockValue(x - 1, y - 1, z, nearChunks);
+
 				glm::vec4 light = { 0.6f, 0.6f, 0.6f, 0.6f };
 				if (blockLeftDown != BLOCK::Air) {
 					light[0] -= AmbientOcclusionPerVoxel;
@@ -479,8 +476,18 @@ void ChunkGenerator::generateMesh() {
 				createPlane(PlaneType::VERTICALZ, vertices, indices, positionX - offset, positionY, positionZ, size, coordinates.side, light);
 			}
 
-			auto blockUp = this->getBlockValue(x, y + 1, z, nearChunks);
+			
 			if (blockUp == BLOCK::Air || blockUp == BLOCK::WATER) {
+				auto blockBeforeUp = this->getBlockValue(x, y + 1, z + 1, nearChunks);
+				auto blockAfterUp = this->getBlockValue(x, y + 1, z - 1, nearChunks);
+				auto blockLeftUp = this->getBlockValue(x - 1, y + 1, z, nearChunks);
+				auto blockRightUp = this->getBlockValue(x + 1, y + 1, z, nearChunks);
+
+				auto blockAfterLeftUp = this->getBlockValue(x - 1, y + 1, z - 1, nearChunks);
+				auto blockAfterRightUp = this->getBlockValue(x + 1, y + 1, z - 1, nearChunks);
+				auto blockBeforeLeftUp = this->getBlockValue(x - 1, y + 1, z + 1, nearChunks);
+				auto blockBeforeRightUp = this->getBlockValue(x + 1, y + 1, z + 1, nearChunks);
+
 				glm::vec4 light = { 1, 1, 1, 1 };
 				if (blockAfterUp != BLOCK::Air) {
 					light[0] -= AmbientOcclusionPerVoxel;
@@ -516,7 +523,7 @@ void ChunkGenerator::generateMesh() {
 
 				createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + 0.5, positionZ, size, coordinates.top, light); // front-left front-right back.right back-left
 			}
-			auto blockDown = this->getBlockValue(x, y - 1, z, nearChunks);
+			
 			if (blockDown == BLOCK::Air || blockDown == BLOCK::WATER) {
 				createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + 0.5, positionZ, size, coordinates.bottom, { 0.6, 0.6, 0.6, 0.6 });
 			}
