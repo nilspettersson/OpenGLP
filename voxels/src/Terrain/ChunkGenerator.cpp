@@ -304,21 +304,19 @@ int ChunkGenerator::getBlockValue(int x, int y, int z, std::unordered_map<int64_
 	else if (x >= 0 && x <= width - 1 && z >= 0 && z <= width - 1) {
 		return this->cells[this->getIndex(x, z, y)];
 	}
+	else if ((x < 0 || x > width - 1) && (z < 0 || z > width - 1)) return 1;
 
 	int chunkX = this->chunkX + glm::floor((float)x / width);
 	int chunkZ = this->chunkZ + glm::floor((float)z / width);
 	auto chunkKey = ChunkManager::getKey(chunkX, chunkZ);
-	if (closeChunks.find(chunkKey) != closeChunks.end()) {
-		int blockValue = 1;
-		auto chunk = closeChunks.at(chunkKey);
-		x = (int)glm::mod((float)x, width);
-		z = (int)glm::mod((float)z, width);
-		x = x * chunk->detailMultiplier / this->detailMultiplier;
-		z = z * chunk->detailMultiplier / this->detailMultiplier;
-		blockValue = chunk->cells[this->getIndex(x, z, y)];
-		return blockValue;
-	}
-	return 1;
+	int blockValue = 1;
+	auto chunk = closeChunks.at(chunkKey);
+	x = (int)glm::mod((float)x, width);
+	z = (int)glm::mod((float)z, width);
+	x = x * chunk->detailMultiplier / this->detailMultiplier;
+	z = z * chunk->detailMultiplier / this->detailMultiplier;
+	blockValue = chunk->cells[this->getIndex(x, z, y)];
+	return blockValue;
 }
 
 void ChunkGenerator::generateMesh() {
@@ -387,12 +385,6 @@ void ChunkGenerator::generateMesh() {
 				continue;
 			}
 
-			auto blockAfterLeft = this->getBlockValue(x - 1, y, z - 1, nearChunks);
-			auto blockAfterRight = this->getBlockValue(x + 1, y, z - 1, nearChunks);
-
-			auto blockBeforeLeft = 1;
-			auto blockBeforeRight = 1;
-
 			auto blockBefore = this->getBlockValue(x, y, z + 1, nearChunks);
 			auto blockAfter = this->getBlockValue(x, y, z - 1, nearChunks);
 			auto blockRight = this->getBlockValue(x + 1, y, z, nearChunks);
@@ -400,6 +392,17 @@ void ChunkGenerator::generateMesh() {
 			auto blockUp = this->getBlockValue(x, y + 1, z, nearChunks);
 			auto blockDown = this->getBlockValue(x, y - 1, z, nearChunks);
 
+			auto blockAfterLeft = 1;
+			auto blockAfterRight = 1;
+			if (blockAfter == BLOCK::Air || blockAfter == BLOCK::WATER || blockLeft == BLOCK::Air || blockLeft == BLOCK::WATER) {
+				blockAfterLeft = this->getBlockValue(x - 1, y, z - 1, nearChunks);
+			}
+			if (blockAfter == BLOCK::Air || blockAfter == BLOCK::WATER || blockRight == BLOCK::Air || blockRight == BLOCK::WATER) {
+				blockAfterRight = this->getBlockValue(x + 1, y, z - 1, nearChunks);
+			}
+
+			auto blockBeforeLeft = 1;
+			auto blockBeforeRight = 1;
 			if (blockBefore == BLOCK::Air || blockBefore == BLOCK::WATER || blockLeft == BLOCK::Air || blockLeft == BLOCK::WATER) {
 				blockBeforeLeft = this->getBlockValue(x - 1, y, z + 1, nearChunks);
 			}
