@@ -119,7 +119,7 @@ void ChunkManager::generateChunks() {
 			else if (distance > 4 * 4) {
 				detail /= 2;
 			}
-			//detail = 1;
+			detail = 1;
 
 			auto key = getKey(x, y);
 			bool chunkEmpty = false;
