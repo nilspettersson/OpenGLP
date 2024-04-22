@@ -26,24 +26,18 @@ int main(void) {
         chunckManager->originX = (camera.getX()) / (chunkSize);
         chunckManager->originZ = (camera.getZ()) / (chunkSize);
 
-        //std::shared_lock<std::shared_mutex> chunkListLock(chunckManager->chunksMutex);
         for (auto i = chunckManager->chunks.begin(); i != chunckManager->chunks.end(); i++) {
-            auto chunk = i->second;
-            //std::lock_guard<std::mutex> lock(chunk->chunkLock);
+            const auto &chunk = i->second;
             if (chunk->chunkEntity == nullptr) continue;
             renderer.render(*chunk->chunkEntity);
         }
-        //chunkListLock.unlock();
 
         if (window.getInput().isKeyDown(GLP_KEY_DELETE)) {
             std::unique_lock<std::shared_mutex> lock(chunckManager->chunksMutex);
             for (auto i = chunckManager->chunks.begin(); i != chunckManager->chunks.end(); i++) {
-                //std::unique_lock<std::mutex> lock2(it->second->chunkLock);
                 if (i->second != nullptr) {
                     delete i->second;
                 }
-                
-                //lock2.unlock();
             }
             chunckManager->chunks.clear();
             lock.unlock();

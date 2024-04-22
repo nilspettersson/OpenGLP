@@ -20,7 +20,7 @@ struct Block {
 
 class ChunkGenerator {
 private:
-    std::vector<int> cells;
+    std::vector<int16_t> cells;
     std::vector<glm::vec4> decorations;
     std::vector<glm::vec4> overflowLeft;
     std::vector<glm::vec4> overflowRight;

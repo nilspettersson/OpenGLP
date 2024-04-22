@@ -9,7 +9,7 @@ ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHe
 	this->maxHeight = maxHeight;
 	this->chunkX = chunkX;
 	this->chunkZ = chunkZ;
-	this->cells = std::vector<int>();
+	this->cells = {};
 	this->detailMultiplier = detailMultiplier;
 	this->mesh = nullptr;
 	this->chunkEntity = NULL;
@@ -691,47 +691,47 @@ void ChunkGenerator::generateMesh() {
 Block ChunkGenerator::GetBlock(BLOCK block) {
 	
 	switch (block) {
-	case GRASS:
-		Block block;
-		block.top = this->textureAtlas.getTextureCoordinates(0, 0);
-		block.side = this->textureAtlas.getTextureCoordinates(1, 0);
-		block.bottom = this->textureAtlas.getTextureCoordinates(0, 1);
-		return block;
-	case DIRT:
-		block;
-		block.top = this->textureAtlas.getTextureCoordinates(0, 1);
-		block.side = this->textureAtlas.getTextureCoordinates(0, 1);
-		block.bottom = this->textureAtlas.getTextureCoordinates(0, 1);
-		return block;
-	case SAND:
-		block;
-		block.top = this->textureAtlas.getTextureCoordinates(3, 0);
-		block.side = this->textureAtlas.getTextureCoordinates(3, 0);
-		block.bottom = this->textureAtlas.getTextureCoordinates(3, 0);
-		return block;
-	case WATER:
-		block;
-		block.top = this->textureAtlas.getTextureCoordinates(1, 2);
-		block.side = this->textureAtlas.getTextureCoordinates(1, 2);
-		block.bottom = this->textureAtlas.getTextureCoordinates(1, 2);
-		return block;
-	case WOOD:
-		block;
-		block.top = this->textureAtlas.getTextureCoordinates(1, 1);
-		block.side = this->textureAtlas.getTextureCoordinates(1, 1);
-		block.bottom = this->textureAtlas.getTextureCoordinates(1, 1);
-		return block;
-	case Leaf:
-		block;
-		block.top = this->textureAtlas.getTextureCoordinates(2, 1);
-		block.side = this->textureAtlas.getTextureCoordinates(2, 1);
-		block.bottom = this->textureAtlas.getTextureCoordinates(2, 1);
-		return block;
-	default:
-		block;
-		block.top = this->textureAtlas.getTextureCoordinates(0, 0);
-		block.side = this->textureAtlas.getTextureCoordinates(0, 0);
-		block.bottom = this->textureAtlas.getTextureCoordinates(0, 0);
-		return block;
+		case GRASS:
+			Block block;
+			block.top = this->textureAtlas.getTextureCoordinates(0, 0);
+			block.side = this->textureAtlas.getTextureCoordinates(1, 0);
+			block.bottom = this->textureAtlas.getTextureCoordinates(0, 1);
+			return block;
+		case DIRT:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(0, 1);
+			block.side = this->textureAtlas.getTextureCoordinates(0, 1);
+			block.bottom = this->textureAtlas.getTextureCoordinates(0, 1);
+			return block;
+		case SAND:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(3, 0);
+			block.side = this->textureAtlas.getTextureCoordinates(3, 0);
+			block.bottom = this->textureAtlas.getTextureCoordinates(3, 0);
+			return block;
+		case WATER:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(1, 2);
+			block.side = this->textureAtlas.getTextureCoordinates(1, 2);
+			block.bottom = this->textureAtlas.getTextureCoordinates(1, 2);
+			return block;
+		case WOOD:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(1, 1);
+			block.side = this->textureAtlas.getTextureCoordinates(1, 1);
+			block.bottom = this->textureAtlas.getTextureCoordinates(1, 1);
+			return block;
+		case Leaf:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(2, 1);
+			block.side = this->textureAtlas.getTextureCoordinates(2, 1);
+			block.bottom = this->textureAtlas.getTextureCoordinates(2, 1);
+			return block;
+		default:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(0, 0);
+			block.side = this->textureAtlas.getTextureCoordinates(0, 0);
+			block.bottom = this->textureAtlas.getTextureCoordinates(0, 0);
+			return block;
 	}
 }
