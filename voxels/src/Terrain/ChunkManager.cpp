@@ -37,7 +37,9 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 	this->originX = originX;
 	this->originZ = originZ;
 
+	int limit = 12;
 	for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
+		if (limit <= 0) break;
 		for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
 			float deltaX = (x + originX);
 			float deltaZ = (y + originZ);
@@ -51,7 +53,8 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 				if (lock.try_lock()) {
 					this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, detail, this->textureAtlas, this->chunks, this->chunksMutex));
 					lock.unlock();
-					break;
+					limit--;
+					if (limit <= 0) break;
 				}
 			}
 		}
@@ -292,18 +295,18 @@ void ChunkManager::CreateChunkMesh() {
 						if (this->chunks.at(key)->status == ChunkStatus::DECORATIONS_GENERATED) {
 							this->chunks.at(key)->generateMesh();
 							locks.clear();
-							break;
+							//break;
 						}
 						locks.clear();
 					}
 					else {
 						locks.clear();
-						break;
+						//break;
 					}
 			}
 		}
 		lock.unlock();
-		std::this_thread::sleep_for(60ms);
+		std::this_thread::sleep_for(6ms);
 	}
 }
 
