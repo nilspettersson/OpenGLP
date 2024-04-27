@@ -134,7 +134,7 @@ void ChunkManager::generateChunks() {
 						chunk_lock.unlock();
 
 
-						auto keyLeft = getKey(x - 1, y);
+						/*auto keyLeft = getKey(x - 1, y);
 						if (this->chunks.find(keyLeft) != this->chunks.end() && this->chunks.at(keyLeft)->status != ChunkStatus::NONE) {
 							std::unique_lock<std::shared_mutex> chunk_lock2(this->chunks.at(keyLeft)->chunkLock, std::defer_lock);
 							chunk_lock2.lock();
@@ -164,38 +164,44 @@ void ChunkManager::generateChunks() {
 							chunk_lock2.lock();
 							this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
 							chunk_lock2.unlock();
-						}
+						}*/
 
 						break;
 					}
 				}
-				else if (chunk->status != ChunkStatus::NONE) {
-					std::lock_guard<std::shared_mutex> chunkLock(this->chunks.at(key)->chunkLock);
+				else {
+					//std::lock_guard<std::shared_mutex> chunkLock(this->chunks.at(key)->chunkLock);
 					if (this->chunks.at(key)->detailMultiplier != detail) {
 						//replace chunk with different detail level
+						std::unique_lock<std::shared_mutex> chunkLock(this->chunks.at(key)->chunkLock);
 						this->chunks.at(key)->status = ChunkStatus::NONE;
 						this->chunks.at(key)->detailMultiplier = detail;
 						this->chunks.at(key)->generateTerain();
+						chunkLock.unlock();
 
-						/*std::string keyLeft = std::to_string((int)x - 1) + "|" + std::to_string((int)y);
+						auto keyLeft = getKey(x - 1, y);
 						if (this->chunks.find(keyLeft) != this->chunks.end() && this->chunks.at(keyLeft)->detailMultiplier == detail) {
+							std::lock_guard<std::shared_mutex> chunk_lock2(this->chunks.at(keyLeft)->chunkLock);
 							this->chunks.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
 						}
 
-						std::string keyRight = std::to_string((int)x + 1) + "|" + std::to_string((int)y);
+						auto keyRight = getKey(x + 1, y);
 						if (this->chunks.find(keyRight) != this->chunks.end() && this->chunks.at(keyRight)->detailMultiplier == detail) {
+							std::lock_guard<std::shared_mutex> chunk_lock2(this->chunks.at(keyRight)->chunkLock);
 							this->chunks.at(keyRight)->status = ChunkStatus::TERAIN_GENERATED;
 						}
 
-						std::string keyForward = std::to_string((int)x) + "|" + std::to_string((int)y + 1);
+						auto keyForward = getKey(x, y + 1);
 						if (this->chunks.find(keyForward) != this->chunks.end() && this->chunks.at(keyForward)->detailMultiplier == detail) {
+							std::lock_guard<std::shared_mutex> chunk_lock2(this->chunks.at(keyForward)->chunkLock);
 							this->chunks.at(keyForward)->status = ChunkStatus::TERAIN_GENERATED;
 						}
 
-						std::string keyBackward = std::to_string((int)x) + "|" + std::to_string((int)y - 1);
+						auto keyBackward = getKey(x, y - 1);
 						if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->detailMultiplier == detail) {
+							std::lock_guard<std::shared_mutex> chunk_lock2(this->chunks.at(keyBackward)->chunkLock);
 							this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
-						}*/
+						}
 					}
 				}
 			}

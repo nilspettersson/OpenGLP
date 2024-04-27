@@ -694,7 +694,7 @@ Block ChunkGenerator::GetBlock(BLOCK block) {
 		case GRASS:
 			Block block;
 			block.top = this->textureAtlas.getTextureCoordinates(0, 0);
-			block.side = this->textureAtlas.getTextureCoordinates(1, 0);
+			block.side = this->textureAtlas.getTextureCoordinates(0, 0);
 			block.bottom = this->textureAtlas.getTextureCoordinates(0, 1);
 			return block;
 		case DIRT:
