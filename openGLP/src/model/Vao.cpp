@@ -82,7 +82,7 @@ glp::Vao::Vao(Mesh& mesh, bool dynamic) {
 
 glp::Vao::~Vao()
 {
-	std::cout << "vao destructor" << std::endl;
+	//std::cout << "vao destructor" << std::endl;
 	// Release the buffer objects
 	glDeleteBuffers(1, &vaoArrayId);
 	glDeleteBuffers(1, &vaoElementId);

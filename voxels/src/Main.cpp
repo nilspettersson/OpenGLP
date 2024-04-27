@@ -4,15 +4,15 @@
 
 int main(void) {
 
-    auto window = glp::Window(1000, 800);
-    auto camera = glp::Camera3d(window);
-    camera.setZ(-3);
+    auto window = glp::Window(800, 800);
+	auto camera = glp::Camera3d(window);
+	camera.setZ(-3);
     camera.setY(-126);
 
     auto renderer = glp::Renderer(camera);
 
-    int chunkSize = 16;
-    auto chunckManager = new ChunkManager(32, chunkSize, 256);
+    int chunkSize = 32;
+    auto chunckManager = new ChunkManager(16, chunkSize, 256);
 
     bool useCursorMovement = true;
 
@@ -26,23 +26,20 @@ int main(void) {
         chunckManager->originX = (camera.getX()) / (chunkSize);
         chunckManager->originZ = (camera.getZ()) / (chunkSize);
 
-        for (int i = 0; i < chunckManager->entities.size(); i++) {
-            renderer.render(*chunckManager->entities[i]);
+        for (auto i = chunckManager->chunks.begin(); i != chunckManager->chunks.end(); i++) {
+            const auto &chunk = i->second;
+            if (chunk->chunkEntity == nullptr) continue;
+            renderer.render(*chunk->chunkEntity);
         }
 
         if (window.getInput().isKeyDown(GLP_KEY_DELETE)) {
-            std::unique_lock<std::mutex> lock(chunckManager->chunksMutex);
-            for (auto it = chunckManager->chunks.begin(); it != chunckManager->chunks.end(); ) {
-                delete it->second;
-                it = chunckManager->chunks.erase(it);
+            std::unique_lock<std::shared_mutex> lock(chunckManager->chunksMutex);
+            for (auto i = chunckManager->chunks.begin(); i != chunckManager->chunks.end(); i++) {
+                if (i->second != nullptr) {
+                    delete i->second;
+                }
             }
             chunckManager->chunks.clear();
-            for (int j = chunckManager->entities.size() - 1; j >= 0; j--) {
-                delete chunckManager->entities[j]->model;
-                chunckManager->entities[j]->model = nullptr;
-                delete chunckManager->entities[j];
-                chunckManager->entities.erase(chunckManager->entities.begin() + j);
-            }
             lock.unlock();
         }
 

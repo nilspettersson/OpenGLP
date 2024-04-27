@@ -1,7 +1,9 @@
 #include "ChunkGenerator.h"
+#include "ChunkManager.h"
 
-ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<std::string, ChunkGenerator*>& chunksList) :
+ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<int64_t, ChunkGenerator*>& chunksList, std::shared_mutex& chunkListLock) :
 	chunksList(chunksList),
+	chunkListLock(chunkListLock),
 	textureAtlas(textureAtlas) {
 	this->chunkWidth = chunkWidth;
 	this->maxHeight = maxHeight;
@@ -19,13 +21,17 @@ ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHe
 	this->overflowAfter = {};
 
 	this->status = ChunkStatus::NONE;
-	this->generateTerain();
 }
 
 ChunkGenerator::~ChunkGenerator()
 {
-	std::cout << "delete chunk destructor " << std::endl;
 	delete this->mesh;
+	if (this->chunkEntity != nullptr) {
+		delete this->chunkEntity->model;
+		this->chunkEntity->model = nullptr;
+		delete this->chunkEntity;
+		this->chunkEntity = nullptr;
+	}
 }
 
 float NoiseStandard(float x, float y, float multiplier, int octaves, float gain, float lacunarity, float weight, FastNoiseLite noise) {
@@ -87,11 +93,10 @@ int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
 }
 
 void ChunkGenerator::generateTerain() {
-	// Create and configure FastNoise object
 	FastNoiseLite noise(1);
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
-	int waterLevel = 100;
+	int waterLevel = this->maxHeight / 3;
 
 
 	this->cells.clear();
@@ -100,11 +105,11 @@ void ChunkGenerator::generateTerain() {
 	this->overflowRight.clear();
 	this->overflowBefore.clear();
 	this->overflowAfter.clear();
+
+	this->cells.resize(chunkWidth * chunkWidth * maxHeight);
 	for (int x = 0; x < this->chunkWidth * detailMultiplier; x++) {
-		this->cells.push_back({});
 		for (int z = 0; z < this->chunkWidth * detailMultiplier; z++) {
 			int terainHeight = this->GetTerainHeight((float)x, (float)z, noise);
-			this->cells[x].push_back({});
 			for (int y = 0; y < this->maxHeight; y++) {
 				int block = BLOCK::Air;
 				if (y <= terainHeight) {
@@ -116,7 +121,7 @@ void ChunkGenerator::generateTerain() {
 				else if (y <= waterLevel) {
 					block = BLOCK::WATER;
 				}
-				this->cells[x][z].push_back(block);
+				this->cells[this->getIndex(x, z, y)] = block;
 			}
 		}
 	}
@@ -134,7 +139,7 @@ void ChunkGenerator::generateTerain() {
 			}
 			for (int y = 0; y < this->maxHeight - 10; y++) {
 
-				if (treePlacement == 1 /*x == (this->chunkWidth * detailMultiplier) / 2 && z == (this->chunkWidth * detailMultiplier) / 2*/ && this->cells[x][z][y] == BLOCK::GRASS && this->cells[x][z][y + 1] == BLOCK::Air) {
+				if (treePlacement == 1 && this->cells[this->getIndex(x, z, y)] == BLOCK::GRASS && this->cells[this->getIndex(x, z, y + 1)] == BLOCK::Air) {
 
 					float height = 7;
 					float trunkSize = 1;
@@ -175,10 +180,10 @@ void ChunkGenerator::generateTerain() {
 void ChunkGenerator::generateDecorations()
 {
 	for (auto pos : this->decorations) {
-		this->cells[pos.x][pos.z][pos.y] = pos.w;
+		this->cells[this->getIndex(pos.x, pos.z, pos.y)] = pos.w;
 	}
 
-	std::string keyLeft = std::to_string((int)this->chunkX + 1) + "|" + std::to_string((int)this->chunkZ);
+	/*std::string keyLeft = std::to_string((int)this->chunkX + 1) + "|" + std::to_string((int)this->chunkZ);
 	if (this->chunksList.find(keyLeft) != this->chunksList.end()) {
 		auto chunk = this->chunksList.at(keyLeft);
 		for (auto pos : chunk->overflowLeft) {
@@ -205,7 +210,7 @@ void ChunkGenerator::generateDecorations()
 		for (auto pos : chunk->overflowAfter) {
 			this->cells[pos.x / chunk->detailMultiplier * this->detailMultiplier][pos.z / chunk->detailMultiplier * this->detailMultiplier][pos.y] = pos.w;
 		}
-	}
+	}*/
 
 	this->status = ChunkStatus::DECORATIONS_GENERATED;
 }
@@ -290,37 +295,28 @@ void createPlane(PlaneType planeType, std::vector<float>& vertices, std::vector<
 	}
 }
 
-int ChunkGenerator::getBlockValue(int x, int y, int z) {
-	int oldX = x;
-	int oldY = y;
-	int oldZ = z;
+using namespace std::chrono_literals;
+int ChunkGenerator::getBlockValue(int x, int y, int z, std::unordered_map<int64_t, ChunkGenerator*> &closeChunks) {
 	float width = this->chunkWidth * this->detailMultiplier;
-	float height = this->maxHeight; // * this->detailMultiplier;
-
-	if (y < 0 || y > height - 1) {
+	if (y < 0 || y > this->maxHeight - 1) {
 		return 1;
 	}
-	if (x >= 0 && x <= width - 1 && z >= 0 && z <= width - 1) {
-		return this->cells[x][z][y];
+	else if (x >= 0 && x <= width - 1 && z >= 0 && z <= width - 1) {
+		return this->cells[this->getIndex(x, z, y)];
 	}
+	else if ((x < 0 || x > width - 1) && (z < 0 || z > width - 1)) return 1;
 
 	int chunkX = this->chunkX + glm::floor((float)x / width);
 	int chunkZ = this->chunkZ + glm::floor((float)z / width);
-	
+	auto chunkKey = ChunkManager::getKey(chunkX, chunkZ);
+	int blockValue = 1;
+	auto chunk = closeChunks.at(chunkKey);
 	x = (int)glm::mod((float)x, width);
 	z = (int)glm::mod((float)z, width);
-
-	std::string chunkKey = std::to_string(chunkX) + "|" + std::to_string(chunkZ);
-	if (this->chunksList.find(chunkKey) != this->chunksList.end()) {
-		auto chunk = this->chunksList.at(chunkKey);
-		x = x * chunk->detailMultiplier / this->detailMultiplier;
-		z = z * chunk->detailMultiplier / this->detailMultiplier;
-		//y = y * chunk->detailMultiplier / this->detailMultiplier;
-		int blockValue = chunk->cells[x][z][y];
-		return blockValue;
-	}
-
-	return 1;
+	x = x * chunk->detailMultiplier / this->detailMultiplier;
+	z = z * chunk->detailMultiplier / this->detailMultiplier;
+	blockValue = chunk->cells[this->getIndex(x, z, y)];
+	return blockValue;
 }
 
 void ChunkGenerator::generateMesh() {
@@ -330,6 +326,24 @@ void ChunkGenerator::generateMesh() {
 	auto vertices = std::vector<float>();
 	auto indices = std::vector<unsigned int>();
 
+	std::unordered_map<int64_t, ChunkGenerator*> nearChunks;
+	auto keyLeft = ChunkManager::getKey(chunkX - 1, chunkZ);
+	if (this->chunksList.find(keyLeft) != this->chunksList.end()) {
+		nearChunks.emplace(keyLeft, this->chunksList.at(keyLeft));
+	}
+	auto keyRight = ChunkManager::getKey(chunkX + 1, chunkZ);
+	if (this->chunksList.find(keyRight) != this->chunksList.end()) {
+		nearChunks.emplace(keyRight, this->chunksList.at(keyRight));
+	}
+	auto keyForward = ChunkManager::getKey(chunkX, chunkZ + 1);
+	if (this->chunksList.find(keyForward) != this->chunksList.end()) {
+		nearChunks.emplace(keyForward, this->chunksList.at(keyForward));
+	}
+	auto keyBackward = ChunkManager::getKey(chunkX, chunkZ - 1);
+	if (this->chunksList.find(keyBackward) != this->chunksList.end()) {
+		nearChunks.emplace(keyBackward, this->chunksList.at(keyBackward));
+	}
+	
 	float size = 1 / this->detailMultiplier;
 	int width = this->chunkWidth * this->detailMultiplier;
 	int height = this->maxHeight;
@@ -349,50 +363,222 @@ void ChunkGenerator::generateMesh() {
 	}
 
 	float AmbientOcclusionPerVoxel = 0.2;
+	for (int i = 0; i < this->cells.size(); i++) {
+		int block = this->cells[i];
+		if (block != BLOCK::Air) {
+			auto position = this->getXYZ(i);
+			auto x = position.x;
+			auto y = position.y;
+			auto z = position.z;
 
-	for (int x = 0; x < this->cells.size(); x++) {
+			float positionX = x * size + positionOffset;
+			float positionZ = z * size + positionOffset;
+			float positionY = y;
+			if (this->detailMultiplier != 1) {
+				positionY -= size;
+			}
+
+			Block coordinates = GetBlock((BLOCK)block);
+			if (block == BLOCK::WATER) {
+				if (this->getBlockValue(x, y + 1, z, nearChunks) != BLOCK::Air) continue;
+				createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + 0.5, positionZ, size, coordinates.top, { 1, 1, 1, 1 });
+				continue;
+			}
+
+			auto blockBefore = this->getBlockValue(x, y, z + 1, nearChunks);
+			auto blockAfter = this->getBlockValue(x, y, z - 1, nearChunks);
+			auto blockRight = this->getBlockValue(x + 1, y, z, nearChunks);
+			auto blockLeft = this->getBlockValue(x - 1, y, z, nearChunks);
+			auto blockUp = this->getBlockValue(x, y + 1, z, nearChunks);
+			auto blockDown = this->getBlockValue(x, y - 1, z, nearChunks);
+
+			auto blockAfterLeft = 1;
+			auto blockAfterRight = 1;
+			if (blockAfter == BLOCK::Air || blockAfter == BLOCK::WATER || blockLeft == BLOCK::Air || blockLeft == BLOCK::WATER) {
+				blockAfterLeft = this->getBlockValue(x - 1, y, z - 1, nearChunks);
+			}
+			if (blockAfter == BLOCK::Air || blockAfter == BLOCK::WATER || blockRight == BLOCK::Air || blockRight == BLOCK::WATER) {
+				blockAfterRight = this->getBlockValue(x + 1, y, z - 1, nearChunks);
+			}
+
+			auto blockBeforeLeft = 1;
+			auto blockBeforeRight = 1;
+			if (blockBefore == BLOCK::Air || blockBefore == BLOCK::WATER || blockLeft == BLOCK::Air || blockLeft == BLOCK::WATER) {
+				blockBeforeLeft = this->getBlockValue(x - 1, y, z + 1, nearChunks);
+			}
+			if (blockBefore == BLOCK::Air || blockBefore == BLOCK::WATER || blockRight == BLOCK::Air || blockRight == BLOCK::WATER) {
+				blockBeforeRight = this->getBlockValue(x + 1, y, z + 1, nearChunks);
+			}
+
+			if (blockBefore == BLOCK::Air || blockBefore == BLOCK::WATER) {
+				auto blockBeforeDown = this->getBlockValue(x, y - 1, z + 1, nearChunks);
+
+				glm::vec4 light = { 0.6f, 0.6f, 0.6f, 0.6f };
+				if (blockBeforeDown != BLOCK::Air) {
+					light[0] -= AmbientOcclusionPerVoxel;
+					light[1] -= AmbientOcclusionPerVoxel;
+				}
+				if (blockBeforeLeft != BLOCK::Air) {
+					light[0] -= AmbientOcclusionPerVoxel;;
+				}
+				if (blockBeforeRight != BLOCK::Air) {
+					light[1] -= AmbientOcclusionPerVoxel;;
+				}
+				createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ + offset, size, coordinates.side, light);
+			}
+			
+			if (blockAfter == BLOCK::Air || blockAfter == BLOCK::WATER) {
+				auto blockAfterDown = this->getBlockValue(x, y - 1, z - 1, nearChunks);
+
+				glm::vec4 light = { 0.8f, 0.8f, 0.8f, 0.8f };
+				if (blockAfterDown != BLOCK::Air) {
+					light[0] -= AmbientOcclusionPerVoxel;
+					light[1] -= AmbientOcclusionPerVoxel;
+				}
+				if (blockAfterLeft != BLOCK::Air) {
+					light[0] -= AmbientOcclusionPerVoxel;;
+				}
+				if (blockAfterRight != BLOCK::Air) {
+					light[1] -= AmbientOcclusionPerVoxel;;
+				}
+				createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ - offset, size, coordinates.side, light);
+			}
+
+			
+			if (blockRight == BLOCK::Air || blockRight == BLOCK::WATER) {
+				auto blockRightDown = this->getBlockValue(x + 1, y - 1, z, nearChunks);
+
+				glm::vec4 light = { 0.8f, 0.8f, 0.8f, 0.8f };
+				if (blockRightDown != BLOCK::Air) {
+					light[0] -= AmbientOcclusionPerVoxel;
+					light[1] -= AmbientOcclusionPerVoxel;
+				}
+				if (blockBeforeRight != BLOCK::Air) {
+					light[0] -= AmbientOcclusionPerVoxel;
+				}
+				if (blockAfterRight != BLOCK::Air) {
+					light[1] -= AmbientOcclusionPerVoxel;
+				}
+				createPlane(PlaneType::VERTICALZ, vertices, indices, positionX + offset, positionY, positionZ, size, coordinates.side, light);
+			}
+			
+			if (blockLeft == BLOCK::Air || blockLeft == BLOCK::WATER) {
+				auto blockLeftDown = this->getBlockValue(x - 1, y - 1, z, nearChunks);
+
+				glm::vec4 light = { 0.6f, 0.6f, 0.6f, 0.6f };
+				if (blockLeftDown != BLOCK::Air) {
+					light[0] -= AmbientOcclusionPerVoxel;
+					light[1] -= AmbientOcclusionPerVoxel;
+				}
+				if (blockBeforeLeft != BLOCK::Air) {
+					light[0] -= AmbientOcclusionPerVoxel;
+				}
+				if (blockAfterLeft != BLOCK::Air) {
+					light[1] -= AmbientOcclusionPerVoxel;
+				}
+				createPlane(PlaneType::VERTICALZ, vertices, indices, positionX - offset, positionY, positionZ, size, coordinates.side, light);
+			}
+
+			
+			if (blockUp == BLOCK::Air || blockUp == BLOCK::WATER) {
+				auto blockBeforeUp = this->getBlockValue(x, y + 1, z + 1, nearChunks);
+				auto blockAfterUp = this->getBlockValue(x, y + 1, z - 1, nearChunks);
+				auto blockLeftUp = this->getBlockValue(x - 1, y + 1, z, nearChunks);
+				auto blockRightUp = this->getBlockValue(x + 1, y + 1, z, nearChunks);
+
+				auto blockAfterLeftUp = this->getBlockValue(x - 1, y + 1, z - 1, nearChunks);
+				auto blockAfterRightUp = this->getBlockValue(x + 1, y + 1, z - 1, nearChunks);
+				auto blockBeforeLeftUp = this->getBlockValue(x - 1, y + 1, z + 1, nearChunks);
+				auto blockBeforeRightUp = this->getBlockValue(x + 1, y + 1, z + 1, nearChunks);
+
+				glm::vec4 light = { 1, 1, 1, 1 };
+				if (blockAfterUp != BLOCK::Air) {
+					light[0] -= AmbientOcclusionPerVoxel;
+					light[1] -= AmbientOcclusionPerVoxel;
+				}
+				if (blockBeforeUp != BLOCK::Air) {
+					light[2] -= AmbientOcclusionPerVoxel;
+					light[3] -= AmbientOcclusionPerVoxel;
+				}
+				if (blockLeftUp != BLOCK::Air) {
+					light[0] -= AmbientOcclusionPerVoxel;
+					light[3] -= AmbientOcclusionPerVoxel;
+				}
+				if (blockRightUp != BLOCK::Air) {
+					light[1] -= AmbientOcclusionPerVoxel;
+					light[2] -= AmbientOcclusionPerVoxel;
+				}
+
+				if (blockAfterLeftUp != BLOCK::Air) {
+					light[0] -= AmbientOcclusionPerVoxel;
+				}
+				if (blockAfterRightUp != BLOCK::Air) {
+					light[1] -= AmbientOcclusionPerVoxel;
+				}
+
+				if (blockBeforeLeftUp != BLOCK::Air) {
+					light[3] -= AmbientOcclusionPerVoxel;
+				}
+				if (blockBeforeRightUp != BLOCK::Air) {
+					light[2] -= AmbientOcclusionPerVoxel;
+				}
+
+
+				createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + 0.5, positionZ, size, coordinates.top, light); // front-left front-right back.right back-left
+			}
+			
+			if (blockDown == BLOCK::Air || blockDown == BLOCK::WATER) {
+				createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + 0.5, positionZ, size, coordinates.bottom, { 0.6, 0.6, 0.6, 0.6 });
+			}
+		}
+	}
+
+
+
+
+	/*for (int x = 0; x < this->cells.size(); x++) {
 		for (int z = 0; z < this->cells[x].size(); z++) {
 			for (int y = 0; y < this->cells[x][z].size(); y++) {
 				int block = this->cells[x][z][y];
 
 				float positionX = x * size + positionOffset;
 				float positionZ = z * size + positionOffset;
-				float positionY = y; // *size + positionOffset - (1 / this->detailMultiplier * 2);
+				float positionY = y;
 				if (this->detailMultiplier != 1) {
 					positionY -= size;
 				}
 				if (block != BLOCK::Air) {
 					Block coordinates = GetBlock((BLOCK)block);
 					if (block == BLOCK::WATER) {
-						if (this->getBlockValue(x, y + 1, z) != BLOCK::Air) continue;
+						if (this->getBlockValue(x, y + 1, z, nearChunks) != BLOCK::Air) continue;
 						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + 0.5, positionZ, size, coordinates.top, {1, 1, 1, 1});
 						continue;
 					}
 
-					auto blockBeforeUp = this->getBlockValue(x, y + 1, z + 1);
-					auto blockAfterUp = this->getBlockValue(x, y + 1, z - 1);
-					auto blockLeftUp = this->getBlockValue(x - 1, y + 1, z);
-					auto blockRightUp = this->getBlockValue(x + 1, y + 1, z);
+					auto blockBeforeUp = this->getBlockValue(x, y + 1, z + 1, nearChunks);
+					auto blockAfterUp = this->getBlockValue(x, y + 1, z - 1, nearChunks);
+					auto blockLeftUp = this->getBlockValue(x - 1, y + 1, z, nearChunks);
+					auto blockRightUp = this->getBlockValue(x + 1, y + 1, z, nearChunks);
 
-					auto blockAfterLeftUp = this->getBlockValue(x - 1, y + 1, z - 1);
-					auto blockAfterRightUp = this->getBlockValue(x + 1, y + 1, z - 1);
-					auto blockBeforeLeftUp = this->getBlockValue(x - 1, y + 1, z + 1);
-					auto blockBeforeRightUp = this->getBlockValue(x + 1, y + 1, z + 1);
+					auto blockAfterLeftUp = this->getBlockValue(x - 1, y + 1, z - 1, nearChunks);
+					auto blockAfterRightUp = this->getBlockValue(x + 1, y + 1, z - 1, nearChunks);
+					auto blockBeforeLeftUp = this->getBlockValue(x - 1, y + 1, z + 1, nearChunks);
+					auto blockBeforeRightUp = this->getBlockValue(x + 1, y + 1, z + 1, nearChunks);
 
-					auto blockBeforeDown = this->getBlockValue(x, y - 1, z + 1);
-					auto blockAfterDown = this->getBlockValue(x, y - 1, z - 1);
-					auto blockBeforeLeft = this->getBlockValue(x - 1, y, z + 1);
-					auto blockAfterLeft = this->getBlockValue(x - 1, y, z - 1);
-					auto blockBeforeRight = this->getBlockValue(x + 1, y, z + 1);
-					auto blockAfterRight = this->getBlockValue(x + 1, y, z - 1);
+					auto blockBeforeDown = this->getBlockValue(x, y - 1, z + 1, nearChunks);
+					auto blockAfterDown = this->getBlockValue(x, y - 1, z - 1, nearChunks);
+					auto blockBeforeLeft = this->getBlockValue(x - 1, y, z + 1, nearChunks);
+					auto blockAfterLeft = this->getBlockValue(x - 1, y, z - 1, nearChunks);
+					auto blockBeforeRight = this->getBlockValue(x + 1, y, z + 1, nearChunks);
+					auto blockAfterRight = this->getBlockValue(x + 1, y, z - 1, nearChunks);
 
-					auto blockRightDown = this->getBlockValue(x + 1, y - 1, z);
-					auto blockLeftDown = this->getBlockValue(x - 1, y - 1, z);
+					auto blockRightDown = this->getBlockValue(x + 1, y - 1, z, nearChunks);
+					auto blockLeftDown = this->getBlockValue(x - 1, y - 1, z, nearChunks);
 
 
-					auto blockBefore = this->getBlockValue(x, y, z + 1);
+					auto blockBefore = this->getBlockValue(x, y, z + 1, nearChunks);
 					if (blockBefore == BLOCK::Air || blockBefore == BLOCK::WATER) {
-						glm::vec4 light = { 1, 1, 1, 1 };
+						glm::vec4 light = { 0.6f, 0.6f, 0.6f, 0.6f };
 						if (blockBeforeDown != BLOCK::Air) {
 							light[0] -= AmbientOcclusionPerVoxel;
 							light[1] -= AmbientOcclusionPerVoxel;
@@ -405,9 +591,9 @@ void ChunkGenerator::generateMesh() {
 						}
 						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ + offset, size, coordinates.side, light);
 					}
-					auto blockAfter = this->getBlockValue(x, y, z - 1);
+					auto blockAfter = this->getBlockValue(x, y, z - 1, nearChunks);
 					if (blockAfter == BLOCK::Air || blockAfter == BLOCK::WATER) {
-						glm::vec4 light = { 1, 1, 1, 1 };
+						glm::vec4 light = { 0.8f, 0.8f, 0.8f, 0.8f };
 						if (blockAfterDown != BLOCK::Air) {
 							light[0] -= AmbientOcclusionPerVoxel;
 							light[1] -= AmbientOcclusionPerVoxel;
@@ -421,9 +607,9 @@ void ChunkGenerator::generateMesh() {
 						createPlane(PlaneType::VERTICALX, vertices, indices, positionX, positionY, positionZ - offset, size, coordinates.side, light);
 					}
 
-					auto blockRight = this->getBlockValue(x + 1, y, z);
+					auto blockRight = this->getBlockValue(x + 1, y, z, nearChunks);
 					if (blockRight == BLOCK::Air || blockRight == BLOCK::WATER) {
-						glm::vec4 light = { 1, 1, 1, 1 };
+						glm::vec4 light = { 0.8f, 0.8f, 0.8f, 0.8f };
 						if (blockRightDown != BLOCK::Air) {
 							light[0] -= AmbientOcclusionPerVoxel;
 							light[1] -= AmbientOcclusionPerVoxel;
@@ -436,9 +622,9 @@ void ChunkGenerator::generateMesh() {
 						}
 						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX + offset, positionY, positionZ, size, coordinates.side, light);
 					}
-					auto blockLeft = this->getBlockValue(x - 1, y, z);
+					auto blockLeft = this->getBlockValue(x - 1, y, z, nearChunks);
 					if (blockLeft == BLOCK::Air || blockLeft == BLOCK::WATER) {
-						glm::vec4 light = { 1, 1, 1, 1 };
+						glm::vec4 light = { 0.6f, 0.6f, 0.6f, 0.6f };
 						if (blockLeftDown != BLOCK::Air) {
 							light[0] -= AmbientOcclusionPerVoxel;
 							light[1] -= AmbientOcclusionPerVoxel;
@@ -452,7 +638,7 @@ void ChunkGenerator::generateMesh() {
 						createPlane(PlaneType::VERTICALZ, vertices, indices, positionX - offset, positionY, positionZ, size, coordinates.side, light);
 					}
 					
-					auto blockUp = this->getBlockValue(x, y + 1, z);
+					auto blockUp = this->getBlockValue(x, y + 1, z, nearChunks);
 					if (blockUp == BLOCK::Air || blockUp == BLOCK::WATER) {
 						glm::vec4 light = { 1, 1, 1, 1 };
 						if (blockAfterUp != BLOCK::Air) {
@@ -489,65 +675,63 @@ void ChunkGenerator::generateMesh() {
 						
 						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + 0.5, positionZ, size, coordinates.top, light); // front-left front-right back.right back-left
 					}
-					auto blockDown = this->getBlockValue(x, y - 1, z);
+					auto blockDown = this->getBlockValue(x, y - 1, z, nearChunks);
 					if (blockDown == BLOCK::Air || blockDown == BLOCK::WATER) {
 						createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + 0.5, positionZ, size, coordinates.bottom, { 0.6, 0.6, 0.6, 0.6 });
 					}
 				}
 			}
 		}
-	}
+	}*/
 
-	this->status = ChunkStatus::MESH_GENERATED;
-	//std::cout << "generateMesh" << std::endl;
 	this->mesh = new glp::Mesh(glp::Mesh::DefaultVertexLayout, vertices, indices);
+	this->status = ChunkStatus::MESH_GENERATED;
 }
 
 Block ChunkGenerator::GetBlock(BLOCK block) {
 	
 	switch (block) {
-	case GRASS:
-		Block block;
-		block.top = this->textureAtlas.getTextureCoordinates(0, 0);
-		block.side = this->textureAtlas.getTextureCoordinates(1, 0);
-		block.bottom = this->textureAtlas.getTextureCoordinates(0, 1);
-		return block;
-	case DIRT:
-		block;
-		block.top = this->textureAtlas.getTextureCoordinates(0, 1);
-		block.side = this->textureAtlas.getTextureCoordinates(0, 1);
-		block.bottom = this->textureAtlas.getTextureCoordinates(0, 1);
-		return block;
-	case SAND:
-		block;
-		block.top = this->textureAtlas.getTextureCoordinates(3, 0);
-		block.side = this->textureAtlas.getTextureCoordinates(3, 0);
-		block.bottom = this->textureAtlas.getTextureCoordinates(3, 0);
-		return block;
-	case WATER:
-		block;
-		block.top = this->textureAtlas.getTextureCoordinates(1, 2);
-		block.side = this->textureAtlas.getTextureCoordinates(1, 2);
-		block.bottom = this->textureAtlas.getTextureCoordinates(1, 2);
-		return block;
-	case WOOD:
-		block;
-		block.top = this->textureAtlas.getTextureCoordinates(1, 1);
-		block.side = this->textureAtlas.getTextureCoordinates(1, 1);
-		block.bottom = this->textureAtlas.getTextureCoordinates(1, 1);
-		return block;
-	case Leaf:
-		block;
-		block.top = this->textureAtlas.getTextureCoordinates(2, 1);
-		block.side = this->textureAtlas.getTextureCoordinates(2, 1);
-		block.bottom = this->textureAtlas.getTextureCoordinates(2, 1);
-		return block;
-	default:
-		block;
-		block.top = this->textureAtlas.getTextureCoordinates(0, 0);
-		block.side = this->textureAtlas.getTextureCoordinates(0, 0);
-		block.bottom = this->textureAtlas.getTextureCoordinates(0, 0);
-		return block;
+		case GRASS:
+			Block block;
+			block.top = this->textureAtlas.getTextureCoordinates(0, 0);
+			block.side = this->textureAtlas.getTextureCoordinates(0, 0);
+			block.bottom = this->textureAtlas.getTextureCoordinates(0, 1);
+			return block;
+		case DIRT:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(0, 1);
+			block.side = this->textureAtlas.getTextureCoordinates(0, 1);
+			block.bottom = this->textureAtlas.getTextureCoordinates(0, 1);
+			return block;
+		case SAND:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(3, 0);
+			block.side = this->textureAtlas.getTextureCoordinates(3, 0);
+			block.bottom = this->textureAtlas.getTextureCoordinates(3, 0);
+			return block;
+		case WATER:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(1, 2);
+			block.side = this->textureAtlas.getTextureCoordinates(1, 2);
+			block.bottom = this->textureAtlas.getTextureCoordinates(1, 2);
+			return block;
+		case WOOD:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(1, 1);
+			block.side = this->textureAtlas.getTextureCoordinates(1, 1);
+			block.bottom = this->textureAtlas.getTextureCoordinates(1, 1);
+			return block;
+		case Leaf:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(2, 1);
+			block.side = this->textureAtlas.getTextureCoordinates(2, 1);
+			block.bottom = this->textureAtlas.getTextureCoordinates(2, 1);
+			return block;
+		default:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(0, 0);
+			block.side = this->textureAtlas.getTextureCoordinates(0, 0);
+			block.bottom = this->textureAtlas.getTextureCoordinates(0, 0);
+			return block;
 	}
-	//return Block();
 }

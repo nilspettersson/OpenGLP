@@ -3,6 +3,7 @@
 #include "./ChunkGenerator.h"
 #include "../textureAtlas/TextureAtlas.h"
 #include <mutex>
+#include <shared_mutex>
 
 class ChunkManager {
 private:
@@ -12,24 +13,17 @@ private:
     int chunkHeight;
     int chunkCount;
 
-    std::thread chunkThread;
-    std::thread meshThread;
+    std::vector<std::thread> meshThreads;
     bool isRunning;
 
 public:
     ChunkManager(int chunks, int chunkWidth, int chunkHeight);
-    ~ChunkManager() {
-        isRunning = false;
-        if (meshThread.joinable()) {
-            meshThread.join();
-        }
-    }
+    ~ChunkManager();
     int originX;
     int originZ;
-    std::unordered_map<std::string, ChunkGenerator*> chunks;
-    std::vector<glp::Entity*> entities;
+    std::unordered_map<int64_t, ChunkGenerator*> chunks;
     
-    std::mutex chunksMutex;
+    mutable std::shared_mutex chunksMutex;
 
     void updateChunks(int originX, int originY);
 
@@ -39,5 +33,9 @@ public:
     void CreateEntities();
 
     void CreateChunkMesh();
+
+    static int64_t getKey(int32_t x, int32_t z) {
+        return (static_cast<std::uint64_t>(x) << 32) | (static_cast<std::uint64_t>(z) & 0xFFFFFFFF);
+    }
 
 };
