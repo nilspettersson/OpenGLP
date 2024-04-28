@@ -26,11 +26,11 @@ public:
     
     mutable std::shared_mutex chunksMutex;
 
-    void spiral(std::function<void(int x, int y)> processChunk);
-    void addChunk(int x, int y);
-    void generateChunk(int x, int y);
-    void generateDecorations(int x, int y);
-    void CreateMesh(int x, int y);
+    void spiral(std::function<int(int x, int y)> processChunk);
+    int addChunk(int x, int y);
+    int generateChunk(int x, int y);
+    int generateDecorations(int x, int y);
+    int CreateMesh(int x, int y);
 
     void updateChunks(int originX, int originY);
     void CreateEntities();

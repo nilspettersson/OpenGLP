@@ -32,7 +32,7 @@ ChunkManager::~ChunkManager() {
 	}
 
 }
-void ChunkManager::spiral(std::function<void(int x, int y)> processChunk)
+void ChunkManager::spiral(std::function<int(int x, int y)> processChunk)
 {
 	//std::cout << this->originX << this->originZ << std::endl;
 	int centerX = -this->originX; // Assuming originX is defined relative to the player
@@ -41,7 +41,7 @@ void ChunkManager::spiral(std::function<void(int x, int y)> processChunk)
 	int maxLayer = chunkCount; // Define how far out you want to generate
 
 	// Generate the center chunk first
-	processChunk(centerX, centerZ);
+	if (processChunk(centerX, centerZ) == 1) return;
 
 	// Spiral outward
 	while (layer <= maxLayer) {
@@ -51,22 +51,22 @@ void ChunkManager::spiral(std::function<void(int x, int y)> processChunk)
 
 		// Top side (moving right)
 		for (int i = 0; i < sideLength; ++i, ++x) {
-			processChunk(x, z);
+			if (processChunk(x, z) == 1) return;
 		}
 
 		// Right side (moving down)
 		for (int i = 0; i < sideLength; ++i, ++z) {
-			processChunk(x, z);
+			if (processChunk(x, z) == 1) return;
 		}
 
 		// Bottom side (moving left)
 		for (int i = 0; i < sideLength; ++i, --x) {
-			processChunk(x, z);
+			if (processChunk(x, z) == 1) return;
 		}
 
 		// Left side (moving up)
 		for (int i = 0; i < sideLength; ++i, --z) {
-			processChunk(x, z);
+			if (processChunk(x, z) == 1) return;
 		}
 
 		// Move to the next layer
@@ -74,12 +74,12 @@ void ChunkManager::spiral(std::function<void(int x, int y)> processChunk)
 	}
 }
 
-void ChunkManager::addChunk(int x, int y) {
+int ChunkManager::addChunk(int x, int y) {
 	float deltaX = (x + originX);
 	float deltaZ = (y + originZ);
 	float detail = 1;
 	float distance = deltaX * deltaX + deltaZ * deltaZ;
-	if (distance > chunkCount * chunkCount) return;
+	if (distance > chunkCount * chunkCount) return 0;
 
 	int64_t key = getKey(x, y);
 	if (this->chunks.find(key) == this->chunks.end()) {
@@ -87,14 +87,16 @@ void ChunkManager::addChunk(int x, int y) {
 		if (lock.try_lock()) {
 			this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, detail, this->textureAtlas, this->chunks, this->chunksMutex));
 			lock.unlock();
+			return 1;
 			//limit--;
 			//if (limit <= 0) break;
 		}
 	}
+
+	return 0;
 }
 
 void ChunkManager::updateChunks(int originX, int originZ) {
-	//std::cout << "updateChunks " << this->chunks.size() << std::endl;
 	this->originX = originX;
 	this->originZ = originZ;
 
@@ -161,13 +163,13 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 	}
 }
 
-void ChunkManager::generateChunk(int x, int y) {
+int ChunkManager::generateChunk(int x, int y) {
 	float deltaX = (x + originX);
 	float deltaZ = (y + originZ);
 	float detail = 1;
 
 	float distance = deltaX * deltaX + deltaZ * deltaZ;
-	if (distance > chunkCount * chunkCount) return;
+	if (distance > chunkCount * chunkCount) return 0;
 
 	if (distance > 20 * 20) {
 		detail /= 16;
@@ -181,7 +183,7 @@ void ChunkManager::generateChunk(int x, int y) {
 	else if (distance > 4 * 4) {
 		detail /= 2;
 	}
-	detail = 1;
+	//detail = 1;
 
 	auto key = getKey(x, y);
 	bool chunkEmpty = false;
@@ -212,6 +214,7 @@ void ChunkManager::generateChunk(int x, int y) {
 				if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->status != ChunkStatus::NONE) {
 					this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
 				}
+				
 				//break;
 			}
 		}
@@ -240,17 +243,20 @@ void ChunkManager::generateChunk(int x, int y) {
 				if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->detailMultiplier == detail) {
 					this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
 				}
+				return 1;
 			}
 		}
 	}
 	shared_lock.unlock();
+
+	return 0;
 }
 
-void ChunkManager::generateDecorations(int x, int y) {
+int ChunkManager::generateDecorations(int x, int y) {
 	float deltaX = (x + originX);
 	float deltaZ = (y + originZ);
 	float distance = deltaX * deltaX + deltaZ * deltaZ;
-	if (distance > chunkCount * chunkCount) return;
+	if (distance > chunkCount * chunkCount) return 0;
 
 	auto key = getKey(x, y);
 	std::shared_lock<std::shared_mutex> lock2(chunksMutex);
@@ -265,6 +271,7 @@ void ChunkManager::generateDecorations(int x, int y) {
 			}
 		}
 	}
+	return 0;
 }
 
 void ChunkManager::generateChunks() {
@@ -273,17 +280,17 @@ void ChunkManager::generateChunks() {
 	
 }
 
-void ChunkManager::CreateMesh(int x, int y) {
+int ChunkManager::CreateMesh(int x, int y) {
 	float deltaX = (x + originX);
 	float deltaZ = (y + originZ);
 	float distance = deltaX * deltaX + deltaZ * deltaZ;
-	if (distance > chunkCount * chunkCount) return;
+	if (distance > chunkCount * chunkCount) return 0;
 
 	auto key = getKey(x, y);
 	std::shared_lock<std::shared_mutex> lock(this->chunksMutex);
-	if (this->chunks.find(key) == this->chunks.end() || this->chunks.at(key)->status != ChunkStatus::DECORATIONS_GENERATED) return;
+	if (this->chunks.find(key) == this->chunks.end() || this->chunks.at(key)->status != ChunkStatus::DECORATIONS_GENERATED) return 0;
 	std::unique_lock<std::shared_mutex> mainChunkLock(this->chunks.at(key)->chunkLock, std::defer_lock);
-	if (!mainChunkLock.try_lock()) return;
+	if (!mainChunkLock.try_lock()) return 0;
 
 	std::vector<ChunkGenerator*> relevantChunks = {};
 	bool allChunksFound = true;
@@ -303,7 +310,7 @@ void ChunkManager::CreateMesh(int x, int y) {
 		}
 	}
 	if (!allChunksFound) {
-		return;
+		return 0;
 	}
 
 	std::vector<std::shared_lock<std::shared_mutex>> locks;
@@ -331,6 +338,7 @@ void ChunkManager::CreateMesh(int x, int y) {
 		locks.clear();
 		//break;
 	}
+	return 0;
 }
 
 void ChunkManager::CreateChunkMesh() {
