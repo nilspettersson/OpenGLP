@@ -131,7 +131,7 @@ void ChunkGenerator::generateTerain() {
 			float xValue = (x / this->detailMultiplier + this->chunkX * this->chunkWidth);
 			float zValue = (z / this->detailMultiplier + this->chunkZ * this->chunkWidth);
 			float treePlacement = NoiseStandard(xValue, zValue, 50, 1, 1, 1, 0, noise);
-			if (treePlacement > 0.96) {
+			if (treePlacement > 0.98 - glm::pow(1 - this->detailMultiplier, 8)) {
 				treePlacement = 1;
 			}
 			else {
@@ -141,10 +141,10 @@ void ChunkGenerator::generateTerain() {
 
 				if (treePlacement == 1 && this->cells[this->getIndex(x, z, y)] == BLOCK::GRASS && this->cells[this->getIndex(x, z, y + 1)] == BLOCK::Air) {
 
-					float height = 7;
-					float trunkSize = 1;
-					float sphereWidth = 6 * this->detailMultiplier;
-					float sphereHeight = 6;
+					float height = 8;
+					float trunkSize = 1 * this->detailMultiplier;
+					float sphereWidth = 8 * this->detailMultiplier;
+					float sphereHeight = 8;
 
 					for (int i = -trunkSize / 2; i < trunkSize / 2; i++) {
 						for (int j = -trunkSize / 2; j < trunkSize / 2; j++) {
@@ -158,10 +158,10 @@ void ChunkGenerator::generateTerain() {
 					}
 					for (float i = -sphereWidth / 2; i < sphereWidth / 2; i++) {
 						for (float j = -sphereWidth / 2; j < sphereWidth / 2; j++) {
-							for (float k = -sphereHeight / 2; k < sphereHeight / 2; k++) {
+							for (float k = 0; k < sphereHeight / 2; k++) {
 								float k2 = k * this->detailMultiplier;
-								if (glm::sqrt(i * i + j * j + k2 * k2) < sphereWidth / 2 /*+ glm::min(k, 0)*/) {
-									this->addCell(x + i, z + j, y + k + 1 + height + sphereHeight / 2 - 1 - 2, BLOCK::Leaf);
+								if (glm::sqrt(i * i + j * j + k2 * k2) < sphereWidth / 2) {
+									this->addCell(x + i, z + j, y + k + 1 + height + sphereHeight / 2 - 1 - 5, BLOCK::Leaf);
 								}
 							}
 						}
@@ -183,34 +183,38 @@ void ChunkGenerator::generateDecorations()
 		this->cells[this->getIndex(pos.x, pos.z, pos.y)] = pos.w;
 	}
 
-	/*std::string keyLeft = std::to_string((int)this->chunkX + 1) + "|" + std::to_string((int)this->chunkZ);
+	auto keyLeft = ChunkManager::getKey(this->chunkX + 1, this->chunkZ);
 	if (this->chunksList.find(keyLeft) != this->chunksList.end()) {
 		auto chunk = this->chunksList.at(keyLeft);
 		for (auto pos : chunk->overflowLeft) {
-			this->cells[pos.x / chunk->detailMultiplier * this->detailMultiplier][pos.z / chunk->detailMultiplier * this->detailMultiplier][pos.y] = pos.w;
+			if (pos.x >= this->chunkWidth * detailMultiplier || pos.z >= this->chunkWidth * detailMultiplier) continue;
+			this->cells[this->getIndex(pos.x, pos.z, pos.y)] = pos.w;
 		}
 	}
-	std::string keyRight = std::to_string((int)this->chunkX - 1) + "|" + std::to_string((int)this->chunkZ);
+	auto keyRight = ChunkManager::getKey(this->chunkX - 1, this->chunkZ);
 	if (this->chunksList.find(keyRight) != this->chunksList.end()) {
 		auto chunk = this->chunksList.at(keyRight);
 		for (auto pos : chunk->overflowRight) {
-			this->cells[pos.x / chunk->detailMultiplier * this->detailMultiplier][pos.z / chunk->detailMultiplier * this->detailMultiplier][pos.y] = pos.w;
+			if (pos.x >= this->chunkWidth * detailMultiplier || pos.z >= this->chunkWidth * detailMultiplier) continue;
+			this->cells[this->getIndex(pos.x, pos.z, pos.y)] = pos.w;
 		}
 	}
-	std::string keyBefore = std::to_string((int)this->chunkX) + "|" + std::to_string((int)this->chunkZ + 1);
+	auto keyBefore = ChunkManager::getKey(this->chunkX, this->chunkZ + 1);
 	if (this->chunksList.find(keyBefore) != this->chunksList.end()) {
 		auto chunk = this->chunksList.at(keyBefore);
 		for (auto pos : chunk->overflowBefore) {
-			this->cells[pos.x / chunk->detailMultiplier * this->detailMultiplier][pos.z / chunk->detailMultiplier * this->detailMultiplier][pos.y] = pos.w;
+			if (pos.x >= this->chunkWidth * detailMultiplier || pos.z >= this->chunkWidth * detailMultiplier) continue;
+			this->cells[this->getIndex(pos.x, pos.z, pos.y)] = pos.w;
 		}
 	}
-	std::string keyAfter = std::to_string((int)this->chunkX) + "|" + std::to_string((int)this->chunkZ - 1);
+	auto keyAfter = ChunkManager::getKey(this->chunkX, this->chunkZ - 1);
 	if (this->chunksList.find(keyAfter) != this->chunksList.end()) {
 		auto chunk = this->chunksList.at(keyAfter);
 		for (auto pos : chunk->overflowAfter) {
-			this->cells[pos.x / chunk->detailMultiplier * this->detailMultiplier][pos.z / chunk->detailMultiplier * this->detailMultiplier][pos.y] = pos.w;
+			if (pos.x >= this->chunkWidth * detailMultiplier || pos.z >= this->chunkWidth * detailMultiplier) continue;
+			this->cells[this->getIndex(pos.x, pos.z, pos.y)] = pos.w;
 		}
-	}*/
+	}
 
 	this->status = ChunkStatus::DECORATIONS_GENERATED;
 }

@@ -5,6 +5,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <tuple>
+#include <atomic>
 
 enum ChunkStatus { NONE, TERAIN_GENERATED, DECORATIONS_GENERATED, MESH_GENERATED, RENDERED };
 
@@ -42,7 +43,7 @@ public:
     int maxHeight;
     int chunkWidth;
     glp::Mesh* mesh;
-    ChunkStatus status;
+    std::atomic<ChunkStatus> status;
 
     glp::Entity *chunkEntity;
 
