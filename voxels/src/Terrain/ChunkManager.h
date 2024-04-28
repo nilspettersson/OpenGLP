@@ -4,6 +4,7 @@
 #include "../textureAtlas/TextureAtlas.h"
 #include <mutex>
 #include <shared_mutex>
+#include <functional>
 
 class ChunkManager {
 private:
@@ -25,13 +26,14 @@ public:
     
     mutable std::shared_mutex chunksMutex;
 
+    void spiral(std::function<void(int x, int y)> processChunk);
+    void generateChunk(int x, int y);
+    void CreateMesh(int x, int y);
+
     void updateChunks(int originX, int originY);
-
-    void generateChunks();
-    
-
     void CreateEntities();
 
+    void generateChunks();
     void CreateChunkMesh();
 
     static int64_t getKey(int32_t x, int32_t z) {
