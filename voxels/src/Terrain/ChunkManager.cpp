@@ -74,12 +74,33 @@ void ChunkManager::spiral(std::function<void(int x, int y)> processChunk)
 	}
 }
 
+void ChunkManager::addChunk(int x, int y) {
+	float deltaX = (x + originX);
+	float deltaZ = (y + originZ);
+	float detail = 1;
+	float distance = deltaX * deltaX + deltaZ * deltaZ;
+	if (distance > chunkCount * chunkCount) return;
+
+	int64_t key = getKey(x, y);
+	if (this->chunks.find(key) == this->chunks.end()) {
+		std::unique_lock<std::shared_mutex> lock(chunksMutex, std::defer_lock);
+		if (lock.try_lock()) {
+			this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, detail, this->textureAtlas, this->chunks, this->chunksMutex));
+			lock.unlock();
+			//limit--;
+			//if (limit <= 0) break;
+		}
+	}
+}
+
 void ChunkManager::updateChunks(int originX, int originZ) {
 	//std::cout << "updateChunks " << this->chunks.size() << std::endl;
 	this->originX = originX;
 	this->originZ = originZ;
 
-	int limit = 120;
+	spiral(std::bind(&ChunkManager::addChunk, this, std::placeholders::_1, std::placeholders::_2));
+
+	/*int limit = 120;
 	for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
 		if (limit <= 0) break;
 		for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
@@ -100,7 +121,7 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 				}
 			}
 		}
-	}
+	}*/
 
 
 
@@ -225,124 +246,30 @@ void ChunkManager::generateChunk(int x, int y) {
 	shared_lock.unlock();
 }
 
-void ChunkManager::generateChunks() {
-	//std::function<void(int, int)> fn = generateChunk;
-	std::function<void(int, int)> fn = std::bind(&ChunkManager::generateChunk, this, std::placeholders::_1, std::placeholders::_2);
-	spiral(fn);
+void ChunkManager::generateDecorations(int x, int y) {
+	float deltaX = (x + originX);
+	float deltaZ = (y + originZ);
+	float distance = deltaX * deltaX + deltaZ * deltaZ;
+	if (distance > chunkCount * chunkCount) return;
 
-	/*for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
-		for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
-			float deltaX = (x + originX);
-			float deltaZ = (y + originZ);
-			float detail = 1;
+	auto key = getKey(x, y);
+	std::shared_lock<std::shared_mutex> lock2(chunksMutex);
+	if (this->chunks.find(key) != this->chunks.end()) {
+		auto currentChunk = this->chunks.at(key);
 
-			float distance = deltaX * deltaX + deltaZ * deltaZ;
-			if (distance > chunkCount * chunkCount) continue;
-
-			if (distance > 20 * 20) {
-				detail /= 16;
-			}
-			else if (distance > 14 * 14) {
-				detail /= 8;
-			}
-			else if (distance > 8 * 8) {
-				detail /= 4;
-			}
-			else if (distance > 4 * 4) {
-				detail /= 2;
-			}
-			detail = 1;
-
-			auto key = getKey(x, y);
-			bool chunkEmpty = false;
-			std::shared_lock<std::shared_mutex> shared_lock(chunksMutex);
-			if (this->chunks.find(key) != this->chunks.end()) {
-				auto chunk = this->chunks.at(key);
-				if (chunk->status == ChunkStatus::NONE) {
-					std::unique_lock<std::shared_mutex> chunk_lock(chunk->chunkLock, std::defer_lock);
-					if (chunk_lock.try_lock()) {
-						chunk->detailMultiplier = detail;
-						chunk->generateTerain();
-						chunk_lock.unlock();
-
-
-						auto keyLeft = getKey(x - 1, y);
-						if (this->chunks.find(keyLeft) != this->chunks.end() && this->chunks.at(keyLeft)->status != ChunkStatus::NONE) {
-							this->chunks.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
-						}
-						auto keyRight = getKey(x + 1, y);
-						if (this->chunks.find(keyRight) != this->chunks.end() && this->chunks.at(keyRight)->status != ChunkStatus::NONE) {
-							this->chunks.at(keyRight)->status = ChunkStatus::TERAIN_GENERATED;
-						}
-						auto keyForward = getKey(x, y + 1);
-						if (this->chunks.find(keyForward) != this->chunks.end() && this->chunks.at(keyForward)->status != ChunkStatus::NONE) {
-							this->chunks.at(keyForward)->status = ChunkStatus::TERAIN_GENERATED;
-						}
-						auto keyBackward = getKey(x, y - 1);
-						if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->status != ChunkStatus::NONE) {
-							this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
-						}
-						break;
-					}
-				}
-				else {
-					if (this->chunks.at(key)->detailMultiplier != detail) {
-						//replace chunk with different detail level
-						std::unique_lock<std::shared_mutex> chunkLock(this->chunks.at(key)->chunkLock);
-						this->chunks.at(key)->status = ChunkStatus::NONE;
-						this->chunks.at(key)->detailMultiplier = detail;
-						this->chunks.at(key)->generateTerain();
-						chunkLock.unlock();
-
-						auto keyLeft = getKey(x - 1, y);
-						if (this->chunks.find(keyLeft) != this->chunks.end() && this->chunks.at(keyLeft)->detailMultiplier == detail) {
-							this->chunks.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
-						}
-						auto keyRight = getKey(x + 1, y);
-						if (this->chunks.find(keyRight) != this->chunks.end() && this->chunks.at(keyRight)->detailMultiplier == detail) {
-							this->chunks.at(keyRight)->status = ChunkStatus::TERAIN_GENERATED;
-						}
-						auto keyForward = getKey(x, y + 1);
-						if (this->chunks.find(keyForward) != this->chunks.end() && this->chunks.at(keyForward)->detailMultiplier == detail) {
-							this->chunks.at(keyForward)->status = ChunkStatus::TERAIN_GENERATED;
-						}
-						auto keyBackward = getKey(x, y - 1);
-						if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->detailMultiplier == detail) {
-							this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
-						}
-					}
-				}
-			}
-			shared_lock.unlock();
-		}
-	}*/
-
-	std::shared_lock<std::shared_mutex> lock2(chunksMutex, std::defer_lock);
-	if (lock2.try_lock()) {
-		for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
-			for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
-				float deltaX = (x + originX);
-				float deltaZ = (y + originZ);
-				float distance = deltaX * deltaX + deltaZ * deltaZ;
-				if (distance > chunkCount * chunkCount) continue;
-
-				auto key = getKey(x, y);
-				if (this->chunks.find(key) != this->chunks.end()) {
-					auto currentChunk = this->chunks.at(key);
-					
-					if (currentChunk->status == ChunkStatus::TERAIN_GENERATED) {
-						std::unique_lock<std::shared_mutex> chunkLock(currentChunk->chunkLock, std::defer_lock);
-						if (chunkLock.try_lock()) {
-							currentChunk->generateDecorations();
-							chunkLock.unlock();
-						}
-					}
-				}
-
+		if (currentChunk->status == ChunkStatus::TERAIN_GENERATED) {
+			std::unique_lock<std::shared_mutex> chunkLock(currentChunk->chunkLock, std::defer_lock);
+			if (chunkLock.try_lock()) {
+				currentChunk->generateDecorations();
+				chunkLock.unlock();
 			}
 		}
-		lock2.unlock();
 	}
+}
+
+void ChunkManager::generateChunks() {
+	spiral(std::bind(&ChunkManager::generateChunk, this, std::placeholders::_1, std::placeholders::_2));
+	spiral(std::bind(&ChunkManager::generateDecorations, this, std::placeholders::_1, std::placeholders::_2));
 	
 }
 
@@ -409,71 +336,7 @@ void ChunkManager::CreateMesh(int x, int y) {
 void ChunkManager::CreateChunkMesh() {
 	while (isRunning) {
 		generateChunks();
-
 		spiral(std::bind(&ChunkManager::CreateMesh, this, std::placeholders::_1, std::placeholders::_2));
-
-		/*std::shared_lock<std::shared_mutex> lock(this->chunksMutex);
-		for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
-			for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
-					float deltaX = (x + originX);
-					float deltaZ = (y + originZ);
-					float distance = deltaX * deltaX + deltaZ * deltaZ;
-					if (distance > chunkCount * chunkCount) continue;
-
-					auto key = getKey(x, y);
-					if (this->chunks.find(key) == this->chunks.end() || this->chunks.at(key)->status != ChunkStatus::DECORATIONS_GENERATED) continue;
-					std::unique_lock<std::shared_mutex> mainChunkLock(this->chunks.at(key)->chunkLock, std::defer_lock);
-					if (!mainChunkLock.try_lock()) continue;
-
-					std::vector<ChunkGenerator*> relevantChunks = {};
-					bool allChunksFound = true;
-					for (int dx = -1; dx <= 1; dx++) {
-						for (int dy = -1; dy <= 1; dy++) {
-							if (dx == 0 && dy == 0) continue; //skip the current chunk
-							int nx = x + dx;
-							int ny = y + dy;
-							auto nearKey = getKey(nx, ny);
-							if (this->chunks.find(nearKey) != this->chunks.end()) {
-								relevantChunks.push_back(this->chunks.at(nearKey));
-							}
-							else {
-								allChunksFound = false;
-								break;
-							}
-						}
-					}
-					if (!allChunksFound) {
-						continue;
-					}
-
-					std::vector<std::shared_lock<std::shared_mutex>> locks;
-
-					bool allLocked = true;
-					for (auto chunk : relevantChunks) {
-						if (chunk->status == ChunkStatus::NONE || chunk->status == ChunkStatus::TERAIN_GENERATED) {
-							allLocked = false;
-							break;
-						}
-						std::shared_lock<std::shared_mutex> chunkLock(chunk->chunkLock, std::defer_lock);
-						if (!chunkLock.try_lock()) {
-							allLocked = false;
-							break;
-						}
-						locks.push_back(std::move(chunkLock));
-					}
-
-					if (allLocked) {
-						this->chunks.at(key)->generateMesh();
-						//break;
-						locks.clear();
-					}
-					else {
-						locks.clear();
-						//break;
-					}
-			}
-		}
-		lock.unlock();*/
 		std::this_thread::sleep_for(12ms);
 	}
 }
