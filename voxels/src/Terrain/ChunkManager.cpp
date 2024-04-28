@@ -88,11 +88,8 @@ int ChunkManager::addChunk(int x, int y) {
 			this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, detail, this->textureAtlas, this->chunks, this->chunksMutex));
 			lock.unlock();
 			return 1;
-			//limit--;
-			//if (limit <= 0) break;
 		}
 	}
-
 	return 0;
 }
 
@@ -101,31 +98,6 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 	this->originZ = originZ;
 
 	spiral(std::bind(&ChunkManager::addChunk, this, std::placeholders::_1, std::placeholders::_2));
-
-	/*int limit = 120;
-	for (int x = -chunkCount - originX; x < chunkCount - originX; x++) {
-		if (limit <= 0) break;
-		for (int y = -chunkCount - originZ; y < chunkCount - originZ; y++) {
-			float deltaX = (x + originX);
-			float deltaZ = (y + originZ);
-			float detail = 1;
-			float distance = deltaX * deltaX + deltaZ * deltaZ;
-			if (distance > chunkCount * chunkCount) continue;
-
-			int64_t key = getKey(x, y);
-			if (this->chunks.find(key) == this->chunks.end()) {
-				std::unique_lock<std::shared_mutex> lock(chunksMutex, std::defer_lock);
-				if (lock.try_lock()) {
-					this->chunks.emplace(key, new ChunkGenerator(x, y, this->chunkWidth, this->chunkHeight, detail, this->textureAtlas, this->chunks, this->chunksMutex));
-					lock.unlock();
-					limit--;
-					if (limit <= 0) break;
-				}
-			}
-		}
-	}*/
-
-
 
 	this->CreateEntities();
 
