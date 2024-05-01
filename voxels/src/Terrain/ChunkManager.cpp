@@ -143,10 +143,10 @@ int ChunkManager::generateChunk(int x, int y) {
 	float distance = deltaX * deltaX + deltaZ * deltaZ;
 	if (distance > chunkCount * chunkCount) return 0;
 
-	if (distance > 20 * 20) {
+	if (distance > 40 * 40) {
 		detail /= 16;
 	}
-	else if (distance > 14 * 14) {
+	else if (distance > 26 * 26) {
 		detail /= 8;
 	}
 	else if (distance > 8 * 8) {
@@ -327,6 +327,8 @@ void ChunkManager::CreateEntities() {
 	for (auto i = this->chunks.begin(); i != this->chunks.end(); i++) {
 		auto chunk = i->second;
 		if (chunk->status == ChunkStatus::MESH_GENERATED) {
+			std::shared_lock<std::shared_mutex> chunkLock(chunk->chunkLock, std::defer_lock);
+			if (!chunkLock.try_lock()) continue;
 			if (chunk->mesh == nullptr) continue;
 
 			auto vao = new glp::Vao(*chunk->mesh, false);
