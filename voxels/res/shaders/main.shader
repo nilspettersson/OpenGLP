@@ -27,6 +27,8 @@ void main() {
 #version 330 core
 layout(location = 0) out vec4 colorOutput;
 
+
+uniform float u_time;
 uniform mat4 u_mvp;
 uniform vec3 color;
 uniform sampler2D sampler[10];
@@ -45,7 +47,6 @@ float linearizeDepth(float depth) {
 
 void main() {
 	vec4 texture = texture2D(sampler[1], v_texCoord);
-	vec4 color = vec4(texture.xyz * v_light.x, 1 + texture.w);
 	
 	float depth = gl_FragCoord.z;
 	float linearDepth = linearizeDepth(depth) / 4000;
@@ -68,10 +69,34 @@ void main() {
 
 
 
-	vec3 finalColor = mix(vec3(color.xyz), vec3(0.5, 0.7, 1), linearDepth);
-	color = vec4(finalColor, 1 + texture.w);
+	vec3 color = vec3(texture.xyz /* v_light.x*/);
 
-	//colorOutput = vec4(color);
-	colorOutput = vec4(normal, 1);
+	//ambient light
+	vec3 ambientColor = vec3(0.7, 0.8, 1);
+	float ambientIntensity = v_light.x * 0.9f;
+	vec3 ambient = ambientColor * ambientIntensity;
+
+
+	//Sun
+	//vec3 sunDirection = vec3(cos(u_time), sin(u_time), 0.0f);
+	vec3 sunDirection = vec3(0.5f, -0.5f, 0.0f);
+	float sunDot = max(dot(normalize(-sunDirection), normalize(normal)), 0);
+	float sunIntensity = 1.0f;
+	if (sunDirection.y > 0) {
+		sunIntensity *= 1.01f - sunDirection.y;
+		ambient *= 1.01f - sunDirection.y / 1.2f;
+	}
+	vec3 sunColor = vec3(0.9f, 0.9f, 0.5f);
+
+	//diffuse color from sun
+	vec3 diffuse = sunIntensity * sunColor * sunDot;
+
+
+	color = (ambient + diffuse) * color;
+
+
+	vec3 finalColor = mix(vec3(color.xyz), vec3(0.5, 0.7, 1), 0);
+	//colorOutput = vec4(sunDot, sunDot, sunDot, 1);
+	colorOutput = vec4(finalColor, 1);
 	
 };

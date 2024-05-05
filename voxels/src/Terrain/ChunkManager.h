@@ -9,7 +9,6 @@
 class ChunkManager {
 private:
     TextureAtlas textureAtlas;
-    glp::Shader shader;
     int chunkWidth;
     int chunkHeight;
     int chunkCount;
@@ -23,6 +22,7 @@ public:
     int originX;
     int originZ;
     std::unordered_map<int64_t, ChunkGenerator*> chunks;
+    glp::Shader shader;
     
     mutable std::shared_mutex chunksMutex;
 
