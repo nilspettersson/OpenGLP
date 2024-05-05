@@ -143,10 +143,10 @@ int ChunkManager::generateChunk(int x, int y) {
 	float distance = deltaX * deltaX + deltaZ * deltaZ;
 	if (distance > chunkCount * chunkCount) return 0;
 
-	if (distance > 40 * 40) {
-		detail /= 16;
-	}
-	else if (distance > 26 * 26) {
+	if (distance > 24 * 24) {
+			detail /= 16;
+		}
+	else if (distance >16 * 16) {
 		detail /= 8;
 	}
 	else if (distance > 8 * 8) {
@@ -231,13 +231,15 @@ int ChunkManager::generateDecorations(int x, int y) {
 	if (distance > chunkCount * chunkCount) return 0;
 
 	auto key = getKey(x, y);
-	std::shared_lock<std::shared_mutex> lock2(chunksMutex);
+	std::shared_lock<std::shared_mutex> lock(this->chunksMutex);
+
 	if (this->chunks.find(key) != this->chunks.end()) {
 		auto currentChunk = this->chunks.at(key);
 
 		if (currentChunk->status == ChunkStatus::TERAIN_GENERATED) {
 			std::unique_lock<std::shared_mutex> chunkLock(currentChunk->chunkLock, std::defer_lock);
 			if (chunkLock.try_lock()) {
+				//Todo: Lock chunks around this one to fix memmory issue.
 				currentChunk->generateDecorations();
 				chunkLock.unlock();
 			}
@@ -261,6 +263,7 @@ int ChunkManager::CreateMesh(int x, int y) {
 	auto key = getKey(x, y);
 	std::shared_lock<std::shared_mutex> lock(this->chunksMutex);
 	if (this->chunks.find(key) == this->chunks.end() || this->chunks.at(key)->status != ChunkStatus::DECORATIONS_GENERATED) return 0;
+
 	std::unique_lock<std::shared_mutex> mainChunkLock(this->chunks.at(key)->chunkLock, std::defer_lock);
 	if (!mainChunkLock.try_lock()) return 0;
 

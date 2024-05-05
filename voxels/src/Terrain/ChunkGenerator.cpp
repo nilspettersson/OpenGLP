@@ -61,30 +61,101 @@ float NoisePingPong(float x, float y, float multiplier, int octaves, float gain,
 }
 
 int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
-	float xValue = ((x / this->detailMultiplier) + this->chunkX * this->chunkWidth);
-	float zValue = ((z / this->detailMultiplier) + this->chunkZ * this->chunkWidth);
-	float noiseMultiplier = noise.GetNoise(xValue * 0.08, zValue * 0.08);
-	/*noiseMultiplier = (noiseMultiplier + 1) / 2;
-	noiseMultiplier = 1 - noiseMultiplier;
-	noiseMultiplier *= 1.5;*/
+	float value = 0;
 
-	float value = 0.5 + (noiseMultiplier / 2 + 0.5) * 1.4;
+	noise.SetSeed(10);
+	float elevation = NoiseStandard(x, z, 0.02, 4, 0.5, 2, 0.5, noise);
+	elevation = (elevation + 1) / 2;
 
-	value += NoiseStandard(xValue, zValue, 0.2, 4, 0.5, 2, 0.7 - noiseMultiplier / 2, noise) - 0.5;
+	noise.SetSeed(123321);
+	float erosion = NoiseStandard(x, z, 0.06, 3, 0.5, 2, 0.5, noise) - 0;
+	erosion = (erosion + 1) / 2;
 
-	/*float value = glm::pow(NoiseRidged(xValue, zValue, 0.1, 4, 0.5, 2, noise), 2);
+	float threshold = 0.7; // Set threshold for when erosion effects become significant
+	float sharpness = 10.0; // Controls how sharp the transition is at the threshold
+	erosion = 1.0 / (1.0 + exp(-sharpness * (erosion - threshold)));
 
-	value *= noiseMultiplier;
-	value += noiseMultiplier * 1;
 
-	value -= glm::clamp<float>(glm::min(NoisePingPong(xValue * 0.8, zValue * 0.8, 0.2, 3, 0.5, 2, 1, noise), 0.5f) * 0.8f, 0, 0.5f);
 
-	value += NoiseStandard(xValue, zValue, 0.8, 4, 0.5, 2, noise) / 2 - 0.5;*/
+	float d = 3;
+	float k = 160;
 
-	//value /= 3;
+	noise.SetSeed(1);
+	float mountains = NoiseStandard(x, z, 0.25, 1, 0.5, 2, 0, noise);
+	float noiseRight = NoiseStandard(x + 1, z, 0.25, 1, 0.5, 2, 0, noise);
+	float noiseForward = NoiseStandard(x, z + 1, 0.25, 1, 0.5, 2, 0, noise);
 
-	value = (value + 1) / 2;
-	value *= 0.5;
+	float slopeX = (noiseRight - mountains) / d;
+	float slopeY = (noiseForward - mountains) / d;
+	float slope = std::sqrt(slopeX * slopeX + slopeY * slopeY);
+
+	mountains = glm::mix(0.0f, mountains, 1.0f / (1.0f + k * slope));
+	mountains = (mountains + 1) / 2;
+
+
+	noise.SetSeed(2);
+	float mountains2 = NoiseStandard(x, z, 0.25 * 2, 1, 0.5, 2, 0, noise);
+	float noiseRight2 = NoiseStandard(x + 1, z, 0.25 * 2, 1, 0.5, 2, 0, noise);
+	float noiseForward2 = NoiseStandard(x, z + 1, 0.25 * 2, 1, 0.5, 2, 0, noise);
+
+	float slopeX2 = (noiseRight2 - mountains2) / d;
+	float slopeY2 = (noiseForward2 - mountains2) / d;
+	float slope2 = std::sqrt(slopeX2 * slopeX2 + slopeY2 * slopeY2) + slope;
+
+	mountains2 = glm::mix(0.0f, mountains2, 1.0f / (1.0f + k * slope2));
+	mountains2 = (mountains2 + 1) / 2;
+
+	mountains = glm::mix(mountains, mountains2, 0.25f);
+
+
+	noise.SetSeed(3);
+	float mountains3 = NoiseStandard(x, z, 0.25 * 4, 1, 0.5, 2, 0, noise);
+	float noiseRight3 = NoiseStandard(x + 1, z, 0.25 * 4, 1, 0.5, 2, 0, noise);
+	float noiseForward3 = NoiseStandard(x, z + 1, 0.25 * 4, 1, 0.5, 2, 0, noise);
+
+	float slopeX3 = (noiseRight3 - mountains3) / d;
+	float slopeY3 = (noiseForward3 - mountains3) / d;
+	float slope3 = std::sqrt(slopeX3 * slopeX3 + slopeY3 * slopeY3) + slope + slope2;
+
+	mountains3 = glm::mix(0.0f, mountains3, 1.0f / (1.0f + k * slope3));
+	mountains3 = (mountains3 + 1) / 2;
+
+	mountains = glm::mix(mountains, mountains3, 0.25f / 1);
+
+
+
+	noise.SetSeed(4);
+	float mountains4 = NoiseStandard(x, z, 0.25 * 8, 1, 0.5, 2, 0, noise);
+	float noiseRight4 = NoiseStandard(x + 1, z, 0.25 * 8, 1, 0.5, 2, 0, noise);
+	float noiseForward4 = NoiseStandard(x, z + 1, 0.25 * 8, 1, 0.5, 2, 0, noise);
+
+	float slopeX4 = (noiseRight4 - mountains4) / d;
+	float slopeY4 = (noiseForward4 - mountains4) / d;
+	float slope4 = std::sqrt(slopeX4 * slopeX4 + slopeY4 * slopeY4) + slope + slope2 + slope3;
+
+	mountains4 = glm::mix(0.0f, mountains4, 1.0f / (1.0f + k * slope4));
+	mountains4 = (mountains4 + 1) / 2;
+
+	mountains = glm::mix(mountains, mountains4, 0.25f / 1);
+	mountains *= 1.2;
+
+
+
+
+
+	/*noise.SetSeed(1);
+	float mountains = NoiseStandard(x, z, 0.15, 5, 0.5, 2, 0, noise);
+	mountains *= 1.2;*/
+
+	//mountains = (mountains + 1) / 2;
+
+
+	value = mountains;
+	elevation = glm::mix(0.0f, 0.6f, elevation);
+	mountains = glm::mix(0.0f, pow(1.0f - elevation, 2), mountains);
+	float sharperErosion = 1.0f / (1.0f + exp(-10.0f * (erosion - 0.5f)));
+	mountains *= sharperErosion;
+	value = elevation + mountains;
 
 	value *= this->maxHeight /* this->detailMultiplier*/;
 	value += 1;
@@ -109,13 +180,19 @@ void ChunkGenerator::generateTerain() {
 	this->cells.resize(chunkWidth * chunkWidth * maxHeight);
 	for (int x = 0; x < this->chunkWidth * detailMultiplier; x++) {
 		for (int z = 0; z < this->chunkWidth * detailMultiplier; z++) {
-			int terainHeight = this->GetTerainHeight((float)x, (float)z, noise);
+			float xValue = ((x / this->detailMultiplier) + this->chunkX * this->chunkWidth);
+			float zValue = ((z / this->detailMultiplier) + this->chunkZ * this->chunkWidth);
+
+			int terainHeight = this->GetTerainHeight(xValue, zValue, noise);
 			for (int y = 0; y < this->maxHeight; y++) {
 				int block = BLOCK::Air;
 				if (y <= terainHeight) {
 					block = BLOCK::GRASS;
 					if (y <= waterLevel + 2) {
 						block = BLOCK::SAND;
+					}
+					else if (y > this->maxHeight - (this->maxHeight / 5) * 2) {
+						block = BLOCK::SNOW;
 					}
 				}
 				else if (y <= waterLevel) {
@@ -161,7 +238,7 @@ void ChunkGenerator::generateTerain() {
 							for (float k = 0; k < sphereHeight / 2; k++) {
 								float k2 = k * this->detailMultiplier;
 								if (glm::sqrt(i * i + j * j + k2 * k2) < sphereWidth / 2) {
-									this->addCell(x + i, z + j, y + k + 1 + height + sphereHeight / 2 - 1 - 5, BLOCK::Leaf);
+									this->addCell(x + i, z + j, y + k + 1 + height + sphereHeight / 2 - 1 - 5, BLOCK::LEAF);
 								}
 							}
 						}
@@ -725,11 +802,17 @@ Block ChunkGenerator::GetBlock(BLOCK block) {
 			block.side = this->textureAtlas.getTextureCoordinates(1, 1);
 			block.bottom = this->textureAtlas.getTextureCoordinates(1, 1);
 			return block;
-		case Leaf:
+		case LEAF:
 			block;
 			block.top = this->textureAtlas.getTextureCoordinates(2, 1);
 			block.side = this->textureAtlas.getTextureCoordinates(2, 1);
 			block.bottom = this->textureAtlas.getTextureCoordinates(2, 1);
+			return block;
+		case SNOW:
+			block;
+			block.top = this->textureAtlas.getTextureCoordinates(3, 1);
+			block.side = this->textureAtlas.getTextureCoordinates(3, 1);
+			block.bottom = this->textureAtlas.getTextureCoordinates(3, 1);
 			return block;
 		default:
 			block;
