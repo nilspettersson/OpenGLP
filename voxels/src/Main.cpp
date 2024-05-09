@@ -44,8 +44,8 @@ int main(void) {
         auto currentTime = std::chrono::system_clock::now();
         //auto seconds = std::chrono::duration<float>(currentTime.time_since_epoch()).count();
         float timeDifference = currentTime.time_since_epoch().count() - startTime;
-        std::cout << getCurrentTime() << std::endl;
-        chunckManager->shader.setUniform1f("u_time", getCurrentTime());
+        //std::cout << getCurrentTime() << std::endl;
+        chunckManager->shader.setUniform1f("u_time", -0.25);
 
         chunckManager->updateChunks((camera.getX()) / (chunkSize), camera.getZ() / (chunkSize));
         chunckManager->originX = (camera.getX()) / (chunkSize);

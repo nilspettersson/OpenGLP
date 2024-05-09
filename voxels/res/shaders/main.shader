@@ -62,7 +62,7 @@ void main() {
 		case 3: normal = vec3(0, -1, 0); break;
 		case 4: normal = vec3(0, 0, -1); break;
 		case 5: normal = vec3(0, 0, 1); break;
-		default: normal = vec3(0, 0, 0); // default normal if out of expected range
+		default: normal = vec3(0, 0, 0);
 	}
 
 
@@ -73,13 +73,13 @@ void main() {
 
 	//ambient light
 	vec3 ambientColor = vec3(0.7, 0.8, 1);
-	float ambientIntensity = v_light.x * 0.9f;
+	float ambientIntensity = v_light.x * 0.8f;
 	vec3 ambient = ambientColor * ambientIntensity;
 
 
 	//Sun
-	//vec3 sunDirection = vec3(cos(u_time), sin(u_time), 0.0f);
-	vec3 sunDirection = vec3(0.5f, -0.5f, 0.0f);
+	vec3 sunDirection = vec3(cos(u_time), sin(u_time), 0.0f);
+	//vec3 sunDirection = vec3(0.5f, -0.5f, 0.0f);
 	float sunDot = max(dot(normalize(-sunDirection), normalize(normal)), 0);
 	float sunIntensity = 1.0f;
 	if (sunDirection.y > 0) {
@@ -95,7 +95,7 @@ void main() {
 	color = (ambient + diffuse) * color;
 
 
-	vec3 finalColor = mix(vec3(color.xyz), vec3(0.5, 0.7, 1), 0);
+	vec3 finalColor = mix(vec3(color.xyz), vec3(0.5, 0.7, 1), linearDepth);
 	//colorOutput = vec4(sunDot, sunDot, sunDot, 1);
 	colorOutput = vec4(finalColor, 1);
 	

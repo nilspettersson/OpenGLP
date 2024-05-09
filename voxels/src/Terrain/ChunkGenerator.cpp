@@ -63,8 +63,12 @@ float NoisePingPong(float x, float y, float multiplier, int octaves, float gain,
 int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
 	float value = 0;
 
+	noise.SetSeed(100);
+	float defaultNoise = NoiseStandard(x, z, 0.5, 4, 0.5, 2, 0.5, noise);
+	defaultNoise = (defaultNoise + 1) / 2;
+
 	noise.SetSeed(10);
-	float elevation = NoiseStandard(x, z, 0.02, 4, 0.5, 2, 0.5, noise);
+	float elevation = NoiseStandard(x, z, 0.04, 4, 0.5, 2, 0.5, noise);
 	elevation = (elevation + 1) / 2;
 
 	noise.SetSeed(123321);
@@ -140,7 +144,7 @@ int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
 	mountains *= 1.2;
 
 
-
+	elevation = glm::mix(defaultNoise, elevation, 0.9);
 	elevation = glm::mix(0.0f, 0.6f, elevation);
 	mountains = glm::mix(0.0f, pow(1.0f - elevation, 2), mountains);
 	float sharperErosion = 1.0f / (1.0f + exp(-10.0f * (erosion - 0.5f)));
