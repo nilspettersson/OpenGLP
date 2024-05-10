@@ -17,6 +17,10 @@ glm::mat4 glp::Camera::getProjection() {
 	return output;
 }
 
+glm::mat4 glp::Camera::getViewMatrix() {
+	return glm::mat4();
+}
+
 float glp::Camera::getWidth() {
 	return this->width;
 }
@@ -75,15 +79,30 @@ void glp::Camera3d::updateProjection() {
 glm::mat4 glp::Camera3d::getProjection() {
 	glm::mat4 output = this->projection;
 
-	glm::qua<float> quaternion = glm::qua<float>();
+	/*glm::qua<float> quaternion = glm::qua<float>();
 	quaternion = glm::angleAxis(this->rotation.x, glm::vec3(1, 0, 0));
 	quaternion = glm::rotate(quaternion, this->rotation.y, glm::vec3(0, 1, 0));
 
 	output = output * glm::mat4_cast(quaternion);
 
-	output = glm::translate(output, glm::vec3(this->x, this->y, this->z));
+	output = glm::translate(output, glm::vec3(this->x, this->y, this->z));*/
 	return output;
 }
+
+glm::mat4 glp::Camera3d::getViewMatrix() {
+	glm::qua<float> quaternion = glm::qua<float>();
+	quaternion = glm::angleAxis(this->rotation.x, glm::vec3(1, 0, 0));
+	quaternion = glm::rotate(quaternion, this->rotation.y, glm::vec3(0, 1, 0));
+
+	glm::mat4 output = glm::mat4_cast(quaternion);
+
+	output = glm::translate(output, glm::vec3(this->x, this->y, this->z));
+
+	return output;
+}
+
+
+
 
 float glp::Camera3d::getFov() {
 	return this->fov;

@@ -11,7 +11,9 @@ Renderer::Renderer(Camera& camera): camera(camera) {
 void Renderer::render(Entity& entity) {
 	glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(entity.getX(), entity.getY(), entity.getZ()));
 	model = glm::scale(model, glm::vec3(entity.getScale()));
-	entity.getShader().setUniformMat4f("u_mvp", this->camera.getProjection() * model);
+	entity.getShader().setUniformMat4f("u_p", this->camera.getProjection());
+	entity.getShader().setUniformMat4f("u_model", model);
+	entity.getShader().setUniformMat4f("u_mv", this->camera.getViewMatrix() * model);
 
 	entity.getMaterial().updateUniforms();
 

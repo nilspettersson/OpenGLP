@@ -20,6 +20,7 @@ namespace glp {
 	public:
 		Camera(int width, int height);
 		virtual glm::mat4 getProjection();
+		virtual glm::mat4 getViewMatrix();
 		float getWidth();
 		float getHeight();
 		void setWidth(float width);
@@ -47,6 +48,7 @@ namespace glp {
 		Camera3d(Window& window);
 		Camera3d(int width, int height);
 		glm::mat4 getProjection();
+		glm::mat4 getViewMatrix();
 		float getFov();
 		void setFov(float fovInDegrees);
 
