@@ -5,7 +5,7 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 texCoord;
 layout(location = 2) in vec3 light;
 
-//1 2 3 4 5 6
+//0 1 2 3 4 5
 //left up right down front back
 layout(location = 3) in float normalDirection;
 
@@ -64,7 +64,7 @@ void main() {
 	linearDepth = clamp(linearDepth, 0.0, 1);
 
 	vec3 normal;
-	int direction = int(v_normalDirection + 0.5);  // Adding 0.5 for proper rounding
+	int direction = int(v_normalDirection + 0.5);
 
 	switch (direction) {
 		case 0: normal = vec3(-1, 0, 0); break;
