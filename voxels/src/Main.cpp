@@ -47,6 +47,8 @@ int main(void) {
         //std::cout << getCurrentTime() << std::endl;
         chunckManager->shader.setUniform1f("u_time", -0.25);
 
+        chunckManager->shader.setUniform3f("u_camera", camera.getX(), camera.getY(), camera.getZ());
+
         chunckManager->updateChunks((camera.getX()) / (chunkSize), camera.getZ() / (chunkSize));
         chunckManager->originX = (camera.getX()) / (chunkSize);
         chunckManager->originZ = (camera.getZ()) / (chunkSize);

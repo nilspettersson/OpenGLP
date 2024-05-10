@@ -9,16 +9,26 @@ layout(location = 2) in vec3 light;
 //left up right down front back
 layout(location = 3) in float normalDirection;
 
-uniform mat4 u_mvp;
+uniform vec3 u_camera; // Camera position in world space
+uniform mat4 u_model; // Model Matrix
+uniform mat4 u_mv; // Model-View Matrix
+uniform mat4 u_p; // Projection Matrix
+
 out vec2 v_texCoord;
 out vec3 v_light;
 out float v_normalDirection;
+out vec3 v_cameraViewVector;
 
 void main() {
 	v_light = light;
 	v_normalDirection = normalDirection;
 	v_texCoord = texCoord;
-	gl_Position = u_mvp * vec4(position, 1);
+
+
+	vec4 worldPosition = u_model * vec4(position, 1);
+	v_cameraViewVector = normalize(u_camera + worldPosition.xyz);
+
+	gl_Position = u_p * u_mv * vec4(position, 1.0);
 };
 
 
@@ -36,6 +46,7 @@ uniform sampler2D sampler[10];
 in vec2 v_texCoord;
 in vec3 v_light;
 in float v_normalDirection;
+in vec3 v_cameraViewVector;
 
 
 float linearizeDepth(float depth) {
@@ -66,9 +77,6 @@ void main() {
 	}
 
 
-
-
-
 	vec3 color = vec3(texture.xyz /* v_light.x*/);
 
 	//ambient light
@@ -82,21 +90,23 @@ void main() {
 	//vec3 sunDirection = vec3(0.5f, -0.5f, 0.0f);
 	float sunDot = max(dot(normalize(-sunDirection), normalize(normal)), 0);
 	float sunIntensity = 1.0f;
+	vec3 sunColor = vec3(0.9f, 0.9f, 0.5f);
+
+	//If sun is bellow horizon reduce strength
 	if (sunDirection.y > 0) {
 		sunIntensity *= 1.01f - sunDirection.y;
 		ambient *= 1.01f - sunDirection.y / 1.2f;
 	}
-	vec3 sunColor = vec3(0.9f, 0.9f, 0.5f);
 
 	//diffuse color from sun
 	vec3 diffuse = sunIntensity * sunColor * sunDot;
 
+	vec3 sunReflection = reflect(normalize(-sunDirection), normal);
+	float specularStrength = pow(max(0.0, dot(v_cameraViewVector, sunReflection)), 8) * 1;
 
-	color = (ambient + diffuse) * color;
-
+	color = (ambient + diffuse + specularStrength) * color;
 
 	vec3 finalColor = mix(vec3(color.xyz), vec3(0.5, 0.7, 1), linearDepth);
-	//colorOutput = vec4(sunDot, sunDot, sunDot, 1);
 	colorOutput = vec4(finalColor, 1);
 	
 };
