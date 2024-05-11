@@ -61,13 +61,15 @@ public:
     Block GetBlock(BLOCK block);
 
     int getIndex(int x, int z, int y) const {
-        return x * chunkWidth * maxHeight + z * maxHeight + y;
+        int realChunkWidth = chunkWidth * detailMultiplier;
+        return x * realChunkWidth * maxHeight + z * maxHeight + y;
     }
 
     glm::ivec3 getXYZ(int index) {
+        int realChunkWidth = chunkWidth * detailMultiplier;
         int y = index % maxHeight;
-        int z = (index / maxHeight) % chunkWidth;
-        int x = index / (chunkWidth * maxHeight);
+        int z = (index / maxHeight) % realChunkWidth;
+        int x = index / (realChunkWidth * maxHeight);
         return { x, y, z };
     }
 

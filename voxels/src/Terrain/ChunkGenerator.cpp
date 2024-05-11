@@ -170,7 +170,7 @@ void ChunkGenerator::generateTerain() {
 	this->overflowBefore.clear();
 	this->overflowAfter.clear();
 
-	this->cells.resize(chunkWidth * chunkWidth * maxHeight);
+	this->cells.resize(chunkWidth * chunkWidth * maxHeight * detailMultiplier * detailMultiplier);
 	for (int x = 0; x < this->chunkWidth * detailMultiplier; x++) {
 		for (int z = 0; z < this->chunkWidth * detailMultiplier; z++) {
 			float xValue = ((x / this->detailMultiplier) + this->chunkX * this->chunkWidth);
@@ -393,7 +393,7 @@ int ChunkGenerator::getBlockValue(int x, int y, int z, std::unordered_map<int64_
 	z = (int)glm::mod((float)z, width);
 	x = x * chunk->detailMultiplier / this->detailMultiplier;
 	z = z * chunk->detailMultiplier / this->detailMultiplier;
-	blockValue = chunk->cells[this->getIndex(x, z, y)];
+	blockValue = chunk->cells[chunk->getIndex(x, z, y)];
 	return blockValue;
 }
 

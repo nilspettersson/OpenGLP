@@ -102,7 +102,7 @@ void main() {
 	vec3 diffuse = sunIntensity * sunColor * sunDot;
 
 	vec3 sunReflection = reflect(normalize(-sunDirection), normal);
-	float specularStrength = pow(max(0.0, dot(v_cameraViewVector, sunReflection)), 8) * 1;
+	float specularStrength = pow(max(0.0, dot(v_cameraViewVector, sunReflection)), 8) * 0.7;
 
 	color = (ambient + diffuse + specularStrength) * color;
 
