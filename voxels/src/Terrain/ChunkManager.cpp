@@ -200,19 +200,19 @@ int ChunkManager::generateChunk(int x, int y) {
 				chunkLock.unlock();
 
 				auto keyLeft = getKey(x - 1, y);
-				if (this->chunks.find(keyLeft) != this->chunks.end() && this->chunks.at(keyLeft)->detailMultiplier == detail) {
+				if (this->chunks.find(keyLeft) != this->chunks.end() && this->chunks.at(keyLeft)->detailMultiplier == detail && this->chunks.at(keyLeft)->status > ChunkStatus::TERAIN_GENERATED) {
 					this->chunks.at(keyLeft)->status = ChunkStatus::TERAIN_GENERATED;
 				}
 				auto keyRight = getKey(x + 1, y);
-				if (this->chunks.find(keyRight) != this->chunks.end() && this->chunks.at(keyRight)->detailMultiplier == detail) {
+				if (this->chunks.find(keyRight) != this->chunks.end() && this->chunks.at(keyRight)->detailMultiplier == detail && this->chunks.at(keyRight)->status > ChunkStatus::TERAIN_GENERATED) {
 					this->chunks.at(keyRight)->status = ChunkStatus::TERAIN_GENERATED;
 				}
 				auto keyForward = getKey(x, y + 1);
-				if (this->chunks.find(keyForward) != this->chunks.end() && this->chunks.at(keyForward)->detailMultiplier == detail) {
+				if (this->chunks.find(keyForward) != this->chunks.end() && this->chunks.at(keyForward)->detailMultiplier == detail && this->chunks.at(keyForward)->status > ChunkStatus::TERAIN_GENERATED) {
 					this->chunks.at(keyForward)->status = ChunkStatus::TERAIN_GENERATED;
 				}
 				auto keyBackward = getKey(x, y - 1);
-				if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->detailMultiplier == detail) {
+				if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->detailMultiplier == detail && this->chunks.at(keyBackward)->status > ChunkStatus::TERAIN_GENERATED) {
 					this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
 				}
 				return 1;
@@ -260,8 +260,9 @@ int ChunkManager::CreateMesh(int x, int y) {
 	float distance = deltaX * deltaX + deltaZ * deltaZ;
 	if (distance > chunkCount * chunkCount) return 0;
 
-	auto key = getKey(x, y);
 	std::shared_lock<std::shared_mutex> lock(this->chunksMutex);
+
+	auto key = getKey(x, y);
 	if (this->chunks.find(key) == this->chunks.end() || this->chunks.at(key)->status != ChunkStatus::DECORATIONS_GENERATED) return 0;
 
 	std::unique_lock<std::shared_mutex> mainChunkLock(this->chunks.at(key)->chunkLock, std::defer_lock);
@@ -306,12 +307,10 @@ int ChunkManager::CreateMesh(int x, int y) {
 
 	if (allLocked) {
 		this->chunks.at(key)->generateMesh();
-		//break;
 		locks.clear();
 	}
 	else {
 		locks.clear();
-		//break;
 	}
 	return 0;
 }

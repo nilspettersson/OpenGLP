@@ -163,7 +163,6 @@ void ChunkGenerator::generateTerain() {
 
 	int waterLevel = this->maxHeight / 3;
 
-
 	this->cells.clear();
 	this->decorations.clear();
 	this->overflowLeft.clear();
@@ -253,8 +252,7 @@ void ChunkGenerator::generateTerain() {
 	this->status = ChunkStatus::TERAIN_GENERATED;
 }
 
-void ChunkGenerator::generateDecorations()
-{
+void ChunkGenerator::generateDecorations() {
 	for (auto pos : this->decorations) {
 		this->cells[this->getIndex(pos.x, pos.z, pos.y)] = pos.w;
 	}
