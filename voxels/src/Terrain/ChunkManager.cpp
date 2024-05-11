@@ -155,7 +155,7 @@ int ChunkManager::generateChunk(int x, int y) {
 	else if (distance > 4 * 4) {
 		detail /= 2;
 	}
-	//detail = 1;
+	detail = 1;
 
 	auto key = getKey(x, y);
 	bool chunkEmpty = false;
@@ -215,7 +215,9 @@ int ChunkManager::generateChunk(int x, int y) {
 				if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->detailMultiplier == detail && this->chunks.at(keyBackward)->status > ChunkStatus::TERAIN_GENERATED) {
 					this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
 				}
-				return 1;
+				shared_lock.unlock();
+
+				return 0;
 			}
 		}
 	}

@@ -170,7 +170,7 @@ void ChunkGenerator::generateTerain() {
 	this->overflowBefore.clear();
 	this->overflowAfter.clear();
 
-	this->cells.resize(chunkWidth * chunkWidth * maxHeight * detailMultiplier * detailMultiplier);
+	this->cells.resize(this->chunkWidth * this->chunkWidth * this->maxHeight * this->detailMultiplier * this->detailMultiplier);
 	for (int x = 0; x < this->chunkWidth * detailMultiplier; x++) {
 		for (int z = 0; z < this->chunkWidth * detailMultiplier; z++) {
 			float xValue = ((x / this->detailMultiplier) + this->chunkX * this->chunkWidth);
