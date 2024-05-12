@@ -43,9 +43,11 @@ public:
     int maxHeight;
     int chunkWidth;
     glp::Mesh* mesh;
+    glp::Mesh* meshTransparent;
     std::atomic<ChunkStatus> status;
 
     glp::Entity *chunkEntity;
+    glp::Entity* chunkEntityTransparent;
 
     std::unordered_map<int64_t, ChunkGenerator*>& chunksList;
 

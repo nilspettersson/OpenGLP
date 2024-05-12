@@ -21,8 +21,8 @@ int main(void) {
 
     auto renderer = glp::Renderer(camera);
 
-    int chunkSize = 16;
-    auto chunckManager = new ChunkManager(64, chunkSize, 384);
+    int chunkSize = 32;
+    auto chunckManager = new ChunkManager(32, chunkSize, 384);
 
     bool useCursorMovement = true;
 
@@ -49,6 +49,8 @@ int main(void) {
         chunckManager->originZ = (camera.getZ()) / (chunkSize);
 
 
+        std::vector<glp::Entity*> transparentChunks;
+
         Frustum frustum = Frustum(camera.getProjection() * camera.getViewMatrix());
         for (auto i = chunckManager->chunks.begin(); i != chunckManager->chunks.end(); i++) {
             const auto& chunk = i->second;
@@ -60,7 +62,15 @@ int main(void) {
                 continue;
             }
 
+            if (chunk->chunkEntityTransparent != nullptr) {
+                transparentChunks.push_back(chunk->chunkEntityTransparent);
+            }
+
             renderer.render(*chunk->chunkEntity);
+        }
+
+        for (auto& chunk : transparentChunks) {
+            renderer.render(*chunk);
         }
 
 

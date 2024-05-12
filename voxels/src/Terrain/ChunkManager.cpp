@@ -354,21 +354,42 @@ void ChunkManager::CreateEntities() {
 			if (chunk->mesh == nullptr) continue;
 
 			auto vao = new glp::Vao(*chunk->mesh, false);
+			glp::Vao* vaoTransparent = nullptr;
+
+			if (chunk->meshTransparent->vertices.size() != 0) {
+				vaoTransparent = new glp::Vao(*chunk->meshTransparent, false);
+			}
+
 			if (chunk->chunkEntity != NULL) {
 				delete chunk->chunkEntity->model;
 				chunk->chunkEntity->setModel(vao);
+
+				if (vaoTransparent != nullptr) {
+					chunk->chunkEntityTransparent->setModel(vaoTransparent);
+				}
 			}
 			else {
 				auto entity = new glp::Entity(vao, &this->shader, 1);
 				entity->setX(chunk->chunkX * chunk->chunkWidth);
 				entity->setZ(chunk->chunkZ * chunk->chunkWidth);
 				entity->addTexture(&this->textureAtlas.texture);
-
 				chunk->chunkEntity = entity;
+
+				if (vaoTransparent != nullptr) {
+					auto entityTransparent = new glp::Entity(vaoTransparent, &this->shader, 1);
+					entityTransparent->setX(chunk->chunkX * chunk->chunkWidth);
+					entityTransparent->setZ(chunk->chunkZ * chunk->chunkWidth);
+					entityTransparent->addTexture(&this->textureAtlas.texture);
+
+					chunk->chunkEntityTransparent = entityTransparent;
+				}
 			}
 			chunk->status = ChunkStatus::RENDERED;
 			delete chunk->mesh;
 			chunk->mesh = nullptr;
+
+			delete chunk->meshTransparent;
+			chunk->meshTransparent = nullptr;
 		}
 	}
 }

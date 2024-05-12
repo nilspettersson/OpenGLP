@@ -107,6 +107,12 @@ void main() {
 	color = (ambient + diffuse + specularStrength) * color;
 
 	vec3 finalColor = mix(vec3(color.xyz), vec3(0.5, 0.7, 1), linearDepth);
-	colorOutput = vec4(finalColor, 1);
+
+	float opacity = 1;
+	if (texture.w != 1) {
+		opacity = specularStrength + texture.w;
+	}
+
+	colorOutput = vec4(finalColor, opacity);
 	
 };

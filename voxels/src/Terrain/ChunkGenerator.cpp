@@ -12,7 +12,9 @@ ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHe
 	this->cells = {};
 	this->detailMultiplier = detailMultiplier;
 	this->mesh = nullptr;
+	this->meshTransparent = nullptr;
 	this->chunkEntity = NULL;
+	this->chunkEntityTransparent = NULL;
 
 	this->decorations = {};
 	this->overflowLeft = {};
@@ -26,11 +28,20 @@ ChunkGenerator::ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHe
 ChunkGenerator::~ChunkGenerator()
 {
 	delete this->mesh;
+	delete this->meshTransparent;
 	if (this->chunkEntity != nullptr) {
 		delete this->chunkEntity->model;
 		this->chunkEntity->model = nullptr;
+
 		delete this->chunkEntity;
 		this->chunkEntity = nullptr;
+	}
+	if (this->chunkEntityTransparent != nullptr) {
+		delete this->chunkEntityTransparent->model;
+		this->chunkEntityTransparent->model = nullptr;
+
+		delete this->chunkEntityTransparent;
+		this->chunkEntityTransparent = nullptr;
 	}
 }
 
@@ -401,8 +412,14 @@ void ChunkGenerator::generateMesh() {
 	delete this->mesh;
 	this->mesh = nullptr;
 
+	delete this->meshTransparent;
+	this->meshTransparent = nullptr;
+
 	auto vertices = std::vector<float>();
 	auto indices = std::vector<unsigned int>();
+
+	auto verticesTransparent = std::vector<float>();
+	auto indicesTransparent = std::vector<unsigned int>();
 
 	std::unordered_map<int64_t, ChunkGenerator*> nearChunks;
 	auto keyLeft = ChunkManager::getKey(chunkX - 1, chunkZ);
@@ -460,7 +477,7 @@ void ChunkGenerator::generateMesh() {
 			Block coordinates = GetBlock((BLOCK)block);
 			if (block == BLOCK::WATER) {
 				if (this->getBlockValue(x, y + 1, z, nearChunks) != BLOCK::Air) continue;
-				createPlane(PlaneType::HORIZONTAL, vertices, indices, positionX, positionY + 0.5, positionZ, size, coordinates.top, { 1, 1, 1, 1 }, 1);
+				createPlane(PlaneType::HORIZONTAL, verticesTransparent, indicesTransparent, positionX, positionY + 0.5, positionZ, size, coordinates.top, { 1, 1, 1, 1 }, 1);
 				continue;
 			}
 
@@ -613,6 +630,7 @@ void ChunkGenerator::generateMesh() {
 	}
 
 	this->mesh = new glp::Mesh({ 3, 2, 3, 1 }, vertices, indices);
+	this->meshTransparent = new glp::Mesh({ 3, 2, 3, 1 }, verticesTransparent, indicesTransparent);
 	this->status = ChunkStatus::MESH_GENERATED;
 }
 
