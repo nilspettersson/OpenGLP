@@ -26,7 +26,7 @@ public:
     
     mutable std::shared_mutex chunksMutex;
 
-    void spiral(std::function<int(int x, int y)> processChunk);
+    void spiral(std::function<int(int x, int y)> processChunk, int maxChunksToProccess);
     int addChunk(int x, int y);
     int generateChunk(int x, int y);
     int generateDecorations(int x, int y);

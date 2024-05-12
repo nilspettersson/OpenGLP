@@ -32,16 +32,21 @@ ChunkManager::~ChunkManager() {
 	}
 
 }
-void ChunkManager::spiral(std::function<int(int x, int y)> processChunk)
-{
-	//std::cout << this->originX << this->originZ << std::endl;
+void ChunkManager::spiral(std::function<int(int x, int y)> processChunk, int maxChunksToProccess) {
+	int proccessedChunksCount = 0;
+
+
 	int centerX = -this->originX; // Assuming originX is defined relative to the player
 	int centerZ = -this->originZ; // Assuming originZ is defined relative to the player
 	int layer = 1;
 	int maxLayer = chunkCount; // Define how far out you want to generate
 
 	// Generate the center chunk first
-	if (processChunk(centerX, centerZ) == 1) return;
+	if (processChunk(centerX, centerZ) == 1) {
+		proccessedChunksCount++;
+	}
+
+	if (proccessedChunksCount >= maxChunksToProccess) return;
 
 	// Spiral outward
 	while (layer <= maxLayer) {
@@ -51,22 +56,35 @@ void ChunkManager::spiral(std::function<int(int x, int y)> processChunk)
 
 		// Top side (moving right)
 		for (int i = 0; i < sideLength; ++i, ++x) {
-			if (processChunk(x, z) == 1) return;
+			if (processChunk(x, z) == 1) {
+				proccessedChunksCount++;
+			}
+			if (proccessedChunksCount >= maxChunksToProccess) return;
 		}
 
 		// Right side (moving down)
 		for (int i = 0; i < sideLength; ++i, ++z) {
-			if (processChunk(x, z) == 1) return;
+			if (processChunk(x, z) == 1) {
+				proccessedChunksCount++;
+			}
+			if (proccessedChunksCount >= maxChunksToProccess) return;
 		}
 
 		// Bottom side (moving left)
 		for (int i = 0; i < sideLength; ++i, --x) {
-			if (processChunk(x, z) == 1) return;
+			if (processChunk(x, z) == 1) {
+				proccessedChunksCount++;
+			}
+
+			if (proccessedChunksCount >= maxChunksToProccess) return;
 		}
 
 		// Left side (moving up)
 		for (int i = 0; i < sideLength; ++i, --z) {
-			if (processChunk(x, z) == 1) return;
+			if (processChunk(x, z) == 1) {
+				proccessedChunksCount++;
+			}
+			if (proccessedChunksCount >= maxChunksToProccess) return;
 		}
 
 		// Move to the next layer
@@ -97,7 +115,7 @@ void ChunkManager::updateChunks(int originX, int originZ) {
 	this->originX = originX;
 	this->originZ = originZ;
 
-	spiral(std::bind(&ChunkManager::addChunk, this, std::placeholders::_1, std::placeholders::_2));
+	spiral(std::bind(&ChunkManager::addChunk, this, std::placeholders::_1, std::placeholders::_2), 20);
 
 	this->CreateEntities();
 
@@ -251,8 +269,8 @@ int ChunkManager::generateDecorations(int x, int y) {
 }
 
 void ChunkManager::generateChunks() {
-	spiral(std::bind(&ChunkManager::generateChunk, this, std::placeholders::_1, std::placeholders::_2));
-	spiral(std::bind(&ChunkManager::generateDecorations, this, std::placeholders::_1, std::placeholders::_2));
+	spiral(std::bind(&ChunkManager::generateChunk, this, std::placeholders::_1, std::placeholders::_2), 1);
+	spiral(std::bind(&ChunkManager::generateDecorations, this, std::placeholders::_1, std::placeholders::_2), 1);
 	
 }
 
@@ -320,7 +338,7 @@ int ChunkManager::CreateMesh(int x, int y) {
 void ChunkManager::CreateChunkMesh() {
 	while (isRunning) {
 		generateChunks();
-		spiral(std::bind(&ChunkManager::CreateMesh, this, std::placeholders::_1, std::placeholders::_2));
+		spiral(std::bind(&ChunkManager::CreateMesh, this, std::placeholders::_1, std::placeholders::_2), 1);
 		std::this_thread::sleep_for(12ms);
 	}
 }
