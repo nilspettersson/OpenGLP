@@ -21,8 +21,8 @@ int main(void) {
 
     auto renderer = glp::Renderer(camera);
 
-    int chunkSize = 32;
-    auto chunckManager = new ChunkManager(32, chunkSize, 384);
+    int chunkSize = 124;
+    auto chunckManager = new ChunkManager(14, chunkSize, 384);
 
     bool useCursorMovement = true;
 

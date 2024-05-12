@@ -173,7 +173,7 @@ int ChunkManager::generateChunk(int x, int y) {
 	else if (distance > 4 * 4) {
 		detail /= 2;
 	}
-	detail = 1;
+	//detail = 1;
 
 	auto key = getKey(x, y);
 	bool chunkEmpty = false;
@@ -204,8 +204,6 @@ int ChunkManager::generateChunk(int x, int y) {
 				if (this->chunks.find(keyBackward) != this->chunks.end() && this->chunks.at(keyBackward)->status != ChunkStatus::NONE) {
 					this->chunks.at(keyBackward)->status = ChunkStatus::TERAIN_GENERATED;
 				}
-				
-				//break;
 			}
 		}
 		else {
@@ -235,7 +233,7 @@ int ChunkManager::generateChunk(int x, int y) {
 				}
 				shared_lock.unlock();
 
-				return 0;
+				return 1;
 			}
 		}
 	}
@@ -269,7 +267,7 @@ int ChunkManager::generateDecorations(int x, int y) {
 }
 
 void ChunkManager::generateChunks() {
-	spiral(std::bind(&ChunkManager::generateChunk, this, std::placeholders::_1, std::placeholders::_2), 1);
+	spiral(std::bind(&ChunkManager::generateChunk, this, std::placeholders::_1, std::placeholders::_2), 4);
 	spiral(std::bind(&ChunkManager::generateDecorations, this, std::placeholders::_1, std::placeholders::_2), 1);
 	
 }
@@ -328,6 +326,7 @@ int ChunkManager::CreateMesh(int x, int y) {
 	if (allLocked) {
 		this->chunks.at(key)->generateMesh();
 		locks.clear();
+		return 1;
 	}
 	else {
 		locks.clear();
@@ -338,8 +337,8 @@ int ChunkManager::CreateMesh(int x, int y) {
 void ChunkManager::CreateChunkMesh() {
 	while (isRunning) {
 		generateChunks();
-		spiral(std::bind(&ChunkManager::CreateMesh, this, std::placeholders::_1, std::placeholders::_2), 1);
-		std::this_thread::sleep_for(12ms);
+		spiral(std::bind(&ChunkManager::CreateMesh, this, std::placeholders::_1, std::placeholders::_2), 2);
+		std::this_thread::sleep_for(20ms);
 	}
 }
 
@@ -364,7 +363,8 @@ void ChunkManager::CreateEntities() {
 				delete chunk->chunkEntity->model;
 				chunk->chunkEntity->setModel(vao);
 
-				if (vaoTransparent != nullptr) {
+				if (vaoTransparent != nullptr && chunk->chunkEntityTransparent != nullptr) {
+					delete chunk->chunkEntityTransparent->model;
 					chunk->chunkEntityTransparent->setModel(vaoTransparent);
 				}
 			}
