@@ -1,6 +1,7 @@
 #include "OpenGLP.h"
 #include "./Terrain/ChunkGenerator.h"
 #include "./Terrain/ChunkManager.h"
+#include "util/Frustum.h"
 
 using namespace std::chrono;
 float getCurrentTime() {
@@ -29,7 +30,6 @@ int main(void) {
     window.getInput().setCursorPosition(0, 0);
 
 
-    float startTime = std::chrono::system_clock::now().time_since_epoch().count();
 
 	while (!window.shouldClose()) {
         glm::vec3 skyColor = { 0.5, 0.7, 1 };
@@ -41,21 +41,25 @@ int main(void) {
         
 		window.drawStart(skyColor.r, skyColor.g, skyColor.b);
 
-        auto currentTime = std::chrono::system_clock::now();
-        //auto seconds = std::chrono::duration<float>(currentTime.time_since_epoch()).count();
-        float timeDifference = currentTime.time_since_epoch().count() - startTime;
-        //std::cout << getCurrentTime() << std::endl;
         chunckManager->shader.setUniform1f("u_time", -0.25);
-
         chunckManager->shader.setUniform3f("u_camera", camera.getX(), camera.getY(), camera.getZ());
 
         chunckManager->updateChunks((camera.getX()) / (chunkSize), camera.getZ() / (chunkSize));
         chunckManager->originX = (camera.getX()) / (chunkSize);
         chunckManager->originZ = (camera.getZ()) / (chunkSize);
 
+
+        Frustum frustum = Frustum(camera.getProjection() * camera.getViewMatrix());
         for (auto i = chunckManager->chunks.begin(); i != chunckManager->chunks.end(); i++) {
-            const auto &chunk = i->second;
+            const auto& chunk = i->second;
             if (chunk->chunkEntity == nullptr) continue;
+
+            auto boxMin = glm::vec3(chunk->chunkEntity->getX(), chunk->chunkEntity->getY(), chunk->chunkEntity->getZ());
+            auto boxMax = glm::vec3(chunk->chunkEntity->getX() + chunk->chunkWidth, chunk->chunkEntity->getY() + chunk->maxHeight, chunk->chunkEntity->getZ() + chunk->chunkWidth);
+            if (!frustum.IsBoxVisible(boxMin, boxMax)) {
+                continue;
+            }
+
             renderer.render(*chunk->chunkEntity);
         }
 
