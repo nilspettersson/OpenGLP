@@ -161,16 +161,16 @@ int ChunkManager::generateChunk(int x, int y) {
 	float distance = deltaX * deltaX + deltaZ * deltaZ;
 	if (distance > chunkCount * chunkCount) return 0;
 
-	if (distance > 24 * 24) {
+	/*if (distance > 32 * 32) {
 			detail /= 16;
-		}
-	else if (distance >16 * 16) {
+	}
+	else */if (distance > 24 * 24) {
 		detail /= 8;
 	}
-	else if (distance > 8 * 8) {
+	else if (distance > 10 * 10) {
 		detail /= 4;
 	}
-	else if (distance > 4 * 4) {
+	else if (distance > 6 * 6) {
 		detail /= 2;
 	}
 	//detail = 1;

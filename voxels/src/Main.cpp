@@ -14,15 +14,15 @@ float getCurrentTime() {
 
 int main(void) {
 
-    auto window = glp::Window(1200, 900);
+    auto window = glp::Window();
 	auto camera = glp::Camera3d(window);
 	camera.setZ(-3);
     camera.setY(-126);
 
     auto renderer = glp::Renderer(camera);
 
-    int chunkSize = 124;
-    auto chunckManager = new ChunkManager(14, chunkSize, 384);
+    int chunkSize = 128;
+    auto chunckManager = new ChunkManager(20, chunkSize, 384);
 
     bool useCursorMovement = true;
 
@@ -86,7 +86,7 @@ int main(void) {
         }
 
 
-        float speed = 2.4;
+        float speed = 0.15;
         if (window.getInput().isKeyDown(GLP_KEY_W)) {
             camera.moveForward(speed);
         }

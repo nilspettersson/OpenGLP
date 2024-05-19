@@ -18,6 +18,7 @@ out vec2 v_texCoord;
 out vec3 v_light;
 out float v_normalDirection;
 out vec3 v_cameraViewVector;
+out vec3 v_worldPosition;
 
 void main() {
 	v_light = light;
@@ -26,6 +27,8 @@ void main() {
 
 
 	vec4 worldPosition = u_model * vec4(position, 1);
+	v_worldPosition = worldPosition.xyz;
+
 	v_cameraViewVector = normalize(u_camera + worldPosition.xyz);
 
 	gl_Position = u_p * u_mv * vec4(position, 1.0);
@@ -47,6 +50,7 @@ in vec2 v_texCoord;
 in vec3 v_light;
 in float v_normalDirection;
 in vec3 v_cameraViewVector;
+in vec3 v_worldPosition;
 
 
 float linearizeDepth(float depth) {
@@ -54,6 +58,11 @@ float linearizeDepth(float depth) {
 	float u_far = 6000.0f;
 	float z = depth * 2.0 - 1.0;
 	return (2.0 * u_near * u_far) / (u_far + u_near - z * (u_far - u_near));
+}
+
+float fresnel(float amount, vec3 normal, vec3 view)
+{
+	return pow((1.0 - clamp(dot(normalize(normal), normalize(view)), 0.0, 1.0)), amount);
 }
 
 void main() {
@@ -102,15 +111,26 @@ void main() {
 	vec3 diffuse = sunIntensity * sunColor * sunDot;
 
 	vec3 sunReflection = reflect(normalize(-sunDirection), normal);
-	float specularStrength = pow(max(0.0, dot(v_cameraViewVector, sunReflection)), 8) * 0.7;
+	float specularStrength = pow(max(0.0, dot(v_cameraViewVector, sunReflection)), 8) * 0.6;
+
+	//float frenelStrength = abs(dot(-normal, v_cameraViewVector));
+	//frenelStrength = frenelStrength;
+	float fresnelStrength = fresnel(3, normal, -v_cameraViewVector);
+
+	specularStrength = max(0, specularStrength + fresnelStrength / 4);
 
 	color = (ambient + diffuse + specularStrength) * color;
+
+	float normalizedValue = v_worldPosition.y / 384;
+	float newValue = normalizedValue * 3;
+
+	color *= min(pow(newValue, 8), 1);
 
 	vec3 finalColor = mix(vec3(color.xyz), vec3(0.5, 0.7, 1), linearDepth);
 
 	float opacity = 1;
 	if (texture.w != 1) {
-		opacity = specularStrength + texture.w;
+		opacity = fresnelStrength + specularStrength / 6;
 	}
 
 	colorOutput = vec4(finalColor, opacity);
