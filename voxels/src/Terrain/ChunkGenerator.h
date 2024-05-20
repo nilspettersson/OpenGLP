@@ -62,6 +62,8 @@ public:
 
     Block GetBlock(BLOCK block);
 
+    bool isTransparent(BLOCK block);
+
     int getIndex(int x, int z, int y) const {
         int realChunkWidth = chunkWidth * detailMultiplier;
         return x * realChunkWidth * maxHeight + z * maxHeight + y;

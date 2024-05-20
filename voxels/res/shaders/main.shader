@@ -113,8 +113,6 @@ void main() {
 	vec3 sunReflection = reflect(normalize(-sunDirection), normal);
 	float specularStrength = pow(max(0.0, dot(v_cameraViewVector, sunReflection)), 8) * 0.6;
 
-	//float frenelStrength = abs(dot(-normal, v_cameraViewVector));
-	//frenelStrength = frenelStrength;
 	float fresnelStrength = fresnel(3, normal, -v_cameraViewVector);
 
 	specularStrength = max(0, specularStrength + fresnelStrength / 4);
@@ -128,8 +126,8 @@ void main() {
 
 	vec3 finalColor = mix(vec3(color.xyz), vec3(0.5, 0.7, 1), linearDepth);
 
-	float opacity = 1;
-	if (texture.w != 1) {
+	float opacity = texture.w;
+	if (v_texCoord.x >=  0.25f && v_texCoord.x < 0.5f && v_texCoord.y >= 0.25f && v_texCoord.y < 0.5f /*texture.w != 1*/) {
 		opacity = fresnelStrength + specularStrength / 6;
 	}
 

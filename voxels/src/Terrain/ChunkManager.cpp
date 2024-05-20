@@ -4,7 +4,7 @@
 using namespace std::chrono_literals;
 ChunkManager::ChunkManager(int chunks, int chunkWidth, int chunkHeight):
 	shader("res/shaders/main.shader"),
-	textureAtlas("res/textures/test.png", glp::Texture::FILTER::LINEAR, 16) {
+	textureAtlas("res/textures/test2.png", glp::Texture::FILTER::LINEAR, 16) {
 
 	this->chunkWidth = chunkWidth;
 	this->chunkHeight = chunkHeight;
