@@ -29,7 +29,22 @@ private:
     std::vector<glm::vec4> overflowAfter;
     TextureAtlas& textureAtlas;
 
+    enum BIOMES {
+        FLAT,
+        FOREST,
+        DESERT
+    };
+
+    struct BiomeInformation {
+        BIOMES biome;
+        float temperature;
+        float humidity;
+    };
+
     int GetTerainHeight(float x, float z, FastNoiseLite noise);
+    BiomeInformation GetBiome(float x, float z, FastNoiseLite noise);
+
+    
 public:
     ChunkGenerator(int chunkX, int chunkZ, int chunkWidth, int maxHeight, float detailMultiplier, TextureAtlas& textureAtlas, std::unordered_map<int64_t, ChunkGenerator*>& chunksList, std::shared_mutex& chunkListLock);
     ~ChunkGenerator();
@@ -52,6 +67,7 @@ public:
     std::unordered_map<int64_t, ChunkGenerator*>& chunksList;
 
     void generateTerain();
+
 
     void generateDecorations();
     void addCell(int x, int z, int y, BLOCK block);

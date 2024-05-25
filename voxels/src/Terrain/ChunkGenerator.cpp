@@ -71,6 +71,34 @@ float NoisePingPong(float x, float y, float multiplier, int octaves, float gain,
 	return noise.GetNoise(x * multiplier, y * multiplier);
 }
 
+ChunkGenerator::BiomeInformation ChunkGenerator::GetBiome(float x, float z, FastNoiseLite noise) {
+	int seed = 2;
+	noise.SetSeed(seed);
+
+	
+	float temperature = NoiseStandard(x, z, 0.1, 3, 0.5, 2, 0.5, noise);
+	temperature = (temperature + 1.0f) / 2.0f;
+
+	noise.SetSeed(seed + 100);
+	float Humidity = NoiseStandard(x, z, 0.1, 3, 0.5, 2, 0.5, noise);
+	Humidity = (Humidity + 1) / 2;
+
+	
+	auto value = BIOMES::FLAT;
+	if (temperature > 0.5 && Humidity > 0.4) {
+		value = BIOMES::FOREST; 
+	}
+	else if (temperature > 0.7 && Humidity < 0.3) {
+		value = BIOMES::DESERT;
+	}
+	
+	BiomeInformation biome;
+	biome.biome = value;
+	biome.temperature = temperature;
+	biome.humidity = Humidity;
+	return biome;
+}
+
 int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
 	float value = 0;
 
@@ -161,9 +189,8 @@ int ChunkGenerator::GetTerainHeight(float x, float z, FastNoiseLite noise) {
 	float sharperErosion = 1.0f / (1.0f + exp(-10.0f * (erosion - 0.5f)));
 	mountains *= sharperErosion;
 	value = elevation + mountains;
-
 	value *= this->maxHeight /* this->detailMultiplier*/;
-	value += 1;
+	value -= 1;
 
 	return value;
 }
@@ -188,6 +215,15 @@ void ChunkGenerator::generateTerain() {
 			float zValue = ((z / this->detailMultiplier) + this->chunkZ * this->chunkWidth);
 
 			int terainHeight = this->GetTerainHeight(xValue, zValue, noise);
+			
+			auto biome = GetBiome(xValue, zValue, noise);
+
+			auto groundBlock = BLOCK::GRASS;
+			if (biome.biome == BIOMES::DESERT) {
+				groundBlock = BLOCK::SAND;
+			}
+
+			//std::cout << biome.temperature * 20 << std::endl;
 
 			for (int y = 0; y < this->maxHeight; y++) {
 				/*noise.SetSeed(3458976);
@@ -196,12 +232,21 @@ void ChunkGenerator::generateTerain() {
 
 				int block = BLOCK::Air;
 				if (y <= terainHeight) {
-					block = BLOCK::GRASS;
+					block = groundBlock;
 					if (y <= waterLevel + 2) {
 						block = BLOCK::SAND;
 					}
-					else if (y > this->maxHeight - (this->maxHeight / 5) * 2) {
-						block = BLOCK::SNOW;
+					else if (y > this->maxHeight - (this->maxHeight / 5) * 2 + biome.temperature * 100 - 50) {
+						if (biome.biome == BIOMES::DESERT) {
+							block = BLOCK::SAND;
+						}
+						/*else if (biome.temperature > 0.65) {
+							//block = BLOCK::GRASS;
+						}*/
+						else {
+							block = BLOCK::SNOW;
+						}
+						
 					}
 				}
 				else if (y <= waterLevel) {
@@ -216,8 +261,15 @@ void ChunkGenerator::generateTerain() {
 		for (int z = 0; z < this->chunkWidth * detailMultiplier; z++) {
 			float xValue = (x / this->detailMultiplier + this->chunkX * this->chunkWidth);
 			float zValue = (z / this->detailMultiplier + this->chunkZ * this->chunkWidth);
+
+			auto biome =  GetBiome(xValue, zValue, noise);
+			if (biome.biome == BIOMES::FLAT) {
+				continue;
+			}
+
+
 			float treePlacement = NoiseStandard(xValue, zValue, 50, 1, 1, 1, 0, noise);
-			if (treePlacement > 0.98 - glm::pow(1 - this->detailMultiplier, 8)) {
+			if (treePlacement > 0.95 - glm::pow(1 - this->detailMultiplier, 8)) {
 				treePlacement = 1;
 			}
 			else {
