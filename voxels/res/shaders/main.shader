@@ -131,6 +131,10 @@ void main() {
 		opacity = fresnelStrength + specularStrength / 6;
 	}
 
+	if (texture.w < 0.1) {
+		discard;
+	}
+
 	colorOutput = vec4(finalColor, opacity);
 	
 };
