@@ -423,7 +423,7 @@ void createPlane(PlaneType planeType, std::vector<float>& vertices, std::vector<
 		};
 	}
 
-	std::vector<unsigned int> planeIndices{
+	std::vector<unsigned int> planeIndices {
 		0, 1, 2,
 		2, 3, 0,
 	};
@@ -521,15 +521,15 @@ void ChunkGenerator::generateMesh() {
 			float positionX = x * size + positionOffset;
 			float positionZ = z * size + positionOffset;
 			float positionY = y;
-			if (this->detailMultiplier != 1) {
-				positionY -= size;
-			}
-			//left up right down front back
-
 
 			auto* selectedVertices = &vertices;
 			auto* selectedIndices = &indices;
 
+			if (block != BLOCK::WATER) {
+				if (this->detailMultiplier != 1) {
+					positionY -= size;
+				}
+			}
 
 			if (block == BLOCK::WATER || block == BLOCK::LEAF) {
 				selectedVertices = &verticesTransparent;
